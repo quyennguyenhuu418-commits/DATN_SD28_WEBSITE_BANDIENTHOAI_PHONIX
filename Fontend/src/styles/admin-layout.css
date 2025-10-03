@@ -1,0 +1,329 @@
+/* Admin Layout Styles - Common styles for all admin pages */
+
+/* Page Container */
+.page {
+  padding: 20px;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+/* Search Section - Basic styles only */
+.search-section {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.total-count {
+  font-size: 14px;
+  color: #666;
+}
+
+.count-number {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+/* Main Content */
+.main-content {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.content-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.title-icon {
+  font-size: 18px;
+}
+
+.content-title h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.content-count {
+  font-size: 14px;
+  color: #6c757d;
+  background: #e9ecef;
+  padding: 6px 12px;
+  border-radius: 20px;
+}
+
+/* Table Styles */
+.table-container {
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table thead {
+  background: #f8f9fa;
+}
+
+.data-table th {
+  border: 1px solid #e0e0e0;
+  padding: 12px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+}
+
+.data-table td {
+  border: 1px solid #e0e0e0;
+  padding: 12px;
+  font-size: 14px;
+  color: #374151;
+  text-align: center;
+}
+
+.table-row:hover {
+  background-color: #f9fafb;
+}
+
+/* Column Styles */
+.checkbox-col {
+  width: 50px;
+  text-align: center;
+}
+
+.stt-col {
+  width: 80px;
+  text-align: center;
+  font-weight: 500;
+  color: #6c757d;
+}
+
+.code-col {
+  width: 120px;
+}
+
+.code-text {
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: #007bff;
+  font-weight: 500;
+}
+
+.name-col {
+  min-width: 200px;
+  font-weight: 500;
+}
+
+.desc-col {
+  min-width: 150px;
+  color: #6c757d;
+}
+
+.status-col {
+  width: 140px;
+  min-width: 140px;
+  text-align: center;
+}
+
+.date-col {
+  width: 120px;
+  min-width: 120px;
+  text-align: center;
+  color: #6c757d;
+  font-size: 13px;
+}
+
+.action-col {
+  width: 120px;
+  text-align: center;
+}
+
+/* Status Styles */
+.status-active {
+  color: #10b981;
+  font-weight: 500;
+}
+
+.status-inactive {
+  color: #ef4444;
+  font-weight: 500;
+}
+
+/* Action Buttons */
+.edit-btn, .delete-btn {
+  background: none;
+  border: none;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin: 0 2px;
+}
+
+.edit-btn:hover {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.delete-btn:hover {
+  background: #ffebee;
+  color: #d32f2f;
+}
+
+.edit-icon, .delete-icon {
+  font-size: 16px;
+}
+
+/* Pagination */
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-top: 1px solid #e0e0e0;
+  background: #f8f9fa;
+  border-radius: 0 0 8px 8px;
+}
+
+.pagination-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.items-per-page {
+  padding: 4px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.pagination-center {
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.pagination-right {
+  display: flex;
+  gap: 4px;
+}
+
+.pagination-btn {
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  background: white;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: #f8f9fa;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-btn.active {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+/* Form Buttons */
+.btn-primary {
+  background: #10b981;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+  background: #059669;
+}
+
+.btn-secondary {
+  background: #6b7280;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.btn-secondary:hover {
+  background: #4b5563;
+}
+
+/* Checkbox */
+.checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .page {
+    padding: 12px;
+  }
+  
+  .search-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  
+  .search-input-container {
+    min-width: auto;
+  }
+  
+  .action-buttons {
+    justify-content: center;
+  }
+  
+  .content-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+  
+  .pagination {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .pagination-right {
+    justify-content: center;
+  }
+}
