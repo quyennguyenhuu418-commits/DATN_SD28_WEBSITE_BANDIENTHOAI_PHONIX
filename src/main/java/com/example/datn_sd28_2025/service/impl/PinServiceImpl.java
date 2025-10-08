@@ -26,6 +26,12 @@ public class PinServiceImpl implements PinService {
     }
 
     @Override
+    public List<PinDTO> getActive() {
+        return pinRepository.findAllActive().stream()
+                .map(this::convertToDto).toList();
+    }
+
+    @Override
     public Page<PinDTO> getAll(Pageable pageable) {
         return pinRepository.findAll(pageable)
                 .map(this::convertToDto);

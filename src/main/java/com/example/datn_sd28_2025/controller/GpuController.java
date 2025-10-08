@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+
 
 @RestController
 @RequestMapping("/api/gpu")
@@ -22,6 +22,11 @@ public class GpuController {
     @GetMapping
     public ResponseEntity<List<GpuDTO>> getAll() {
         return ResponseEntity.ok(gpuService.getAll());
+    }
+
+    @GetMapping("/active")
+    public ResponseEntity<List<GpuDTO>> getActive() {
+        return ResponseEntity.ok(gpuService.getActive());
     }
 
     @GetMapping("/{id}")

@@ -9,6 +9,7 @@ import java.util.Optional;
 
 public interface HangService {
     List<HangDTO> getAll();
+    List<HangDTO> getActive();
     Optional<HangDTO> getById(Integer id);
     HangDTO save(HangDTO hangDTO);
     void delete(Integer id);

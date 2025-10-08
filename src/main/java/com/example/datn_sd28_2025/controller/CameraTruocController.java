@@ -25,6 +25,12 @@ public class CameraTruocController {
         return ResponseEntity.ok(cameras);
     }
 
+    @GetMapping("/active")
+    public ResponseEntity<List<CameraTruocDTO>> getActive() {
+        List<CameraTruocDTO> cameras = cameraTruocService.getActive();
+        return ResponseEntity.ok(cameras);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<CameraTruocDTO> getById(@PathVariable Integer id) {
         Optional<CameraTruocDTO> camera = cameraTruocService.getById(id);

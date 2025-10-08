@@ -7,6 +7,7 @@ import java.util.Optional;
 
 public interface ManHinhService {
     List<ManHinhDTO> getAll();
+    List<ManHinhDTO> getActive();
     Optional<ManHinhDTO> getById(Integer id);
     ManHinhDTO save(ManHinhDTO manHinhDTO);
     void delete(Integer id);

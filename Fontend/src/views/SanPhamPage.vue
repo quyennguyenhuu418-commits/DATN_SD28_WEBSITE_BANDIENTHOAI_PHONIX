@@ -169,20 +169,20 @@ async function updateProductStatusBasedOnQuantity() {
 }
 
 async function loadDanhMucs() {
-  const { data } = await api.get<DanhMuc[]>('/api/danh-muc')
+  const { data } = await api.get<DanhMuc[]>('/api/danh-muc/active')
   danhMucs.value = data
 }
 
 async function loadHangs() {
-  const { data } = await api.get<Hang[]>('/api/hang')
+  const { data } = await api.get<Hang[]>('/api/hang/active')
   hangs.value = data
 }
 
 async function loadVariantsData() {
   const [ramRes, romRes, mauRes] = await Promise.all([
-    api.get<Ram[]>('/api/ram'),
-    api.get<Rom[]>('/api/rom'),
-    api.get<MauSac[]>('/api/mau-sac'),
+    api.get<Ram[]>('/api/ram/active'),
+    api.get<Rom[]>('/api/rom/active'),
+    api.get<MauSac[]>('/api/mau-sac/active'),
   ])
   rams.value = ramRes.data
   roms.value = romRes.data
@@ -191,10 +191,10 @@ async function loadVariantsData() {
 
 async function loadFilterLookups() {
   const [hdhRes, mhRes, hangRes, pinRes] = await Promise.all([
-    api.get<HeDieuHanh[]>('/api/he-dieu-hanh'),
-    api.get<ManHinh[]>('/api/man-hinh'),
-    api.get<Hang[]>('/api/hang'),
-    api.get<Pin[]>('/api/pin'),
+    api.get<HeDieuHanh[]>('/api/he-dieu-hanh/active'),
+    api.get<ManHinh[]>('/api/man-hinh/active'),
+    api.get<Hang[]>('/api/hang/active'),
+    api.get<Pin[]>('/api/pin/active'),
   ])
   heDieuHanhs.value = hdhRes.data
   manHinhs.value = mhRes.data
@@ -321,6 +321,43 @@ function getToggleTooltip(sanPham: any) {
     return 'Không thể chuyển sang hoạt động vì số lượng = 0'
   }
   return ''
+}
+
+// Helper functions to handle soft-deleted attributes
+function isAttributeActive(attributeId: number | null, attributeList: any[]): boolean {
+  if (!attributeId) return false
+  return attributeList.some(attr => attr.id === attributeId)
+}
+
+function getAttributeName(attributeId: number | null, attributeList: any[], nameField: string = 'ten'): string {
+  if (!attributeId) return 'Chưa cập nhật'
+  
+  const attribute = attributeList.find(attr => attr.id === attributeId)
+  if (attribute) {
+    return attribute[nameField] || 'Chưa cập nhật'
+  }
+  
+  return 'Chưa cập nhật'
+}
+
+function getHangName(sanPham: any): string {
+  // Sử dụng trực tiếp tên từ API thay vì tìm kiếm bằng ID
+  return sanPham.tenHang || 'Chưa cập nhật'
+}
+
+function getHeDieuHanhName(sanPham: any): string {
+  // Sử dụng trực tiếp tên từ API thay vì tìm kiếm bằng ID
+  return sanPham.tenHeDieuHanh || 'Chưa cập nhật'
+}
+
+function getManHinhName(sanPham: any): string {
+  // Sử dụng trực tiếp tên từ API thay vì tìm kiếm bằng ID
+  return sanPham.tenManHinh || 'Chưa cập nhật'
+}
+
+function getPinName(sanPham: any): string {
+  // Sử dụng trực tiếp tên từ API thay vì tìm kiếm bằng ID
+  return sanPham.tenPin || 'Chưa cập nhật'
 }
 
 // Pagination computed properties
@@ -452,10 +489,10 @@ function exportToExcel(products: SanPham[]) {
       'STT': index + 1,
       'Mã sản phẩm': sp.maSanPham || '',
       'Tên sản phẩm': sp.tenSanPham,
-      'Hãng': sp.tenHang || '-',
-      'Hệ điều hành': sp.tenHeDieuHanh || '-',
-      'Màn hình': sp.tenManHinh || '-',
-      'Pin': sp.tenPin || '-',
+      'Hãng': getHangName(sp),
+      'Hệ điều hành': getHeDieuHanhName(sp),
+      'Màn hình': getManHinhName(sp),
+      'Pin': getPinName(sp),
       'Số lượng': sp.tongImei || 0,
       'Giá nhập': getImportPriceText(sp),
       'Giá bán': getSalePriceText(sp),
@@ -536,7 +573,7 @@ onMounted(load)
     <!-- Main Header -->
     <div class="main-header">
       <div class="header-left">
-        <span class="header-icon">📋</span>
+        <img src="@/assets/file.png" alt="Danh sách" class="header-icon" />
         <h1>Danh Sách Sản Phẩm</h1>
       </div>
     </div>
@@ -616,7 +653,7 @@ onMounted(load)
           <button class="btn-secondary" @click="handleExcelExport" :disabled="!hasSelectedProducts">
             Tải Excel {{ hasSelectedProducts ? `(${selectedCount})` : '' }}
           </button>
-          <button class="btn-success" @click="openForm()">Thêm chi tiết sản phẩm</button>
+          <button class="btn-primary" @click="openForm()">Thêm chi tiết sản phẩm</button>
           <button class="btn-secondary" @click="resetAllFilters">Đặt lại bộ lọc</button>
         </div>
       </div>
@@ -669,10 +706,10 @@ onMounted(load)
               </td>
               <td>{{ startItem + idx }}</td>
               <td class="product-name">{{ sp.tenSanPham }}</td>
-              <td>{{ sp.tenHang || '-' }}</td>
-              <td>{{ sp.tenHeDieuHanh || '-' }}</td>
-              <td>{{ sp.tenManHinh || '-' }}</td>
-              <td>{{ sp.tenPin || '-' }}</td>
+              <td :class="{ 'attribute-not-updated': getHangName(sp) === 'Chưa cập nhật' }">{{ getHangName(sp) }}</td>
+              <td :class="{ 'attribute-not-updated': getHeDieuHanhName(sp) === 'Chưa cập nhật' }">{{ getHeDieuHanhName(sp) }}</td>
+              <td :class="{ 'attribute-not-updated': getManHinhName(sp) === 'Chưa cập nhật' }">{{ getManHinhName(sp) }}</td>
+              <td :class="{ 'attribute-not-updated': getPinName(sp) === 'Chưa cập nhật' }">{{ getPinName(sp) }}</td>
               <td>{{ sp.tongImei || 0 }}</td>
               <td class="price-cell">
                 <div class="price-container">
@@ -692,30 +729,30 @@ onMounted(load)
                 </div>
               </td>
               <td>
-                <div class="status-toggle">
-                  <label class="toggle-switch" :title="getToggleTooltip(sp)">
-                    <input 
-                      type="checkbox" 
-                      :checked="(sp.trangThai || 0) === 1"
-                      @change="toggleProductStatus(sp)"
-                      :disabled="isUpdatingStatus || isToggleDisabled(sp)"
-                    />
-                    <span class="toggle-slider"></span>
-                  </label>
-                  <div class="status-text-container">
-                    <span :class="getStatusClass(sp)" class="status-text">
-                      {{ getStatusText(sp) }}
-                    </span>
-                  </div>
-                </div>
+                <span :class="getStatusClass(sp)" class="status-text">
+                  {{ getStatusText(sp) }}
+                </span>
               </td>
               <td>
-                <button class="icon-btn" title="Xem" @click="viewProduct(sp)">
-                  <img src="/src/assets/view.png" alt="Xem" class="action-icon" />
-                </button>
-                <button class="icon-btn" title="Sửa" @click="openForm(sp)">
-                  <img src="/src/assets/edit.png" alt="Sửa" class="action-icon" />
-                </button>
+                <div class="action-buttons">
+                  <button class="icon-btn" title="Xem" @click="viewProduct(sp)">
+                    <img src="/src/assets/view.png" alt="Xem" class="action-icon" />
+                  </button>
+                  <button class="icon-btn" title="Sửa" @click="openForm(sp)">
+                    <img src="/src/assets/edit.png" alt="Sửa" class="action-icon" />
+                  </button>
+                  <div class="status-toggle">
+                    <label class="toggle-switch" :title="getToggleTooltip(sp)">
+                      <input 
+                        type="checkbox" 
+                        :checked="(sp.trangThai || 0) === 1"
+                        @change="toggleProductStatus(sp)"
+                        :disabled="isUpdatingStatus || isToggleDisabled(sp)"
+                      />
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -774,77 +811,104 @@ onMounted(load)
 </template>
 
 <style scoped>
+/* Modern Page Layout */
 .page {
   padding: 20px;
-  background: #f5f5f5;
+  background: var(--bg-primary, #f8f9fa);
   min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* Main Header */
+/* Modern Header */
 .main-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  background: white;
+  padding: 20px 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .header-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
 
 .header-icon {
-  font-size: 20px;
+  width: 32px;
+  height: 32px;
+  transition: all 0.3s ease;
+}
+
+.header-icon:hover {
+  transform: scale(1.1);
 }
 
 .main-header h1 {
   margin: 0;
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary, #1f2937);
+  background: linear-gradient(135deg, #1f2937, #374151);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-/* Filter Card */
+/* Modern Filter Card */
 .filter-card {
   background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.filter-card:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 .filter-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 16px 20px;
-  border-bottom: 1px solid #e0e0e0;
-  background: #f8f9fa;
-  border-radius: 8px 8px 0 0;
+  gap: 12px;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e2e8f0;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
 .filter-icon {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   object-fit: contain;
-  opacity: 0.6;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
 .filter-header h3 {
   margin: 0;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
-  color: #333;
+  color: #1e293b;
+  background: linear-gradient(135deg, #1e293b, #475569);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .filter-content {
-  padding: 20px;
+  padding: 24px;
+  background: #fafbfc;
 }
 
 .filter-row {
   display: flex;
-  gap: 20px;
-  margin-bottom: 16px;
+  gap: 24px;
+  margin-bottom: 20px;
 }
 
 .filter-row:last-child {
@@ -855,28 +919,48 @@ onMounted(load)
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .filter-group label {
   font-size: 14px;
-  font-weight: 500;
-  color: #333;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 4px;
 }
 
 .search-input {
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
   font-size: 14px;
+  background: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #ff6b35;
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+  transform: translateY(-1px);
 }
 
 .filter-select {
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
   font-size: 14px;
   background: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #ff6b35;
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+  transform: translateY(-1px);
 }
 
 .radio-group {
@@ -1023,6 +1107,12 @@ td {
   font-weight: 500;
 }
 
+.attribute-not-updated {
+  color: #6c757d;
+  font-style: italic;
+  font-size: 13px;
+}
+
 .price-cell {
   text-align: center;
   white-space: nowrap;
@@ -1082,9 +1172,8 @@ td {
 /* Status Toggle Styles */
 .status-toggle {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
 }
 
 .toggle-switch {
@@ -1158,49 +1247,80 @@ input:disabled + .toggle-slider:before {
   white-space: nowrap;
 }
 
-/* Buttons */
+/* Modern Buttons */
 .btn-primary {
-  background: #007bff;
+  background: linear-gradient(135deg, #ff6b35 0%, #fd7e14 100%);
   color: white;
-  padding: 8px 16px;
+  padding: 12px 24px;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(255, 107, 53, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px -3px rgba(255, 107, 53, 0.4);
 }
 
 .btn-secondary {
-  background: #6c757d;
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
   color: white;
-  padding: 6px 12px;
+  padding: 10px 20px;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .btn-secondary:disabled {
-  background: #adb5bd;
+  background: #9ca3af;
   cursor: not-allowed;
   opacity: 0.6;
+  transform: none;
+  box-shadow: none;
 }
 
 .btn-success {
-  background: #28a745;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
-  padding: 6px 12px;
+  padding: 10px 20px;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+}
+
+.btn-success:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4);
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
 }
 
 .icon-btn {
   background: transparent;
   border: none;
   cursor: pointer;
-  margin-right: 6px;
   padding: 8px;
   border-radius: 6px;
   transition: all 0.2s ease;

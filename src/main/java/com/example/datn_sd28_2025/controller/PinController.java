@@ -23,6 +23,11 @@ public class PinController {
         return ResponseEntity.ok(pinService.getAll());
     }
 
+    @GetMapping("/active")
+    public ResponseEntity<List<PinDTO>> getActive() {
+        return ResponseEntity.ok(pinService.getActive());
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<PinDTO> getById(@PathVariable Integer id) {
         return pinService.getById(id)

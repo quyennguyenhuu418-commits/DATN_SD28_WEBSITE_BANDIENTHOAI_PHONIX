@@ -3,13 +3,12 @@
     :data="gpus"
     :columns="columns"
     title="Danh Sách GPU"
-    title-icon="🎮"
-    entity-name="GPU"
-    search-placeholder="Tìm kiếm theo tên GPU..."
-    @open-form="openForm"
-    @delete-item="deleteGpu"
-    @export-excel="exportExcel"
-    @toggle-status="toggleGpuStatus"
+    titleIcon="🎮"
+    entityName="GPU"
+    searchPlaceholder="Tìm kiếm theo tên GPU..."
+    @openForm="openForm"
+    @exportExcel="exportExcel"
+    @toggleStatus="toggleGpuStatus"
   />
 
   <!-- Confirm Modal -->
@@ -117,31 +116,6 @@ async function handleFormSubmit(data: any) {
   }
 }
 
-function deleteGpu(id: number) {
-  const gpu = gpus.value.find(g => g.id === id)
-  confirmTitle.value = 'Xác nhận xóa GPU'
-  confirmMessage.value = `Bạn có chắc chắn muốn xóa GPU "${gpu?.tenGpu || 'này'}"? Hành động này không thể hoàn tác.`
-  pendingAction.value = () => performDelete(id)
-  showConfirmModal.value = true
-}
-
-async function performDelete(id: number) {
-  try {
-    await api.delete(`/api/gpu/${id}`)
-    toastRef.value?.success('Thành công', 'Xóa GPU thành công!')
-    await loadGpus()
-  } catch (error: any) {
-    console.error('Lỗi khi xóa:', error)
-    // Hiển thị thông báo lỗi cho user
-    if (error.response?.data) {
-      // Backend trả về thông báo lỗi trực tiếp trong response.data
-      toastRef.value?.error('Không thể xóa', error.response.data)
-    } else {
-      toastRef.value?.error('Lỗi xóa GPU', 'Có lỗi xảy ra khi xóa GPU')
-    }
-  }
-}
-
 function handleConfirm() {
   if (pendingAction.value) {
     pendingAction.value()
@@ -155,9 +129,44 @@ function handleCancel() {
   pendingAction.value = null
 }
 
-function exportExcel() {
-  // TODO: Implement Excel export
-  console.log('Export Excel for GPU')
+async function toggleGpuStatus(gpu: Gpu) {
+  try {
+    const newStatus = (gpu.trangThai || 0) === 1 ? 0 : 1
+    await api.put(`/api/gpu/${gpu.id}/status`, { trangThai: newStatus })
+    
+    // Update local data
+    const index = gpus.value.findIndex(g => g.id === gpu.id)
+    if (index !== -1) {
+      gpus.value[index].trangThai = newStatus
+    }
+    
+    const statusText = newStatus === 1 ? 'Hoạt động' : 'Ngừng hoạt động'
+    const message = newStatus === 1 
+      ? `Đã chuyển GPU "${gpu.tenGpu}" sang trạng thái <span style="color: #28a745; font-weight: bold;">${statusText}</span>`
+      : `Đã chuyển GPU "${gpu.tenGpu}" sang trạng thái <span style="color: #dc3545; font-weight: bold;">${statusText}</span>`
+    toastRef.value?.success('Thành công', message)
+  } catch (error: any) {
+    console.error('Lỗi khi cập nhật trạng thái:', error)
+    toastRef.value?.error('Lỗi cập nhật', 'Không thể cập nhật trạng thái GPU')
+  }
+}
+
+async function exportExcel() {
+  try {
+    const response = await api.get('/api/gpu/export', { responseType: 'blob' })
+    const url = window.URL.createObjectURL(new Blob([response.data]))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', 'danh_sach_gpu.xlsx')
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
+    toastRef.value?.success('Thành công', 'Xuất Excel thành công!')
+  } catch (error: any) {
+    console.error('Lỗi khi xuất Excel:', error)
+    toastRef.value?.error('Lỗi xuất Excel', 'Có lỗi xảy ra khi xuất file Excel')
+  }
 }
 
 onMounted(loadGpus)

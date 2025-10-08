@@ -3,13 +3,12 @@
     :data="pins"
     :columns="columns"
     title="Danh Sách Pin"
-    title-icon="🔋"
-    entity-name="pin"
-    search-placeholder="Tìm kiếm theo dung lượng pin..."
-    @open-form="openForm"
-    @delete-item="deletePin"
-    @export-excel="exportExcel"
-    @toggle-status="togglePinStatus"
+    titleIcon="🔋"
+    entityName="Pin"
+    searchPlaceholder="Tìm kiếm theo dung lượng pin..."
+    @openForm="openForm"
+    @exportExcel="exportExcel"
+    @toggleStatus="togglePinStatus"
   />
 
   <!-- Confirm Modal -->
@@ -159,26 +158,44 @@ function handleCancel() {
   pendingAction.value = null
 }
 
-async function testCreateInactivePin() {
+async function togglePinStatus(pin: Pin) {
   try {
-    const testData = {
-      maPin: 'TEST_INACTIVE_' + Date.now(),
-      dungLuongPin: '5000mAh',
-      congNgheSac: 'Fast Charge',
-      moTa: 'Pin test không hoạt động',
-      trangThai: 0 // Trạng thái không hoạt động
+    const newStatus = (pin.trangThai || 0) === 1 ? 0 : 1
+    await api.put(`/api/pin/${pin.id}/status`, { trangThai: newStatus })
+    
+    // Update local data
+    const index = pins.value.findIndex(p => p.id === pin.id)
+    if (index !== -1) {
+      pins.value[index].trangThai = newStatus
     }
-    await api.post('/api/pin', testData)
-    await loadPins()
-    console.log('Đã tạo pin test không hoạt động')
-  } catch (error) {
-    console.error('Lỗi khi tạo pin test:', error)
+    
+    const statusText = newStatus === 1 ? 'Hoạt động' : 'Ngừng hoạt động'
+    const message = newStatus === 1 
+      ? `Đã chuyển Pin "${pin.dungLuongPin}" sang trạng thái <span style="color: #28a745; font-weight: bold;">${statusText}</span>`
+      : `Đã chuyển Pin "${pin.dungLuongPin}" sang trạng thái <span style="color: #dc3545; font-weight: bold;">${statusText}</span>`
+    toastRef.value?.success('Thành công', message)
+  } catch (error: any) {
+    console.error('Lỗi khi cập nhật trạng thái:', error)
+    toastRef.value?.error('Lỗi cập nhật', 'Không thể cập nhật trạng thái Pin')
   }
 }
 
-function exportExcel() {
-  // TODO: Implement Excel export
-  console.log('Export Excel for Pin')
+async function exportExcel() {
+  try {
+    const response = await api.get('/api/pin/export', { responseType: 'blob' })
+    const url = window.URL.createObjectURL(new Blob([response.data]))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', 'danh_sach_pin.xlsx')
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
+    toastRef.value?.success('Thành công', 'Xuất Excel thành công!')
+  } catch (error: any) {
+    console.error('Lỗi khi xuất Excel:', error)
+    toastRef.value?.error('Lỗi xuất Excel', 'Có lỗi xảy ra khi xuất file Excel')
+  }
 }
 
 onMounted(loadPins)

@@ -23,6 +23,11 @@ public class HeDieuHanhServiceImpl implements HeDieuHanhService {
     }
 
     @Override
+    public List<HeDieuHanhDTO> getActive() {
+        return heDieuHanhRepository.findAllActive().stream().map(this::convertToDto).toList();
+    }
+
+    @Override
     public Optional<HeDieuHanhDTO> getById(Integer id) {
         return heDieuHanhRepository.findById(id).map(this::convertToDto);
     }

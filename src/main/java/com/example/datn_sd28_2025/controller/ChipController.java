@@ -25,6 +25,12 @@ public class ChipController {
         return ResponseEntity.ok(chips);
     }
 
+    @GetMapping("/active")
+    public ResponseEntity<List<ChipDTO>> getActive() {
+        List<ChipDTO> chips = chipService.getActive();
+        return ResponseEntity.ok(chips);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ChipDTO> getById(@PathVariable Integer id) {
         Optional<ChipDTO> chip = chipService.getById(id);

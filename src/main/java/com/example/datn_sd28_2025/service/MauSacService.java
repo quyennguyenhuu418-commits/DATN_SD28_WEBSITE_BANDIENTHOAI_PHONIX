@@ -9,6 +9,7 @@ import java.util.Optional;
 
 public interface MauSacService {
     List<MauSacDTO> getAll();
+    List<MauSacDTO> getActive();
     Optional<MauSacDTO> getById(Integer id);
     MauSacDTO save(MauSacDTO mauSacDTO);
     void delete(Integer id);

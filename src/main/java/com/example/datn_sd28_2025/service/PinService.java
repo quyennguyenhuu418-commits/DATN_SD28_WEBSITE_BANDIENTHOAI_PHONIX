@@ -9,6 +9,7 @@ import java.util.Optional;
 
 public interface PinService {
     List<PinDTO> getAll();
+    List<PinDTO> getActive();
     Page<PinDTO> getAll(Pageable pageable);
     Optional<PinDTO> getById(Integer id);
     PinDTO save(PinDTO pinDTO);

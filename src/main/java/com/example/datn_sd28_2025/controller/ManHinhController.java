@@ -25,6 +25,12 @@ public class ManHinhController {
         return ResponseEntity.ok(manHinhs);
     }
 
+    @GetMapping("/active")
+    public ResponseEntity<List<ManHinhDTO>> getActive() {
+        List<ManHinhDTO> manHinhs = manHinhService.getActive();
+        return ResponseEntity.ok(manHinhs);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ManHinhDTO> getById(@PathVariable Integer id) {
         Optional<ManHinhDTO> manHinh = manHinhService.getById(id);

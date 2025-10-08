@@ -24,6 +24,12 @@ public class DanhMucController {
         return ResponseEntity.ok(danhMucs);
     }
 
+    @GetMapping("/active")
+    public ResponseEntity<List<DanhMucDTO>> getActive() {
+        List<DanhMucDTO> danhMucs = danhMucService.getActive();
+        return ResponseEntity.ok(danhMucs);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<DanhMucDTO> getById(@PathVariable Integer id) {
         Optional<DanhMucDTO> danhMuc = danhMucService.getById(id);

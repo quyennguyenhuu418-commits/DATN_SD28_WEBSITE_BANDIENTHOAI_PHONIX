@@ -23,6 +23,11 @@ public class ManHinhServiceImpl implements ManHinhService {
     }
 
     @Override
+    public List<ManHinhDTO> getActive() {
+        return manHinhRepository.findAllActive().stream().map(this::convertToDto).toList();
+    }
+
+    @Override
     public Optional<ManHinhDTO> getById(Integer id) {
         return manHinhRepository.findById(id).map(this::convertToDto);
     }

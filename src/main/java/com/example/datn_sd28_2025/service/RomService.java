@@ -9,6 +9,7 @@ import java.util.Optional;
 
 public interface RomService {
     List<RomDTO> getAll();
+    List<RomDTO> getActive();
     Page<RomDTO> getAll(Pageable pageable);
     Optional<RomDTO> getById(Integer id);
     RomDTO save(RomDTO romDTO);

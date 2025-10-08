@@ -23,6 +23,11 @@ public class HangServiceImpl implements HangService {
     }
 
     @Override
+    public List<HangDTO> getActive() {
+        return hangRepository.findAllActive().stream().map(this::convertToDto).toList();
+    }
+
+    @Override
     public Optional<HangDTO> getById(Integer id) {
         return hangRepository.findById(id).map(this::convertToDto);
     }

@@ -9,6 +9,7 @@ import java.util.Optional;
 
 public interface RamService {
     List<RamDTO> getAll();
+    List<RamDTO> getActive();
     Page<RamDTO> getAll(Pageable pageable);
     Optional<RamDTO> getById(Integer id);
     RamDTO save(RamDTO ramDTO);

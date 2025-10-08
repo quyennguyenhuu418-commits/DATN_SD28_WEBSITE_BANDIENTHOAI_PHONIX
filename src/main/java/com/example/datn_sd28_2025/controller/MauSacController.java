@@ -25,6 +25,12 @@ public class MauSacController {
         return ResponseEntity.ok(mauSacs);
     }
 
+    @GetMapping("/active")
+    public ResponseEntity<List<MauSacDTO>> getActive() {
+        List<MauSacDTO> mauSacs = mauSacService.getActive();
+        return ResponseEntity.ok(mauSacs);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<MauSacDTO> getById(@PathVariable Integer id) {
         Optional<MauSacDTO> mauSac = mauSacService.getById(id);

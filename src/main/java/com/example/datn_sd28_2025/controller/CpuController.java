@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+
 
 @RestController
 @RequestMapping("/api/cpu")
@@ -22,6 +22,11 @@ public class CpuController {
     @GetMapping
     public ResponseEntity<List<CpuDTO>> getAll() {
         return ResponseEntity.ok(cpuService.getAll());
+    }
+
+    @GetMapping("/active")
+    public ResponseEntity<List<CpuDTO>> getActive() {
+        return ResponseEntity.ok(cpuService.getActive());
     }
 
     @GetMapping("/{id}")

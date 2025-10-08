@@ -25,6 +25,12 @@ public class HangController {
         return ResponseEntity.ok(hangs);
     }
 
+    @GetMapping("/active")
+    public ResponseEntity<List<HangDTO>> getActive() {
+        List<HangDTO> hangs = hangService.getActive();
+        return ResponseEntity.ok(hangs);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<HangDTO> getById(@PathVariable Integer id) {
         Optional<HangDTO> hang = hangService.getById(id);

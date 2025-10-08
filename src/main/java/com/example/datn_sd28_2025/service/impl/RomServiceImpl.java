@@ -25,6 +25,11 @@ public class RomServiceImpl implements RomService {
     }
 
     @Override
+    public List<RomDTO> getActive() {
+        return romRepository.findAllActive().stream().map(this::convertToDto).toList();
+    }
+
+    @Override
     public Page<RomDTO> getAll(Pageable pageable) {
         return romRepository.findAll(pageable).map(this::convertToDto);
     }

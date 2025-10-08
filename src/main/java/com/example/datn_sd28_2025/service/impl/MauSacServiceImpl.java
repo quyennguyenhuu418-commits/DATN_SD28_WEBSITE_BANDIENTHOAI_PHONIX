@@ -25,6 +25,11 @@ public class MauSacServiceImpl implements MauSacService {
     }
 
     @Override
+    public List<MauSacDTO> getActive() {
+        return mauSacRepository.findAllActive().stream().map(this::convertToDto).toList();
+    }
+
+    @Override
     public Optional<MauSacDTO> getById(Integer id) {
         return mauSacRepository.findById(id).map(this::convertToDto);
     }

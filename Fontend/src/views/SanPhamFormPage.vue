@@ -42,6 +42,7 @@ const sims = ref<Sim[]>([])
 
 // Image upload state
 const variantImages = ref<{[key: number]: File[]}>({})
+const colorImages = ref<{[key: number]: string[]}>({}) // Images grouped by color ID
 
 // Modal state
 const showModal = ref(false)
@@ -253,17 +254,17 @@ function isMauSacSelected(mauSacId: number) {
 
 function getSelectedRamsText() {
   if (variantForm.value.selectedRams.length === 0) return 'Chọn RAM'
-  return variantForm.value.selectedRams.map(id => rams.value.find(r => r.id === id)?.tenRam).join(', ')
+  return variantForm.value.selectedRams.map(id => getAttributeName(id, rams.value, 'tenRam')).join(', ')
 }
 
 function getSelectedRomsText() {
   if (variantForm.value.selectedRoms.length === 0) return 'Chọn ROM'
-  return variantForm.value.selectedRoms.map(id => roms.value.find(r => r.id === id)?.dungLuong).join(', ')
+  return variantForm.value.selectedRoms.map(id => getAttributeName(id, roms.value, 'dungLuong')).join(', ')
 }
 
 function getSelectedMauSacsText() {
   if (variantForm.value.selectedMauSacs.length === 0) return 'Chọn Màu sắc'
-  return variantForm.value.selectedMauSacs.map(id => mauSacs.value.find(m => m.id === id)?.tenMau).join(', ')
+  return variantForm.value.selectedMauSacs.map(id => getAttributeName(id, mauSacs.value, 'tenMau')).join(', ')
 }
 
 function openAddModal(type: string) {
@@ -601,8 +602,8 @@ const groupedVariants = computed(() => {
   const groups: Record<string, any> = {}
   
   variants.value.forEach((variant, index) => {
-    const ramName = rams.value.find(r => r.id === variant.idRam)?.tenRam || ''
-    const romName = roms.value.find(r => r.id === variant.idRom)?.dungLuong || ''
+    const ramName = getAttributeName(variant.idRam, rams.value, 'tenRam')
+    const romName = getAttributeName(variant.idRom, roms.value, 'dungLuong')
     const key = `${variant.idRam}-${variant.idRom}`
     
     if (!groups[key]) {
@@ -622,6 +623,30 @@ const groupedVariants = computed(() => {
   return Object.values(groups)
 })
 
+// Group variants by color for image management
+const colorImageGroups = computed(() => {
+  const groups: {[key: number]: any} = {}
+  
+  variants.value.forEach((variant) => {
+    if (variant.idMauSac) {
+      const colorName = getAttributeName(variant.idMauSac, mauSacs.value, 'tenMau')
+      
+      if (!groups[variant.idMauSac]) {
+        groups[variant.idMauSac] = {
+          colorId: variant.idMauSac,
+          colorName,
+          variants: [],
+          images: colorImages.value[variant.idMauSac] || []
+        }
+      }
+      
+      groups[variant.idMauSac].variants.push(variant)
+    }
+  })
+  
+  return Object.values(groups)
+})
+
 function getColorCode(idMauSac: number | null) {
   if (!idMauSac) return '#ccc'
   
@@ -636,14 +661,32 @@ function getColorCode(idMauSac: number | null) {
   return '#ccc'
 }
 
+// Function to check if attribute is active
+function isAttributeActive(attributeId: number | null, attributeList: any[]): boolean {
+  if (!attributeId) return false
+  return attributeList.some(attr => attr.id === attributeId)
+}
+
+// Function to get attribute name or "Chưa cập nhật"
+function getAttributeName(attributeId: number | null, attributeList: any[], nameField: string = 'ten'): string {
+  if (!attributeId) return 'Chưa cập nhật'
+  
+  const attribute = attributeList.find(attr => attr.id === attributeId)
+  if (attribute) {
+    return attribute[nameField] || 'Chưa cập nhật'
+  }
+  
+  return 'Chưa cập nhật'
+}
+
 async function performDeleteVariant(variantIndex: number, variant: Variant, originalIndex: number) {
   // Chỉ xóa khỏi frontend array (UI) - KHÔNG xóa database ngay lập tức
   variants.value.splice(originalIndex, 1)
   
   // Hiển thị toast thông báo
-  const ramName = rams.value.find(r => r.id === variant.idRam)?.tenRam || 'RAM'
-  const romName = roms.value.find(r => r.id === variant.idRom)?.dungLuong || 'ROM'
-  const mauName = mauSacs.value.find(m => m.id === variant.idMauSac)?.tenMau || 'Màu'
+  const ramName = getAttributeName(variant.idRam, rams.value, 'tenRam')
+  const romName = getAttributeName(variant.idRom, roms.value, 'dungLuong')
+  const mauName = getAttributeName(variant.idMauSac, mauSacs.value, 'tenMau')
   
   toastRef.value?.success(
     'Đã xóa khỏi danh sách',
@@ -861,20 +904,19 @@ async function updateVariantImages(variant: Variant, variantIndex: number) {
 }
 
 function getVariantColorName(variant: Variant): string {
-  const mauSac = mauSacs.value.find(m => m.id === variant.idMauSac)
-  return mauSac ? mauSac.tenMau : 'Không xác định'
+  return getAttributeName(variant.idMauSac, mauSacs.value, 'tenMau')
 }
 
 function getVariantFullName(variant: Variant): string {
-  const ramName = rams.value.find(r => r.id === variant.idRam)?.tenRam || 'RAM'
-  const romName = roms.value.find(r => r.id === variant.idRom)?.dungLuong || 'ROM'
-  const mauName = mauSacs.value.find(m => m.id === variant.idMauSac)?.tenMau || 'Màu'
+  const ramName = getAttributeName(variant.idRam, rams.value, 'tenRam')
+  const romName = getAttributeName(variant.idRom, roms.value, 'dungLuong')
+  const mauName = getAttributeName(variant.idMauSac, mauSacs.value, 'tenMau')
   return `${ramName}/${romName} - ${mauName}`
 }
 
 function getVariantRamRomName(variant: Variant): string {
-  const ramName = rams.value.find(r => r.id === variant.idRam)?.tenRam || 'RAM'
-  const romName = roms.value.find(r => r.id === variant.idRom)?.dungLuong || 'ROM'
+  const ramName = getAttributeName(variant.idRam, rams.value, 'tenRam')
+  const romName = getAttributeName(variant.idRom, roms.value, 'dungLuong')
   return `${ramName}/${romName}`
 }
 
@@ -1140,20 +1182,20 @@ async function performSave() {
 async function loadLookups() {
   try {
     const [dmRes, hRes, ramRes, romRes, mauRes, hdhRes, mhRes, ctRes, csRes, pinRes, chipRes, cpuRes, gpuRes, simRes] = await Promise.allSettled([
-      api.get<DanhMuc[]>('/api/danh-muc'),
-      api.get<Hang[]>('/api/hang'),
-      api.get<Ram[]>('/api/ram'),
-      api.get<Rom[]>('/api/rom'),
-      api.get<MauSac[]>('/api/mau-sac'),
-      api.get<HeDieuHanh[]>('/api/he-dieu-hanh'),
-      api.get<ManHinh[]>('/api/man-hinh'),
-      api.get<CameraTruoc[]>('/api/camera-truoc'),
-      api.get<CameraSau[]>('/api/camera-sau'),
-      api.get<Pin[]>('/api/pin'),
-      api.get<Chip[]>('/api/chip'),
-      api.get<Cpu[]>('/api/cpu'),
-      api.get<Gpu[]>('/api/gpu'),
-      api.get<Sim[]>('/api/sim'),
+      api.get<DanhMuc[]>('/api/danh-muc/active'),
+      api.get<Hang[]>('/api/hang/active'),
+      api.get<Ram[]>('/api/ram/active'),
+      api.get<Rom[]>('/api/rom/active'),
+      api.get<MauSac[]>('/api/mau-sac/active'),
+      api.get<HeDieuHanh[]>('/api/he-dieu-hanh/active'),
+      api.get<ManHinh[]>('/api/man-hinh/active'),
+      api.get<CameraTruoc[]>('/api/camera-truoc/active'),
+      api.get<CameraSau[]>('/api/camera-sau/active'),
+      api.get<Pin[]>('/api/pin/active'),
+      api.get<Chip[]>('/api/chip/active'),
+      api.get<Cpu[]>('/api/cpu/active'),
+      api.get<Gpu[]>('/api/gpu/active'),
+      api.get<Sim[]>('/api/sim/active'),
     ])
     
     // Handle successful responses
@@ -1333,6 +1375,85 @@ function applyPriceToAll(groupKey: string) {
   }
 }
 
+function deleteVariantGroup(groupKey: string) {
+  const group = groupedVariants.value.find(g => g.key === groupKey)
+  if (group) {
+    // Remove all variants in this group from the variants array
+    const indicesToRemove = group.variants.map(v => v.originalIndex).sort((a, b) => b - a)
+    indicesToRemove.forEach(index => {
+      variants.value.splice(index, 1)
+    })
+    
+    toastRef.value?.success(
+      'Xóa nhóm thành công',
+      `Đã xóa ${group.variants.length} phiên bản trong nhóm ${group.ramName}/${group.romName}`
+    )
+  }
+}
+
+// Color image management functions
+async function handleColorImageUpload(colorId: number, event: Event) {
+  const input = event.target as HTMLInputElement
+  if (input.files && input.files.length > 0) {
+    const file = input.files[0]
+    
+    // Validate file size (max 10MB per file)
+    const maxSize = 10 * 1024 * 1024 // 10MB in bytes
+    
+    if (file.size > maxSize) {
+      toastRef.value?.error('Lỗi', `File "${file.name}" vượt quá giới hạn 10MB`)
+      return
+    }
+    
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      
+      const response = await api.post('/api/upload/image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+      
+      if (response.data.url) {
+        // Initialize color images array if not exists
+        if (!colorImages.value[colorId]) {
+          colorImages.value[colorId] = []
+        }
+        
+        // Add URL to color images
+        colorImages.value[colorId].push(response.data.url)
+        
+        toastRef.value?.success('Upload thành công', `Đã thêm ảnh cho màu sắc`)
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error)
+      if (error.response?.status === 413) {
+        toastRef.value?.error('Lỗi', 'File quá lớn! Vui lòng chọn file nhỏ hơn 10MB.')
+      } else {
+        toastRef.value?.error('Lỗi', 'Lỗi upload ảnh: ' + (error.response?.data?.error || error.message))
+      }
+    }
+    
+    // Clear input để có thể chọn lại file cùng tên
+    input.value = ''
+  }
+}
+
+function removeColorImage(colorId: number, imageIndex: number) {
+  if (colorImages.value[colorId] && colorImages.value[colorId].length > imageIndex) {
+    colorImages.value[colorId].splice(imageIndex, 1)
+    toastRef.value?.success('Xóa ảnh thành công', 'Đã xóa ảnh khỏi màu sắc')
+  }
+}
+
+function triggerColorFileInput(colorId: number) {
+  const fileInput = document.getElementById(`colorImageUpload-${colorId}`) as HTMLInputElement
+  if (fileInput) {
+    fileInput.click()
+  }
+}
+
 // Excel handling functions
 function triggerExcelUpload(variantIndex: number) {
   const fileInput = document.getElementById(`excelFile-${variantIndex}`) as HTMLInputElement
@@ -1364,14 +1485,13 @@ async function handleExcelUpload(variantIndex: number, event: Event) {
         jsonData.forEach((row: any) => {
           if (Array.isArray(row)) {
             row.forEach((cell: any) => {
-              if (cell && typeof cell === 'string') {
-                const imei = cell.toString().trim()
+              if (cell !== null && cell !== undefined && cell !== '') {
+                let imei = cell.toString().trim()
+                
+                // Remove any non-numeric characters except digits
+                imei = imei.replace(/[^\d]/g, '')
+                
                 // Check if it's a valid IMEI (15 digits)
-                if (/^\d{15}$/.test(imei)) {
-                  imeiList.push(imei)
-                }
-              } else if (cell && typeof cell === 'number') {
-                const imei = cell.toString().trim()
                 if (/^\d{15}$/.test(imei)) {
                   imeiList.push(imei)
                 }
@@ -1529,29 +1649,45 @@ async function saveImei() {
 // Helper function to continue with Excel import after confirmation
 function continueWithExcelImport(imeiList: string[], dbDuplicates: string[], variantIndex: number, target: HTMLInputElement) {
   if (imeiList.length > 0) {
-    // Add IMEI to the variant using the variantIndex directly
-    if (variants.value[variantIndex]) {
-      const existingImeis = variants.value[variantIndex].imeis || []
-      const newImeis = [...existingImeis, ...imeiList]
-      
-      // Remove duplicates within the new list
-      const uniqueImeis = Array.from(new Set(newImeis))
-      const duplicateCount = newImeis.length - uniqueImeis.length
-      
-      variants.value[variantIndex].imeis = uniqueImeis
-      variants.value[variantIndex].soLuong = uniqueImeis.length
-      
-      let message = `Đã nhập ${imeiList.length} IMEI từ file Excel`
-      if (duplicateCount > 0) {
-        message += ` (${duplicateCount} IMEI trùng lặp đã được loại bỏ)`
-      }
-      if (dbDuplicates.length > 0) {
-        message += `\n${dbDuplicates.length} IMEI đã tồn tại trong database đã được bỏ qua`
-      }
-      message += `:\n${imeiList.slice(0, 5).join('\n')}${imeiList.length > 5 ? '\n...' : ''}`
-      
-      toastRef.value?.success('Thành công', message)
+    // Set current variant index and open IMEI modal for validation
+    currentVariantIndex.value = variantIndex
+    
+    // Filter out IMEIs that already exist in this variant
+    const existingImeis = variants.value[variantIndex].imeis || []
+    const newImeis = imeiList.filter(imei => !existingImeis.includes(imei))
+    const duplicateInVariant = imeiList.length - newImeis.length
+    
+    if (newImeis.length === 0) {
+      toastRef.value?.warning('Cảnh báo', 'Tất cả IMEI trong file đã tồn tại trong phiên bản này')
+      target.value = ''
+      return
     }
+    
+    // Add IMEIs to input area for validation
+    const currentInput = imeiInput.value.trim()
+    const newInput = newImeis.join('\n')
+    imeiInput.value = currentInput ? `${currentInput}\n${newInput}` : newInput
+    
+    // Open IMEI modal for user to review and save
+    showImeiModal.value = true
+    
+    // Clear validation states for new IMEIs
+    newImeis.forEach(imei => {
+      imeiValidationStates.value.delete(imei)
+    })
+    
+    // Start validation for new IMEIs
+    validateAllInputImeis()
+    
+    let message = `Đã nhập ${newImeis.length} IMEI từ file Excel vào modal xem xét`
+    if (duplicateInVariant > 0) {
+      message += ` (${duplicateInVariant} IMEI đã tồn tại trong phiên bản này đã bỏ qua)`
+    }
+    if (dbDuplicates.length > 0) {
+      message += ` (${dbDuplicates.length} IMEI đã tồn tại trong database đã được bỏ qua)`
+    }
+    
+    toastRef.value?.success('Thành công', message)
   } else {
     toastRef.value?.warning('Thông báo', 'Tất cả IMEI trong file đã tồn tại trong database.')
   }
@@ -1626,21 +1762,55 @@ function removeImeiFromInput(index: number) {
     const removedImei = inputImeis[index]
     const newImeiList = inputImeis.filter((_, i) => i !== index)
     imeiInput.value = newImeiList.join('\n')
+    
+    // Remove from selected set if it was selected
+    selectedImeis.value.delete(removedImei)
+    
     toastRef.value?.success('Thành công', `Đã xóa IMEI: ${removedImei}`)
   }
+}
+
+function deleteSelectedImeis() {
+  if (selectedImeis.value.size === 0) {
+    toastRef.value?.warning('Cảnh báo', 'Chưa chọn IMEI nào để xóa')
+    return
+  }
+  
+  const inputImeis = getInputImeis()
+  const remainingImeis = inputImeis.filter(imei => !selectedImeis.value.has(imei))
+  
+  imeiInput.value = remainingImeis.join('\n')
+  const deletedCount = selectedImeis.value.size
+  selectedImeis.value.clear()
+  
+  toastRef.value?.success('Thành công', `Đã xóa ${deletedCount} IMEI đã chọn`)
 }
 
 // Hàm kiểm tra DB cho tất cả IMEI đang nhập
 async function validateAllInputImeis() {
   const inputImeis = getInputImeis()
+  
+  console.log('Validating IMEIs:', inputImeis)
+  
+  // Set initial states for all IMEIs
+  inputImeis.forEach(imei => {
+    if (!imeiValidationStates.value.has(imei)) {
+      if (!isValidImei(imei)) {
+        imeiValidationStates.value.set(imei, 'invalid')
+      } else if (isDuplicateImei(imei)) {
+        imeiValidationStates.value.set(imei, 'duplicate')
+      } else {
+        imeiValidationStates.value.set(imei, 'checking')
+      }
+    }
+  })
+  
+  // Check database for valid IMEIs
   const validImeis = inputImeis.filter(imei => isValidImei(imei) && !isDuplicateImei(imei))
   
-  console.log('Validating IMEIs:', validImeis)
-  
   for (const imei of validImeis) {
-    if (!imeiValidationStates.value.has(imei)) {
+    if (imeiValidationStates.value.get(imei) === 'checking') {
       console.log(`Checking IMEI: ${imei}`)
-      imeiValidationStates.value.set(imei, 'checking')
       
       try {
         const isDuplicate = await checkImeiInDb(imei)
@@ -1673,9 +1843,9 @@ function getCurrentVariantName() {
   const variant = variants.value[currentVariantIndex.value]
   if (!variant) return ''
   
-  const ramName = rams.value.find(r => r.id === variant.idRam)?.tenRam || 'RAM'
-  const romName = roms.value.find(r => r.id === variant.idRom)?.dungLuong || 'ROM'
-  const mauName = mauSacs.value.find(m => m.id === variant.idMauSac)?.tenMau || 'Màu'
+  const ramName = getAttributeName(variant.idRam, rams.value, 'tenRam')
+  const romName = getAttributeName(variant.idRom, roms.value, 'dungLuong')
+  const mauName = getAttributeName(variant.idMauSac, mauSacs.value, 'tenMau')
   
   return `${ramName}/${romName} - ${mauName}`
 }
@@ -1764,6 +1934,17 @@ async function checkImeiInDb(imei: string): Promise<boolean> {
 
 // Reactive state cho validation
 const imeiValidationStates = ref<Map<string, string>>(new Map())
+
+// State for selected IMEIs
+const selectedImeis = ref<Set<string>>(new Set())
+
+// Computed property for checkbox binding
+const selectedImeisArray = computed({
+  get: () => Array.from(selectedImeis.value),
+  set: (value: string[]) => {
+    selectedImeis.value = new Set(value)
+  }
+})
 
 function getImeiValidationText(imei: string): string {
   if (!isValidImei(imei)) {
@@ -2009,7 +2190,10 @@ onUnmounted(() => {
   <div class="page">
   <div class="page-header">
     <h1 class="page-title">{{ isCreate ? 'THÊM SẢN PHẨM' : 'SỬA SẢN PHẨM' }}</h1>
-    <button class="btn-refresh" @click="clearDraftAndRefresh">🔄 Làm mới</button>
+    <button class="btn-refresh" @click="clearDraftAndRefresh">
+      <img src="@/assets/002-notification-1.png" alt="Refresh" class="btn-icon" />
+      Làm mới
+    </button>
   </div>
 
   <!-- Confirm Modal -->
@@ -2062,7 +2246,9 @@ onUnmounted(() => {
                 <option :value="null">Chọn hệ điều hành</option>
                 <option v-for="hdh in heDieuHanhs" :key="hdh.id" :value="hdh.id">{{ hdh.tenHeDieuHanh }}</option>
               </select>
-              <button type="button" class="btn-add" @click="openAddModal('he-dieu-hanh')">+</button>
+              <button type="button" class="btn-add" @click="openAddModal('he-dieu-hanh')">
+                <img src="@/assets/edit.png" alt="Add" class="btn-icon" />
+              </button>
             </div>
           </div>
           <div class="form-group">
@@ -2072,7 +2258,9 @@ onUnmounted(() => {
                 <option :value="null">Chọn camera trước</option>
                 <option v-for="ct in cameraTruocs" :key="ct.id" :value="ct.id">{{ ct.thongSo }}</option>
               </select>
-              <button type="button" class="btn-add" @click="openAddModal('camera-truoc')">+</button>
+              <button type="button" class="btn-add" @click="openAddModal('camera-truoc')">
+                <img src="@/assets/edit.png" alt="Add" class="btn-icon" />
+              </button>
             </div>
           </div>
           <div class="form-group">
@@ -2082,7 +2270,9 @@ onUnmounted(() => {
                 <option :value="null">Chọn pin</option>
                 <option v-for="p in pins" :key="p.id" :value="p.id">{{ p.dungLuongPin }}</option>
               </select>
-              <button type="button" class="btn-add" @click="openAddModal('pin')">+</button>
+              <button type="button" class="btn-add" @click="openAddModal('pin')">
+                <img src="@/assets/edit.png" alt="Add" class="btn-icon" />
+              </button>
             </div>
           </div>
           
@@ -2096,7 +2286,9 @@ onUnmounted(() => {
                 <option :value="null">Chọn danh mục</option>
                 <option v-for="dm in danhMucs" :key="dm.id" :value="dm.id">{{ dm.tenDanhMuc }}</option>
               </select>
-              <button type="button" class="btn-add" @click="openAddModal('danh-muc')">+</button>
+              <button type="button" class="btn-add" @click="openAddModal('danh-muc')">
+                <img src="@/assets/edit.png" alt="Add" class="btn-icon" />
+              </button>
             </div>
           </div>
           <div class="form-group">
@@ -2106,7 +2298,9 @@ onUnmounted(() => {
                 <option :value="null">Chọn màn hình</option>
                 <option v-for="mh in manHinhs" :key="mh.id" :value="mh.id">{{ mh.kichThuoc }} {{ mh.doPhanGiai ? ('- ' + mh.doPhanGiai) : '' }}</option>
               </select>
-              <button type="button" class="btn-add" @click="openAddModal('man-hinh')">+</button>
+              <button type="button" class="btn-add" @click="openAddModal('man-hinh')">
+                <img src="@/assets/edit.png" alt="Add" class="btn-icon" />
+              </button>
             </div>
           </div>
           <div class="form-group">
@@ -2116,7 +2310,9 @@ onUnmounted(() => {
                 <option :value="null">Chọn camera sau</option>
                 <option v-for="cs in cameraSaus" :key="cs.id" :value="cs.id">{{ cs.thongSo }}</option>
               </select>
-              <button type="button" class="btn-add" @click="openAddModal('camera-sau')">+</button>
+              <button type="button" class="btn-add" @click="openAddModal('camera-sau')">
+                <img src="@/assets/edit.png" alt="Add" class="btn-icon" />
+              </button>
             </div>
           </div>
           <div class="form-group">
@@ -2126,7 +2322,9 @@ onUnmounted(() => {
                 <option :value="null">Chọn chip</option>
                 <option v-for="c in chips" :key="c.id" :value="c.id">{{ c.tenChip }}</option>
               </select>
-              <button type="button" class="btn-add" @click="openAddModal('chip')">+</button>
+              <button type="button" class="btn-add" @click="openAddModal('chip')">
+                <img src="@/assets/edit.png" alt="Add" class="btn-icon" />
+              </button>
             </div>
           </div>
           
@@ -2140,7 +2338,9 @@ onUnmounted(() => {
                 <option :value="null">Chọn hãng</option>
                 <option v-for="h in hangs" :key="h.id" :value="h.id">{{ h.ten }}</option>
               </select>
-              <button type="button" class="btn-add" @click="openAddModal('hang')">+</button>
+              <button type="button" class="btn-add" @click="openAddModal('hang')">
+                <img src="@/assets/edit.png" alt="Add" class="btn-icon" />
+              </button>
             </div>
           </div>
           <div class="form-group">
@@ -2152,7 +2352,9 @@ onUnmounted(() => {
                   {{ sim.loaiSim }}
                 </option>
               </select>
-              <button type="button" class="btn-add" @click="openAddModal('sim')">+</button>
+              <button type="button" class="btn-add" @click="openAddModal('sim')">
+                <img src="@/assets/edit.png" alt="Add" class="btn-icon" />
+              </button>
             </div>
           </div>
           <div class="form-group">
@@ -2162,7 +2364,9 @@ onUnmounted(() => {
                 <option :value="null">Chọn CPU</option>
                 <option v-for="cpu in cpus" :key="cpu.id" :value="cpu.id">{{ cpu.tenCpu }}</option>
               </select>
-              <button type="button" class="btn-add" @click="openAddModal('cpu')">+</button>
+              <button type="button" class="btn-add" @click="openAddModal('cpu')">
+                <img src="@/assets/edit.png" alt="Add" class="btn-icon" />
+              </button>
             </div>
           </div>
           <div class="form-group">
@@ -2172,7 +2376,9 @@ onUnmounted(() => {
                 <option :value="null">Chọn GPU</option>
                 <option v-for="gpu in gpus" :key="gpu.id" :value="gpu.id">{{ gpu.tenGpu }}</option>
               </select>
-              <button type="button" class="btn-add" @click="openAddModal('gpu')">+</button>
+              <button type="button" class="btn-add" @click="openAddModal('gpu')">
+                <img src="@/assets/edit.png" alt="Add" class="btn-icon" />
+              </button>
             </div>
           </div>
         </div>
@@ -2202,7 +2408,9 @@ onUnmounted(() => {
               <span class="multi-select-text">{{ getSelectedRamsText() }}</span>
               <span class="multi-select-arrow">▼</span>
             </div>
-            <button type="button" class="btn-add" @click="openAddModal('ram')">+</button>
+            <button type="button" class="btn-add" @click="openAddModal('ram')">
+              <img src="@/assets/edit.png" alt="Add" class="btn-icon" />
+            </button>
             <div v-if="showRamDropdown" class="multi-select-dropdown">
               <div v-for="r in rams" :key="r.id" class="multi-select-option" @click="toggleRam(r.id)">
                 <input type="checkbox" :checked="isRamSelected(r.id)" @change="toggleRam(r.id)" />
@@ -2218,7 +2426,9 @@ onUnmounted(() => {
               <span class="multi-select-text">{{ getSelectedRomsText() }}</span>
               <span class="multi-select-arrow">▼</span>
             </div>
-            <button type="button" class="btn-add" @click="openAddModal('rom')">+</button>
+            <button type="button" class="btn-add" @click="openAddModal('rom')">
+              <img src="@/assets/edit.png" alt="Add" class="btn-icon" />
+            </button>
             <div v-if="showRomDropdown" class="multi-select-dropdown">
               <div v-for="r in roms" :key="r.id" class="multi-select-option" @click="toggleRom(r.id)">
                 <input type="checkbox" :checked="isRomSelected(r.id)" @change="toggleRom(r.id)" />
@@ -2234,7 +2444,9 @@ onUnmounted(() => {
               <span class="multi-select-text">{{ getSelectedMauSacsText() }}</span>
               <span class="multi-select-arrow">▼</span>
             </div>
-            <button type="button" class="btn-add" @click="openAddModal('mau-sac')">+</button>
+            <button type="button" class="btn-add" @click="openAddModal('mau-sac')">
+              <img src="@/assets/edit.png" alt="Add" class="btn-icon" />
+            </button>
             <div v-if="showMauSacDropdown" class="multi-select-dropdown">
               <div v-for="m in mauSacs" :key="m.id" class="multi-select-option" @click="toggleMauSac(m.id)">
                 <input type="checkbox" :checked="isMauSacSelected(m.id)" @change="toggleMauSac(m.id)" />
@@ -2263,6 +2475,10 @@ onUnmounted(() => {
               type="number"
             />
             <button class="btn-apply-price" @click="applyPriceToAll(group.key)">Áp dụng</button>
+            <button class="btn-delete-group" @click="deleteVariantGroup(group.key)">
+              <img src="@/assets/delete.png" alt="Delete" class="btn-icon" />
+              Xóa nhóm
+            </button>
           </div>
         </div>
           <div class="variants-table">
@@ -2285,7 +2501,7 @@ onUnmounted(() => {
                   <td>{{ form.tenSanPham || `Sản phẩm ${group.ramName}/${group.romName}` }}</td>
                   <td>
                     <div class="color-indicator" :style="{ backgroundColor: getColorCode(v.idMauSac) }"></div>
-                    {{ mauSacs.find(m => m.id === v.idMauSac)?.tenMau || '' }}
+                    {{ getAttributeName(v.idMauSac, mauSacs, 'tenMau') }}
                   </td>
                   <td>
                     <div class="quantity-display">
@@ -2324,7 +2540,9 @@ onUnmounted(() => {
                   </td>
                   <td>
                     <div class="variant-actions">
-                      <button class="btn-delete" @click="removeVariantFromGroup(group.key, i)">🗑️</button>
+                      <button class="btn-delete" @click="removeVariantFromGroup(group.key, i)">
+                        <img src="@/assets/delete.png" alt="Delete" class="btn-icon" />
+                      </button>
                       <input 
                         type="file" 
                         :id="`excelFile-${v.originalIndex}`"
@@ -2333,7 +2551,6 @@ onUnmounted(() => {
                         class="excel-file-input"
                         style="display: none"
                       />
-                      <button class="btn-upload-excel" @click="triggerExcelUpload(v.originalIndex)">📁</button>
                       <button class="btn-import-excel" @click="importFromExcel(v.originalIndex)">Nhập</button>
                     </div>
                   </td>
@@ -2345,57 +2562,49 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <!-- Image Upload Section -->
+    <!-- Image Upload Section by Color -->
     <div v-if="variants.length" class="image-upload-section">
-      <h2 class="section-title">📷 THÊM HÌNH ẢNH CHO TỪNG PHIÊN BẢN</h2>
-      <div class="image-upload-grid">
-        <div v-for="(variant, index) in variants" :key="index" class="image-upload-card">
+      <h2 class="section-title">📷 THÊM HÌNH ẢNH THEO MÀU SẮC</h2>
+      <div class="color-image-grid">
+        <div v-for="colorGroup in colorImageGroups" :key="colorGroup.colorId" class="color-image-card">
           <div class="card-header">
-            <h3 class="variant-title-with-color">
-              <span class="variant-info">{{ getVariantRamRomName(variant) }}</span>
-              <span class="variant-color">
-                <span class="color-indicator" :style="{ backgroundColor: getColorCode(variant.idMauSac) }"></span>
-                {{ getVariantColorName(variant) }}
-              </span>
+            <h3 class="color-title">
+              <span class="color-indicator" :style="{ backgroundColor: getColorCode(colorGroup.colorId) }"></span>
+              {{ colorGroup.colorName }}
             </h3>
+            <span class="variant-count">{{ colorGroup.variants.length }} phiên bản</span>
           </div>
           <div class="card-content">
-            <!-- Preview existing image -->
-            <div v-if="(variantImages[index] && variantImages[index].length > 0) || (variant.imageUrls && variant.imageUrls.length > 0)" class="image-preview-single">
-              <!-- Display uploaded image from file -->
-              <div v-if="variantImages[index] && variantImages[index].length > 0" class="image-preview-item">
-                <img :src="createImageUrl(variantImages[index][0])" :alt="`${getVariantColorName(variant)}`" />
-                <button class="remove-image-btn" @click="removeImage(index, 0)">×</button>
-              </div>
-              <!-- Display saved image from URL -->
-              <div v-else-if="variant.imageUrls && variant.imageUrls.length > 0" class="image-preview-item">
-                <img :src="createFullImageUrl(variant.imageUrls[0])" :alt="`${getVariantColorName(variant)}`" />
-                <button class="remove-image-btn" @click="removeSavedImage(index, 0)">×</button>
+            <!-- Preview existing images -->
+            <div v-if="colorGroup.images && colorGroup.images.length > 0" class="image-preview-grid">
+              <div v-for="(image, imageIndex) in colorGroup.images" :key="imageIndex" class="image-preview-item">
+                <img :src="createFullImageUrl(image)" :alt="colorGroup.colorName" />
+                <button class="remove-image-btn" @click="removeColorImage(colorGroup.colorId, imageIndex)">×</button>
               </div>
             </div>
             
             <!-- Empty state placeholder -->
             <div v-else class="empty-image-placeholder">
-              Chưa có ảnh
+              Chưa có ảnh cho màu {{ colorGroup.colorName }}
             </div>
             
             <!-- Upload button -->
             <div class="upload-section">
               <input 
                 type="file" 
-                :id="`imageUpload-${index}`"
-                @change="handleImageUpload(index, $event)"
+                :id="`colorImageUpload-${colorGroup.colorId}`"
+                @change="handleColorImageUpload(colorGroup.colorId, $event)"
                 accept="image/*"
                 style="display: none"
               />
               <button 
                 class="upload-btn" 
-                @click="triggerFileInput(index)"
+                @click="triggerColorFileInput(colorGroup.colorId)"
               >
-                📷 Thêm ảnh cho {{ getVariantFullName(variant) }}
+                📷 Thêm ảnh cho {{ colorGroup.colorName }}
               </button>
               <p class="upload-status">Sẵn sàng tải lên</p>
-              <p class="upload-info">1 ảnh/phiên bản • Tối đa 10MB</p>
+              <p class="upload-info">Nhiều ảnh/màu sắc • Tối đa 10MB/ảnh</p>
             </div>
           </div>
         </div>
@@ -2462,13 +2671,31 @@ onUnmounted(() => {
 
         <!-- Danh sách IMEI Section -->
         <div class="imei-list-section">
-          <h4>Danh sách IMEI: {{ getTotalImeiCount() }} IMEI</h4>
+          <div class="imei-list-header">
+            <h4>Danh sách IMEI: {{ getTotalImeiCount() }} IMEI</h4>
+            <div v-if="selectedImeis.size > 0" class="imei-bulk-actions">
+              <button class="btn-delete-selected" @click="deleteSelectedImeis">
+                <img src="@/assets/delete.png" alt="Delete" class="btn-icon" />
+                Xóa đã chọn ({{ selectedImeis.size }})
+              </button>
+            </div>
+          </div>
           <div v-if="getTotalImeiCount() === 0" class="no-imei-message">
             Chưa có IMEI nào được nhập
           </div>
           <div v-else class="imei-list">
             <!-- Hiển thị IMEI đang nhập (chưa lưu) -->
             <div v-for="(imei, index) in getInputImeis()" :key="`input-${index}`" class="imei-item" :class="getImeiValidationClass(imei)">
+              <div class="imei-checkbox">
+                <input 
+                  type="checkbox" 
+                  :id="`imei-checkbox-${index}`"
+                  :value="imei"
+                  v-model="selectedImeisArray"
+                  class="imei-checkbox-input"
+                />
+                <label :for="`imei-checkbox-${index}`" class="imei-checkbox-label"></label>
+              </div>
               <span class="imei-text">{{ imei }}</span>
               <div class="imei-actions">
                 <span class="imei-status" :class="getImeiStatusClass(imei)">
@@ -2699,18 +2926,21 @@ onUnmounted(() => {
   font-weight: 600;
 }
 .btn-primary { 
-  background:#007bff; 
-  color:#fff; 
-  border:none; 
-  border-radius:6px; 
-  padding:8px 16px; 
-  cursor:pointer; 
-  transition: all 0.2s;
+  background: linear-gradient(135deg, #ff6b35 0%, #fd7e14 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(255, 107, 53, 0.3);
 }
 
 .btn-primary:hover {
-  background: #0056b3;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px -3px rgba(255, 107, 53, 0.4);
 }
 
 .btn-primary:disabled {
@@ -2725,22 +2955,30 @@ onUnmounted(() => {
   background: #6c757d;
   transform: none;
 }
+
+/* Button Icon Styles */
+.btn-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+  vertical-align: middle;
+}
 .btn-secondary { 
-  background: linear-gradient(135deg, #ff8c42, #ff6b1a);
-  color: #fff; 
-  border: none; 
-  border-radius: 8px; 
-  padding: 12px 20px; 
-  cursor: pointer; 
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  cursor: pointer;
   font-weight: 500;
   font-size: 14px;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(255, 107, 26, 0.3);
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
 }
-.btn-secondary:hover {
-  background: linear-gradient(135deg, #ff6b1a, #e55a00);
+.btn-secondary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(255, 107, 26, 0.4);
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4);
 }
 
 .btn-clear { 
@@ -2780,8 +3018,37 @@ onUnmounted(() => {
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
-.btn-delete { background:#dc3545; color:#fff; border:none; border-radius:6px; padding:4px 8px; cursor:pointer; }
-.btn-add { background:#dc3545; color:#fff; border:none; border-radius:4px; padding:4px 8px; cursor:pointer; margin-left:4px; }
+.btn-delete { 
+  background:#e74c3c; 
+  color:#fff; 
+  border:none; 
+  border-radius:6px; 
+  padding:4px 8px; 
+  cursor:pointer; 
+  transition: all 0.2s ease;
+}
+
+.btn-delete:hover {
+  background:#c0392b;
+  transform: scale(1.05);
+}
+.btn-add { 
+  background: linear-gradient(135deg, #fb923c, #f97316);
+  color:#fff; 
+  border:none; 
+  border-radius:4px; 
+  padding:4px 8px; 
+  cursor:pointer; 
+  margin-left:4px; 
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-add:hover {
+  background: linear-gradient(135deg, #ea580c, #dc2626);
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
 .select-with-add { 
   display: flex; 
   align-items: center; 
@@ -2800,6 +3067,63 @@ onUnmounted(() => {
 }
 .variants-display { margin-top: 20px; }
 .variant-group { margin-bottom: 20px; border: 1px solid #eee; border-radius: 8px; overflow: hidden; }
+
+/* Color Image Grid */
+.color-image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.color-image-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.color-image-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.color-image-card .card-header {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 16px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.color-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.variant-count {
+  background: #3b82f6;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.image-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 8px;
+  padding: 16px;
+}
 .variant-group-header { 
   display: flex; 
   justify-content: space-between; 
@@ -2880,24 +3204,24 @@ onUnmounted(() => {
   cursor: pointer; 
 }
 .btn-refresh { 
-  background: #6c757d; 
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
   color: white; 
   border: none; 
-  border-radius: 6px; 
-  padding: 8px 16px; 
+  border-radius: 8px; 
+  padding: 12px 20px; 
   cursor: pointer; 
   font-size: 14px;
   font-weight: 500;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .btn-refresh:hover {
-  background: #5a6268;
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 /* Multi-select styles */
@@ -3095,39 +3419,44 @@ onUnmounted(() => {
 
 
 .btn-apply-price {
-  background: #28a745;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
   border: none;
-  border-radius: 4px;
-  padding: 6px 12px;
+  border-radius: 6px;
+  padding: 8px 16px;
   cursor: pointer;
   font-size: 12px;
   font-weight: 500;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
 }
 
 .btn-apply-price:hover {
-  background: #218838;
-  transform: scale(1.05);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4);
 }
 
-/* Excel upload buttons in action column */
-.btn-upload-excel {
-  background: #17a2b8;
+.btn-delete-group {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
   color: white;
   border: none;
-  border-radius: 4px;
-  padding: 4px 6px;
+  border-radius: 6px;
+  padding: 8px 16px;
   cursor: pointer;
-  font-size: 10px;
-  margin-left: 4px;
-  transition: all 0.2s;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(231, 76, 60, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.btn-upload-excel:hover {
-  background: #138496;
-  transform: scale(1.05);
+.btn-delete-group:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(231, 76, 60, 0.4);
 }
+
 
 .btn-import-excel {
   background: #6f42c1;
@@ -3250,6 +3579,57 @@ onUnmounted(() => {
   font-size: 14px;
   font-weight: 600;
   color: #333;
+}
+
+.imei-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.imei-bulk-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-delete-selected {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(231, 76, 60, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-delete-selected:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(231, 76, 60, 0.4);
+}
+
+.imei-checkbox {
+  display: flex;
+  align-items: center;
+  margin-right: 8px;
+}
+
+.imei-checkbox-input {
+  margin: 0;
+  cursor: pointer;
+}
+
+.imei-checkbox-label {
+  margin-left: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #666;
 }
 
 .no-imei-message {
@@ -3487,7 +3867,7 @@ onUnmounted(() => {
   border: 1px solid #ddd;
   padding: 6px 12px;
   border-radius: 4px;
-  padding-right: 170px;
+  padding-right: 160px;
 }
 
 .btn-download-template,

@@ -26,6 +26,12 @@ public class GpuServiceImpl implements GpuService {
     }
 
     @Override
+    public List<GpuDTO> getActive() {
+        return gpuRepository.findAllActive().stream()
+                .map(this::convertToDto).toList();
+    }
+
+    @Override
     public Page<GpuDTO> getAll(Pageable pageable) {
         return gpuRepository.findAll(pageable)
                 .map(this::convertToDto);

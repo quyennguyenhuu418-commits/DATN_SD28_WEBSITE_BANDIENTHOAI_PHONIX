@@ -25,6 +25,12 @@ public class RamController {
         return ResponseEntity.ok(rams);
     }
 
+    @GetMapping("/active")
+    public ResponseEntity<List<RamDTO>> getActive() {
+        List<RamDTO> rams = ramService.getActive();
+        return ResponseEntity.ok(rams);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<RamDTO> getById(@PathVariable Integer id) {
         Optional<RamDTO> ram = ramService.getById(id);

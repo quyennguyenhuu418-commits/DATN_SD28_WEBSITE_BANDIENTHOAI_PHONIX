@@ -13,14 +13,17 @@ import java.util.Optional;
 public interface SanPhamRepository extends JpaRepository<SanPham, Integer> {
     Optional<SanPham> findByMaSanPham(String maSanPham);
     
-    @Query("SELECT s FROM SanPham s LEFT JOIN FETCH s.danhMuc LEFT JOIN FETCH s.hang WHERE s.trangThai = 1")
+    @Query("SELECT s FROM SanPham s LEFT JOIN FETCH s.danhMuc LEFT JOIN FETCH s.hang WHERE s.trangThai = 1 ORDER BY s.ngayTao DESC")
     List<SanPham> findAllActive();
     
-    @Query("SELECT s FROM SanPham s LEFT JOIN FETCH s.danhMuc LEFT JOIN FETCH s.hang WHERE s.danhMuc.id = :danhMucId AND s.trangThai = 1")
+    @Query("SELECT s FROM SanPham s LEFT JOIN FETCH s.danhMuc LEFT JOIN FETCH s.hang WHERE s.danhMuc.id = :danhMucId AND s.trangThai = 1 ORDER BY s.ngayTao DESC")
     List<SanPham> findByDanhMucIdAndTrangThaiTrue(@Param("danhMucId") Integer danhMucId);
     
-    @Query("SELECT s FROM SanPham s LEFT JOIN FETCH s.danhMuc LEFT JOIN FETCH s.hang WHERE s.hang.id = :hangId AND s.trangThai = 1")
+    @Query("SELECT s FROM SanPham s LEFT JOIN FETCH s.danhMuc LEFT JOIN FETCH s.hang WHERE s.hang.id = :hangId AND s.trangThai = 1 ORDER BY s.ngayTao DESC")
     List<SanPham> findByHangIdAndTrangThaiTrue(@Param("hangId") Integer hangId);
     
     List<SanPham> findByTenSanPhamContainingIgnoreCase(String tenSanPham);
+    
+    @Query("SELECT s FROM SanPham s LEFT JOIN FETCH s.danhMuc LEFT JOIN FETCH s.hang WHERE s.tenSanPham LIKE %:tenSanPham% AND s.trangThai = 1 ORDER BY s.ngayTao DESC")
+    List<SanPham> findByTenSanPhamContainingIgnoreCaseAndTrangThaiTrue(@Param("tenSanPham") String tenSanPham);
 }

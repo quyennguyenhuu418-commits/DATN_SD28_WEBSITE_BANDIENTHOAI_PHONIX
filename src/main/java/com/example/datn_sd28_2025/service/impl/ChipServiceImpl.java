@@ -23,6 +23,11 @@ public class ChipServiceImpl implements ChipService {
     }
 
     @Override
+    public List<ChipDTO> getActive() {
+        return chipRepository.findAllActive().stream().map(this::convertToDto).toList();
+    }
+
+    @Override
     public Optional<ChipDTO> getById(Integer id) {
         return chipRepository.findById(id).map(this::convertToDto);
     }

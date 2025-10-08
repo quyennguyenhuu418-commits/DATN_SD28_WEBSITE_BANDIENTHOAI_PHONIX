@@ -7,7 +7,6 @@
     entityName="RAM"
     searchPlaceholder="Tìm kiếm theo tên RAM..."
     @openForm="openForm"
-    @deleteItem="deleteRam"
     @exportExcel="exportExcel"
     @toggleStatus="toggleRAMStatus"
   />
@@ -153,6 +152,28 @@ function handleConfirm() {
 function handleCancel() {
   showConfirmModal.value = false
   pendingAction.value = null
+}
+
+async function toggleRAMStatus(ram: Ram) {
+  try {
+    const newStatus = (ram.trangThai || 0) === 1 ? 0 : 1
+    await api.put(`/api/ram/${ram.id}/status`, { trangThai: newStatus })
+    
+    // Update local data
+    const index = rams.value.findIndex(r => r.id === ram.id)
+    if (index !== -1) {
+      rams.value[index].trangThai = newStatus
+    }
+    
+    const statusText = newStatus === 1 ? 'Hoạt động' : 'Ngừng hoạt động'
+    const message = newStatus === 1 
+      ? `Đã chuyển RAM "${ram.tenRam}" sang trạng thái <span style="color: #28a745; font-weight: bold;">${statusText}</span>`
+      : `Đã chuyển RAM "${ram.tenRam}" sang trạng thái <span style="color: #dc3545; font-weight: bold;">${statusText}</span>`
+    toastRef.value?.success('Thành công', message)
+  } catch (error: any) {
+    console.error('Lỗi khi cập nhật trạng thái:', error)
+    toastRef.value?.error('Lỗi cập nhật', 'Không thể cập nhật trạng thái RAM')
+  }
 }
 
 async function exportExcel() {

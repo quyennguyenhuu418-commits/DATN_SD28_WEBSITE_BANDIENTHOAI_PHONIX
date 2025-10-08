@@ -3,13 +3,12 @@
     :data="manHinhs"
     :columns="columns"
     title="Danh Sách Màn Hình"
-    title-icon="📱"
-    entity-name="màn hình"
-    search-placeholder="Tìm kiếm theo kích thước màn hình..."
-    @open-form="openForm"
-    @delete-item="deleteManHinh"
-    @export-excel="exportExcel"
-    @toggle-status="toggleManHinhStatus"
+    titleIcon="📱"
+    entityName="Màn hình"
+    searchPlaceholder="Tìm kiếm theo kích thước màn hình..."
+    @openForm="openForm"
+    @exportExcel="exportExcel"
+    @toggleStatus="toggleManHinhStatus"
   />
 
   <!-- Confirm Modal -->
@@ -172,9 +171,44 @@ function handleCancel() {
   pendingAction.value = null
 }
 
-function exportExcel() {
-  // TODO: Implement Excel export
-  console.log('Export Excel for ManHinh')
+async function toggleManHinhStatus(manHinh: ManHinh) {
+  try {
+    const newStatus = (manHinh.trangThai || 0) === 1 ? 0 : 1
+    await api.put(`/api/man-hinh/${manHinh.id}/status`, { trangThai: newStatus })
+    
+    // Update local data
+    const index = manHinhs.value.findIndex(m => m.id === manHinh.id)
+    if (index !== -1) {
+      manHinhs.value[index].trangThai = newStatus
+    }
+    
+    const statusText = newStatus === 1 ? 'Hoạt động' : 'Ngừng hoạt động'
+    const message = newStatus === 1 
+      ? `Đã chuyển Màn hình "${manHinh.kichThuoc}" sang trạng thái <span style="color: #28a745; font-weight: bold;">${statusText}</span>`
+      : `Đã chuyển Màn hình "${manHinh.kichThuoc}" sang trạng thái <span style="color: #dc3545; font-weight: bold;">${statusText}</span>`
+    toastRef.value?.success('Thành công', message)
+  } catch (error: any) {
+    console.error('Lỗi khi cập nhật trạng thái:', error)
+    toastRef.value?.error('Lỗi cập nhật', 'Không thể cập nhật trạng thái Màn hình')
+  }
+}
+
+async function exportExcel() {
+  try {
+    const response = await api.get('/api/man-hinh/export', { responseType: 'blob' })
+    const url = window.URL.createObjectURL(new Blob([response.data]))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', 'danh_sach_man_hinh.xlsx')
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
+    toastRef.value?.success('Thành công', 'Xuất Excel thành công!')
+  } catch (error: any) {
+    console.error('Lỗi khi xuất Excel:', error)
+    toastRef.value?.error('Lỗi xuất Excel', 'Có lỗi xảy ra khi xuất file Excel')
+  }
 }
 
 onMounted(loadManHinhs)

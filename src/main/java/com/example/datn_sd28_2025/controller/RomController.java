@@ -25,6 +25,12 @@ public class RomController {
         return ResponseEntity.ok(roms);
     }
 
+    @GetMapping("/active")
+    public ResponseEntity<List<RomDTO>> getActive() {
+        List<RomDTO> roms = romService.getActive();
+        return ResponseEntity.ok(roms);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<RomDTO> getById(@PathVariable Integer id) {
         Optional<RomDTO> rom = romService.getById(id);

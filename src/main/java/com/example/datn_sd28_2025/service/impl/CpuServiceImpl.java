@@ -26,6 +26,12 @@ public class CpuServiceImpl implements CpuService {
     }
 
     @Override
+    public List<CpuDTO> getActive() {
+        return cpuRepository.findAllActive().stream()
+                .map(this::convertToDto).toList();
+    }
+
+    @Override
     public Page<CpuDTO> getAll(Pageable pageable) {
         return cpuRepository.findAll(pageable)
                 .map(this::convertToDto);

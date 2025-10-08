@@ -25,6 +25,12 @@ public class HeDieuHanhController {
         return ResponseEntity.ok(heDieuHanhs);
     }
 
+    @GetMapping("/active")
+    public ResponseEntity<List<HeDieuHanhDTO>> getActive() {
+        List<HeDieuHanhDTO> heDieuHanhs = heDieuHanhService.getActive();
+        return ResponseEntity.ok(heDieuHanhs);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<HeDieuHanhDTO> getById(@PathVariable Integer id) {
         Optional<HeDieuHanhDTO> heDieuHanh = heDieuHanhService.getById(id);

@@ -3,13 +3,12 @@
     :data="cameras"
     :columns="columns"
     title="Danh Sách Camera Trước"
-    title-icon="📷"
-    entity-name="camera trước"
-    search-placeholder="Tìm kiếm theo thông số camera..."
-    @open-form="openForm"
-    @delete-item="deleteCamera"
-    @export-excel="exportExcel"
-    @toggle-status="toggleCameraTruocStatus"
+    titleIcon="📷"
+    entityName="Camera trước"
+    searchPlaceholder="Tìm kiếm theo thông số camera..."
+    @openForm="openForm"
+    @exportExcel="exportExcel"
+    @toggleStatus="toggleCameraTruocStatus"
   />
 
   <!-- Confirm Modal -->
@@ -117,31 +116,6 @@ async function handleFormSubmit(data: any) {
   }
 }
 
-function deleteCamera(id: number) {
-  const camera = cameras.value.find(c => c.id === id)
-  confirmTitle.value = 'Xác nhận xóa Camera Trước'
-  confirmMessage.value = `Bạn có chắc chắn muốn xóa camera "${camera?.maCamera || 'này'}"? Hành động này không thể hoàn tác.`
-  pendingAction.value = () => performDelete(id)
-  showConfirmModal.value = true
-}
-
-async function performDelete(id: number) {
-  try {
-    await api.delete(`/api/camera-truoc/${id}`)
-    toastRef.value?.success('Thành công', 'Xóa camera trước thành công!')
-    await loadCameras()
-  } catch (error: any) {
-    console.error('Lỗi khi xóa:', error)
-    // Hiển thị thông báo lỗi cho user
-    if (error.response?.data) {
-      // Backend trả về thông báo lỗi trực tiếp trong response.data
-      toastRef.value?.error('Không thể xóa', error.response.data)
-    } else {
-      toastRef.value?.error('Lỗi xóa Camera Trước', 'Có lỗi xảy ra khi xóa camera trước')
-    }
-  }
-}
-
 function handleConfirm() {
   if (pendingAction.value) {
     pendingAction.value()
@@ -155,9 +129,44 @@ function handleCancel() {
   pendingAction.value = null
 }
 
-function exportExcel() {
-  // TODO: Implement Excel export
-  console.log('Export Excel for CameraTruoc')
+async function toggleCameraTruocStatus(camera: Camera) {
+  try {
+    const newStatus = (camera.trangThai || 0) === 1 ? 0 : 1
+    await api.put(`/api/camera-truoc/${camera.id}/status`, { trangThai: newStatus })
+    
+    // Update local data
+    const index = cameras.value.findIndex(c => c.id === camera.id)
+    if (index !== -1) {
+      cameras.value[index].trangThai = newStatus
+    }
+    
+    const statusText = newStatus === 1 ? 'Hoạt động' : 'Ngừng hoạt động'
+    const message = newStatus === 1 
+      ? `Đã chuyển Camera trước "${camera.thongSo}" sang trạng thái <span style="color: #28a745; font-weight: bold;">${statusText}</span>`
+      : `Đã chuyển Camera trước "${camera.thongSo}" sang trạng thái <span style="color: #dc3545; font-weight: bold;">${statusText}</span>`
+    toastRef.value?.success('Thành công', message)
+  } catch (error: any) {
+    console.error('Lỗi khi cập nhật trạng thái:', error)
+    toastRef.value?.error('Lỗi cập nhật', 'Không thể cập nhật trạng thái Camera trước')
+  }
+}
+
+async function exportExcel() {
+  try {
+    const response = await api.get('/api/camera-truoc/export', { responseType: 'blob' })
+    const url = window.URL.createObjectURL(new Blob([response.data]))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', 'danh_sach_camera_truoc.xlsx')
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
+    toastRef.value?.success('Thành công', 'Xuất Excel thành công!')
+  } catch (error: any) {
+    console.error('Lỗi khi xuất Excel:', error)
+    toastRef.value?.error('Lỗi xuất Excel', 'Có lỗi xảy ra khi xuất file Excel')
+  }
 }
 
 onMounted(loadCameras)

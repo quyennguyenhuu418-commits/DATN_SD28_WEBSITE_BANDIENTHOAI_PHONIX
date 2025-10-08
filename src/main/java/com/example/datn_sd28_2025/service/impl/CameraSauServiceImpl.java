@@ -23,6 +23,11 @@ public class CameraSauServiceImpl implements CameraSauService {
     }
 
     @Override
+    public List<CameraSauDTO> getActive() {
+        return cameraSauRepository.findAllActive().stream().map(this::convertToDto).toList();
+    }
+
+    @Override
     public Optional<CameraSauDTO> getById(Integer id) {
         return cameraSauRepository.findById(id).map(this::convertToDto);
     }

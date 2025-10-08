@@ -23,6 +23,11 @@ public class DanhMucServiceImpl implements DanhMucService {
     }
 
     @Override
+    public List<DanhMucDTO> getActive() {
+        return danhMucRepository.findAllActive().stream().map(this::convertToDto).toList();
+    }
+
+    @Override
     public Optional<DanhMucDTO> getById(Integer id) {
         return danhMucRepository.findById(id).map(this::convertToDto);
     }

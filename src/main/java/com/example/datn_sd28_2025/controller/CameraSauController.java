@@ -25,6 +25,12 @@ public class CameraSauController {
         return ResponseEntity.ok(cameras);
     }
 
+    @GetMapping("/active")
+    public ResponseEntity<List<CameraSauDTO>> getActive() {
+        List<CameraSauDTO> cameras = cameraSauService.getActive();
+        return ResponseEntity.ok(cameras);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<CameraSauDTO> getById(@PathVariable Integer id) {
         Optional<CameraSauDTO> camera = cameraSauService.getById(id);

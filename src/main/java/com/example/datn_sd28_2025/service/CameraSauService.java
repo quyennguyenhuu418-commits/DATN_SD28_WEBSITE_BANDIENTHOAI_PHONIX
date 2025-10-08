@@ -9,6 +9,7 @@ import java.util.Optional;
 
 public interface CameraSauService {
     List<CameraSauDTO> getAll();
+    List<CameraSauDTO> getActive();
     Optional<CameraSauDTO> getById(Integer id);
     CameraSauDTO save(CameraSauDTO cameraSauDTO);
     void delete(Integer id);

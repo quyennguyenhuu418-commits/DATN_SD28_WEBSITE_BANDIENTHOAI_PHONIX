@@ -28,6 +28,15 @@ public class SimController {
         return ResponseEntity.ok(simDTOs);
     }
 
+    @GetMapping("/active")
+    public ResponseEntity<List<SimDTO>> getActiveSims() {
+        List<Sim> sims = simRepository.findAllActive();
+        List<SimDTO> simDTOs = sims.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(simDTOs);
+    }
+
     @PostMapping
     public ResponseEntity<SimDTO> createSim(@RequestBody SimDTO simDTO) {
         Sim sim = convertToEntity(simDTO);

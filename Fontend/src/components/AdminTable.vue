@@ -98,7 +98,7 @@
                   {{ column.label }}
                 </th>
               </template>
-              <th class="status-toggle-col">Trạng Thái</th>
+              <th class="status-col">Trạng Thái</th>
               <th class="action-col">Thao Tác</th>
             </tr>
           </thead>
@@ -119,28 +119,28 @@
                   </slot>
                 </td>
               </template>
-              <td class="status-toggle-col">
-                <div class="status-toggle">
-                  <label class="toggle-switch" :title="getToggleTooltip(item)">
-                    <input 
-                      type="checkbox" 
-                      :checked="(item.trangThai || 0) === 1"
-                      @change="toggleItemStatus(item)"
-                      :disabled="isUpdatingStatus"
-                    />
-                    <span class="toggle-slider"></span>
-                  </label>
-                  <div class="status-text-container">
-                    <span :class="getStatusClass(item)" class="status-text">
-                      {{ getStatusText(item) }}
-                    </span>
-                  </div>
-                </div>
+              <td class="status-col">
+                <span :class="getStatusClass(item)" class="status-text">
+                  {{ getStatusText(item) }}
+                </span>
               </td>
               <td class="action-col">
-                <button class="edit-btn" @click="openForm(item)">
-                  <img src="/src/assets/edit.png" alt="Sửa" class="action-icon" />
-                </button>
+                <div class="action-buttons">
+                  <button class="edit-btn" @click="openForm(item)">
+                    <img src="/src/assets/edit.png" alt="Sửa" class="action-icon" />
+                  </button>
+                  <div class="status-toggle">
+                    <label class="toggle-switch" :title="getToggleTooltip(item)">
+                      <input 
+                        type="checkbox" 
+                        :checked="(item.trangThai || 0) === 1"
+                        @change="toggleItemStatus(item)"
+                        :disabled="isUpdatingStatus"
+                      />
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -536,23 +536,28 @@ const getToggleTooltip = (item: any) => {
 <style scoped>
 @import '@/styles/admin-layout.css';
 
-/* Filter Card - Copy from SanPhamPage */
+/* Modern Filter Card */
 .filter-card {
   background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.filter-card:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 .filter-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 16px 20px;
-  border-bottom: 1px solid #e0e0e0;
-  background: #f8f9fa;
-  border-radius: 8px 8px 0 0;
+  gap: 12px;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e2e8f0;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
 .filter-icon {
@@ -597,16 +602,20 @@ const getToggleTooltip = (item: any) => {
 }
 
 .search-input {
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
   font-size: 14px;
+  background: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   outline: none;
-  transition: border-color 0.2s;
 }
 
 .search-input:focus {
-  border-color: #10b981;
+  border-color: #ff6b35;
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+  transform: translateY(-1px);
 }
 
 .radio-group {
@@ -696,20 +705,27 @@ const getToggleTooltip = (item: any) => {
   text-align: center;
 }
 
-/* Status toggle column */
-.status-toggle-col {
+/* Status column */
+.status-col {
   text-align: center;
   white-space: nowrap;
-  width: 180px;
-  min-width: 180px;
+  width: 120px;
+  min-width: 120px;
+}
+
+/* Action buttons container */
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
 }
 
 /* Status Toggle Styles */
 .status-toggle {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
 }
 
 .toggle-switch {
@@ -805,8 +821,8 @@ input:disabled + .toggle-slider:before {
 .action-col {
   text-align: center;
   white-space: nowrap;
-  width: 120px;
-  min-width: 120px;
+  width: 160px;
+  min-width: 160px;
 }
 
 .edit-btn {

@@ -25,6 +25,11 @@ public class CameraTruocServiceImpl implements CameraTruocService {
     }
 
     @Override
+    public List<CameraTruocDTO> getActive() {
+        return cameraTruocRepository.findAllActive().stream().map(this::convertToDto).toList();
+    }
+
+    @Override
     public Optional<CameraTruocDTO> getById(Integer id) {
         return cameraTruocRepository.findById(id).map(this::convertToDto);
     }

@@ -25,6 +25,11 @@ public class RamServiceImpl implements RamService {
     }
 
     @Override
+    public List<RamDTO> getActive() {
+        return ramRepository.findAllActive().stream().map(this::convertToDto).toList();
+    }
+
+    @Override
     public Page<RamDTO> getAll(Pageable pageable) {
         return ramRepository.findAll(pageable).map(this::convertToDto);
     }

@@ -232,19 +232,19 @@ async function loadStats() {
     stats.value.totalCustomers = customersRes.data.length
 
     // Load brands count
-    const brandsRes = await api.get('/api/hang')
+    const brandsRes = await api.get('/api/hang/active')
     stats.value.totalBrands = brandsRes.data.length
 
     // Load chips count
-    const chipsRes = await api.get('/api/chip')
+    const chipsRes = await api.get('/api/chip/active')
     stats.value.totalChips = chipsRes.data.length
 
     // Load RAMs count
-    const ramsRes = await api.get('/api/ram')
+    const ramsRes = await api.get('/api/ram/active')
     stats.value.totalRams = ramsRes.data.length
 
     // Load ROMs count
-    const romsRes = await api.get('/api/rom')
+    const romsRes = await api.get('/api/rom/active')
     stats.value.totalRoms = romsRes.data.length
   } catch (error) {
     console.error('Error loading stats:', error)
@@ -669,7 +669,14 @@ function getStatusText(status: number): string {
   content: '🏷️';
 }
 .icon-cpu::before {
-  content: '⚙️';
+  content: '';
+  background-image: url('@/assets/settings 1.png');
+  background-size: 16px 16px;
+  background-repeat: no-repeat;
+  background-position: center;
+  width: 16px;
+  height: 16px;
+  display: inline-block;
 }
 .icon-memory::before {
   content: '💾';

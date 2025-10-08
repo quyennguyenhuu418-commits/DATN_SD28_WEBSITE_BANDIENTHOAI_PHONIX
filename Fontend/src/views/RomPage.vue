@@ -119,6 +119,27 @@ async function handleFormSubmit(data: any) {
   }
 }
 
+async function toggleROMStatus(rom: Rom) {
+  try {
+    const newStatus = (rom.trangThai || 0) === 1 ? 0 : 1
+    await api.put(`/api/rom/${rom.id}/status`, { trangThai: newStatus })
+    
+    // Update local data
+    const index = roms.value.findIndex(r => r.id === rom.id)
+    if (index !== -1) {
+      roms.value[index].trangThai = newStatus
+    }
+    
+    const statusText = newStatus === 1 ? 'Hoạt động' : 'Ngừng hoạt động'
+    const message = newStatus === 1 
+      ? `Đã chuyển ROM "${rom.dungLuong}" sang trạng thái <span style="color: #28a745; font-weight: bold;">${statusText}</span>`
+      : `Đã chuyển ROM "${rom.dungLuong}" sang trạng thái <span style="color: #dc3545; font-weight: bold;">${statusText}</span>`
+    toastRef.value?.success('Thành công', message)
+  } catch (error: any) {
+    console.error('Lỗi khi cập nhật trạng thái:', error)
+    toastRef.value?.error('Lỗi cập nhật', 'Không thể cập nhật trạng thái ROM')
+  }
+}
 function deleteRom(id: number) {
   const rom = roms.value.find(r => r.id === id)
   confirmTitle.value = 'Xác nhận xóa ROM'
