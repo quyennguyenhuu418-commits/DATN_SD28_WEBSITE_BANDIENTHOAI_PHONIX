@@ -1,7 +1,9 @@
 package com.example.datn_sd28_2025.service.impl;
 
 import com.example.datn_sd28_2025.dto.DanhMucDTO;
+import com.example.datn_sd28_2025.dto.HinhAnhDTO;
 import com.example.datn_sd28_2025.entity.DanhMuc;
+import com.example.datn_sd28_2025.entity.HinhAnh;
 import com.example.datn_sd28_2025.repository.DanhMucRepository;
 import com.example.datn_sd28_2025.service.DanhMucService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class DanhMucServiceImpl implements DanhMucService {
@@ -65,6 +68,13 @@ public class DanhMucServiceImpl implements DanhMucService {
     }
 
     private DanhMucDTO convertToDto(DanhMuc danhMuc) {
+        List<HinhAnhDTO> hinhAnhDTOs = null;
+        if (danhMuc.getHinhAnhs() != null) {
+            hinhAnhDTOs = danhMuc.getHinhAnhs().stream()
+                    .map(this::convertHinhAnhToDto)
+                    .collect(Collectors.toList());
+        }
+        
         return DanhMucDTO.builder()
                 .id(danhMuc.getId())
                 .maDanhMuc(danhMuc.getMaDanhMuc())
@@ -72,6 +82,7 @@ public class DanhMucServiceImpl implements DanhMucService {
                 .ngayTao(danhMuc.getNgayTao())
                 .ngayCapNhat(danhMuc.getNgayCapNhat())
                 .trangThai(danhMuc.getTrangThai())
+                .hinhAnhs(hinhAnhDTOs)
                 .build();
     }
 
@@ -83,6 +94,16 @@ public class DanhMucServiceImpl implements DanhMucService {
                 .ngayTao(danhMucDTO.getNgayTao())
                 .ngayCapNhat(danhMucDTO.getNgayCapNhat())
                 .trangThai(danhMucDTO.getTrangThai())
+                .build();
+    }
+
+    private HinhAnhDTO convertHinhAnhToDto(HinhAnh hinhAnh) {
+        return HinhAnhDTO.builder()
+                .id(hinhAnh.getId())
+                .urlAnh(hinhAnh.getUrlAnh())
+                .ngayTao(hinhAnh.getNgayTao())
+                .ngaySua(hinhAnh.getNgaySua())
+                .trangThai(hinhAnh.getTrangThai())
                 .build();
     }
 }

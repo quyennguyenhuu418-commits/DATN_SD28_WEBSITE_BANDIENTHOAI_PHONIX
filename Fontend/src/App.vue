@@ -1,6 +1,12 @@
 <template>
   <div id="app" class="h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-    <div class="flex h-full">
+    <!-- Customer Layout (no sidebar) -->
+    <div v-if="isCustomerRoute" class="customer-layout">
+      <router-view />
+    </div>
+    
+    <!-- Admin Layout (with sidebar) -->
+    <div v-else class="flex h-full">
       <!-- Modern Sidebar -->
       <aside
         class="sidebar-container transition-all duration-300 ease-in-out"
@@ -141,8 +147,14 @@
             
             <!-- Submenu -->
             <div v-if="showThuocTinh && !sidebarCollapsed" class="nav-submenu">
+              <router-link to="/danh-muc" class="nav-submenu-item">
+                <span>Danh mục</span>
+              </router-link>
               <router-link to="/hang" class="nav-submenu-item">
                 <span>Hãng</span>
+              </router-link>
+              <router-link to="/admin-reviews" class="nav-submenu-item">
+                <span>Quản lý đánh giá</span>
               </router-link>
               <router-link to="/he-dieu-hanh" class="nav-submenu-item">
                 <span>Hệ điều hành</span>
@@ -224,7 +236,7 @@
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                       d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            </svg>
+              </svg>
             </div>
             <span v-if="!sidebarCollapsed" class="nav-text">Cài đặt</span>
           </router-link>
@@ -267,21 +279,6 @@
             <span v-if="!sidebarCollapsed" class="nav-text">Phân tích KH</span>
             </router-link>
 
-          <!-- Divider -->
-          <div v-if="!sidebarCollapsed" class="nav-divider">
-            <span class="nav-section-title">Demo & Test</span>
-          </div>
-
-          <!-- Dark Mode Demo -->
-          <router-link to="/dark-mode-demo" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
-            <div class="nav-icon">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                      d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-              </svg>
-            </div>
-            <span v-if="!sidebarCollapsed" class="nav-text">Dark Mode Demo</span>
-          </router-link>
 
         </nav>
 
@@ -318,13 +315,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { useDarkMode } from '@/composables/useDarkMode.js'
-
 const sidebarCollapsed = ref(false)
 const showThuocTinh = ref(false)
-
-// Dark mode
-const { isDark, toggleDarkMode } = useDarkMode()
 
 function toggleSidebar() {
   sidebarCollapsed.value = !sidebarCollapsed.value
@@ -336,6 +328,13 @@ function toggleThuocTinh() {
 
 const route = useRoute()
 const currentPathName = computed(() => route.name || route.path)
+
+// Check if current route is customer route (no admin sidebar)
+const isCustomerRoute = computed(() => {
+  const customerRoutes = ['product-detail']
+  return customerRoutes.includes(route.name as string)
+})
+
 const globalSearch = ref('')
 function doGlobalSearch() {
   // hook tìm kiếm toàn cục, có thể emit event hoặc điều hướng sang trang có ô filter keyword
@@ -358,18 +357,6 @@ function doGlobalSearch() {
   --topbar-bg: rgba(255, 255, 255, 0.9);
 }
 
-:root.dark {
-  /* Dark Mode Colors */
-  --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
-  --bg-sidebar: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-  --text-primary: #f1f5f9;
-  --text-secondary: #cbd5e1;
-  --text-sidebar: rgba(241, 245, 249, 0.8);
-  --border-color: #334155;
-  --shadow-light: rgba(0, 0, 0, 0.3);
-  --topbar-bg: rgba(30, 41, 59, 0.9);
-}
 
 /* Modern App Styles */
 html, body {
@@ -698,6 +685,14 @@ html, body {
   color: white;
 }
 
+/* Customer Layout */
+.customer-layout {
+  width: 100%;
+  height: 100vh;
+  background: #f8f9fa;
+  overflow-y: auto;
+}
+
 /* Main Content */
 main {
   background: var(--bg-primary);
@@ -730,35 +725,6 @@ main::-webkit-scrollbar-thumb {
   color: var(--text-primary) !important;
 }
 
-/* Dark Mode Toggle */
-.dark-mode-toggle {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-}
-
-.dark-mode-toggle:hover {
-  transform: translateY(-2px) rotate(180deg);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-}
-
-:root.dark .dark-mode-toggle {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
-}
-
-:root.dark .dark-mode-toggle:hover {
-  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
-}
 
 /* Topbar Icons */
 .topbar-icon {

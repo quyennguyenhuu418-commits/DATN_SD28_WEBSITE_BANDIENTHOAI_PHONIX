@@ -39,4 +39,7 @@ public class DanhMuc {
     @OneToMany(mappedBy = "danhMuc", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<SanPham> sanPhams;
+
+    @OneToMany(mappedBy = "danhMuc", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<HinhAnh> hinhAnhs;
 }

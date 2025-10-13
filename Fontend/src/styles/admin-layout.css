@@ -1,24 +1,13 @@
 /* Modern Admin Layout Styles - Common styles for all admin pages */
 
-/* CSS Variables for Light/Dark Mode */
+/* CSS Variables */
 :root {
-  /* Light Mode Colors */
   --bg-primary: #f8f9fa;
   --bg-secondary: #ffffff;
   --text-primary: #1f2937;
   --text-secondary: #6b7280;
   --border-color: #e5e7eb;
   --shadow-light: rgba(0, 0, 0, 0.1);
-}
-
-:root.dark {
-  /* Dark Mode Colors */
-  --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
-  --text-primary: #f1f5f9;
-  --text-secondary: #cbd5e1;
-  --border-color: #334155;
-  --shadow-light: rgba(0, 0, 0, 0.3);
 }
 
 /* Modern Page Container */

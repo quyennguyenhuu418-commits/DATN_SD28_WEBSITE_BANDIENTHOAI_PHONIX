@@ -22,35 +22,19 @@
           <div class="filter-group">
             <label>Trạng thái</label>
             <div class="radio-group">
-              <label class="radio-label">
+              <label 
+                v-for="option in statusOptions" 
+                :key="option.value"
+                class="radio-label"
+              >
                 <input 
                   type="radio" 
-                  value="all" 
+                  :value="option.value" 
                   v-model="statusFilter"
                   @change="handleStatusFilter"
                 />
                 <span class="radio-custom"></span>
-                Tất cả
-              </label>
-              <label class="radio-label">
-                <input 
-                  type="radio" 
-                  value="active" 
-                  v-model="statusFilter"
-                  @change="handleStatusFilter"
-                />
-                <span class="radio-custom"></span>
-                Hoạt động
-              </label>
-              <label class="radio-label">
-                <input 
-                  type="radio" 
-                  value="inactive" 
-                  v-model="statusFilter"
-                  @change="handleStatusFilter"
-                />
-                <span class="radio-custom"></span>
-                Ngừng hoạt động
+                {{ option.label }}
               </label>
             </div>
           </div>
@@ -120,27 +104,31 @@
                 </td>
               </template>
               <td class="status-col">
-                <span :class="getStatusClass(item)" class="status-text">
-                  {{ getStatusText(item) }}
-                </span>
+                <slot :name="`cell-${getStatusColumnKey()}`" :item="item" :value="item.trangThai">
+                  <span :class="getStatusClass(item)" class="status-text">
+                    {{ getStatusText(item) }}
+                  </span>
+                </slot>
               </td>
               <td class="action-col">
-                <div class="action-buttons">
-                  <button class="edit-btn" @click="openForm(item)">
-                    <img src="/src/assets/edit.png" alt="Sửa" class="action-icon" />
-                  </button>
-                  <div class="status-toggle">
-                    <label class="toggle-switch" :title="getToggleTooltip(item)">
-                      <input 
-                        type="checkbox" 
-                        :checked="(item.trangThai || 0) === 1"
-                        @change="toggleItemStatus(item)"
-                        :disabled="isUpdatingStatus"
-                      />
-                      <span class="toggle-slider"></span>
-                    </label>
+                <slot name="action-buttons" :item="item">
+                  <div class="action-buttons">
+                    <button class="edit-btn" @click="openForm(item)">
+                      <img src="/src/assets/edit.png" alt="Sửa" class="action-icon" />
+                    </button>
+                    <div class="status-toggle">
+                      <label class="toggle-switch" :title="getToggleTooltip(item)">
+                        <input 
+                          type="checkbox" 
+                          :checked="getToggleChecked(item)"
+                          @change="toggleItemStatus(item)"
+                          :disabled="isUpdatingStatus"
+                        />
+                        <span class="toggle-slider"></span>
+                      </label>
+                    </div>
                   </div>
-                </div>
+                </slot>
               </td>
             </tr>
           </tbody>
@@ -212,6 +200,12 @@ interface Column {
   type?: 'text' | 'date' | 'status' | 'code'
 }
 
+interface StatusOption {
+  value: string
+  label: string
+  statusValue: number
+}
+
 interface Props {
   data: any[]
   columns: Column[]
@@ -219,6 +213,8 @@ interface Props {
   titleIcon: string
   entityName: string
   searchPlaceholder: string
+  customStatusOptions?: StatusOption[]
+  hideDefaultStatusOptions?: string[]
 }
 
 const props = defineProps<Props>()
@@ -242,6 +238,30 @@ const isUpdatingStatus = ref(false)
 
 // Status filter state
 const statusFilter = ref<string>('all')
+
+// Default status options
+const defaultStatusOptions = [
+  { value: 'all', label: 'Tất cả', statusValue: -1 },
+  { value: 'active', label: 'Hoạt động', statusValue: 1 },
+  { value: 'inactive', label: 'Ngừng hoạt động', statusValue: 0 }
+]
+
+// Computed status options (merge default with custom)
+const statusOptions = computed(() => {
+  let options = [...defaultStatusOptions]
+  
+  // Hide default options if specified
+  if (props.hideDefaultStatusOptions && props.hideDefaultStatusOptions.length > 0) {
+    options = options.filter(opt => !props.hideDefaultStatusOptions!.includes(opt.value))
+  }
+  
+  // Add custom options
+  if (props.customStatusOptions && props.customStatusOptions.length > 0) {
+    options = [...options, ...props.customStatusOptions]
+  }
+  
+  return options
+})
 
 // Use common admin table functionality
 const {
@@ -273,8 +293,10 @@ const filteredData = computed(() => {
   if (statusFilter.value !== 'all') {
     data = data.filter(item => {
       const status = item.trangThai
-      if (statusFilter.value === 'active' && status === 1) return true
-      if (statusFilter.value === 'inactive' && status === 0) return true
+        const selectedOption = statusOptions.value.find(opt => opt.value === statusFilter.value)
+      if (selectedOption && selectedOption.statusValue !== -1) {
+        return status === selectedOption.statusValue
+      }
       return false
     })
   }
@@ -292,8 +314,8 @@ const paginatedData = computed(() => {
 const selectedCount = computed(() => selectedItems.value.size)
 const hasSelectedItems = computed(() => selectedItems.value.size > 0)
 const allCurrentPageSelected = computed(() => {
-  return paginatedData.value.length > 0 &&
-         paginatedData.value.every(item => selectedItems.value.has(item.id))
+  if (paginatedData.value.length === 0) return false
+  return paginatedData.value.every(item => selectedItems.value.has(item.id))
 })
 
 // Methods
@@ -350,16 +372,11 @@ watch(selectAll, (newValue) => {
   }
 })
 
-// Watch for individual item selection to update select all checkbox
-watch(selectedItems, () => {
-  selectAll.value = allCurrentPageSelected.value
-}, { deep: true })
-
 // Watch for page changes to update select all checkbox
 watch([currentPage, paginatedData], () => {
   // Update select all checkbox based on current page selection
   selectAll.value = allCurrentPageSelected.value
-}, { immediate: true })
+})
 
 // Watch for data changes to reset selection
 watch(() => props.data, () => {
@@ -449,6 +466,7 @@ const formatColumnValue = (item: any, column: Column) => {
   }
   
   if (column.type === 'status') {
+    // Handle numeric status (0/1) for all entities
     const statusClass = value === 1 ? 'status-active' : 'status-inactive'
     const statusText = value === 1 ? 'Hoạt động' : 'Không hoạt động'
     return `<span class="${statusClass}">${statusText}</span>`
@@ -479,26 +497,8 @@ const exportExcel = () => {
 const toggleItemStatus = (item: any) => {
   if (isUpdatingStatus.value) return
   
-  isUpdatingStatus.value = true
-  
-  try {
-    // Emit event to parent component to handle status toggle
-    emit('toggleStatus', item)
-    
-    // Show toast message
-    const newStatus = (item.trangThai || 0) === 1 ? 0 : 1
-    const statusText = newStatus === 1 ? 'Hoạt động' : 'Ngừng hoạt động'
-    const message = newStatus === 1 
-      ? `Đã chuyển ${props.entityName} "${getItemName(item)}" sang trạng thái <span style="color: #28a745; font-weight: bold;">${statusText}</span>`
-      : `Đã chuyển ${props.entityName} "${getItemName(item)}" sang trạng thái <span style="color: #dc3545; font-weight: bold;">${statusText}</span>`
-    showToastMessage(message, 'success')
-    
-  } catch (error: any) {
-    console.error('Lỗi khi cập nhật trạng thái:', error)
-    showToastMessage('Không thể cập nhật trạng thái: ' + (error.response?.data?.message || error.message), 'error')
-  } finally {
-    isUpdatingStatus.value = false
-  }
+  // Emit event to parent component to handle status toggle
+  emit('toggleStatus', item)
 }
 
 const getItemName = (item: any) => {
@@ -508,8 +508,16 @@ const getItemName = (item: any) => {
          item.tenChip || item.tenRam || item.dungLuong || item.ten || 'mục này'
 }
 
+const getStatusColumnKey = () => {
+  // Find status column from props.columns
+  const statusColumn = props.columns.find(col => col.type === 'status')
+  return statusColumn ? statusColumn.key : 'trangThai'
+}
+
 const getStatusClass = (item: any) => {
-  const status = item.trangThai || 0
+  const status = item.trangThai
+  
+  // Handle numeric status (0/1) for all entities
   if (status === 1) {
     return 'status-active'
   } else {
@@ -517,14 +525,32 @@ const getStatusClass = (item: any) => {
   }
 }
 
-const getStatusText = (item: any) => {
-  const status = item.trangThai || 0
-  return status === 1 ? 'Hoạt động' : 'Ngừng hoạt động'
+  const getStatusText = (item: any) => {
+    const status = item.trangThai
+
+    // Debug log
+    console.log('AdminTable getStatusText:', {
+      itemId: item.reviewId || item.id,
+      status,
+      statusType: typeof status
+    })
+
+    // Handle numeric status (0/1) for all entities
+    return status === 1 ? 'Hoạt động' : 'Ngừng hoạt động'
+  }
+
+const getToggleChecked = (item: any) => {
+  const status = item.trangThai
+  
+  // Handle numeric status (0/1) for all entities
+  return status === 1
 }
 
 const getToggleTooltip = (item: any) => {
+  const status = item.trangThai
+  
+  // Handle numeric status (0/1) for all entities
   const quantity = item.tongImei || item.soLuong || 0
-  const status = item.trangThai || 0
   
   if (status === 0 && quantity === 0) {
     return 'Không thể chuyển sang hoạt động vì số lượng = 0'
@@ -816,6 +842,7 @@ input:disabled + .toggle-slider:before {
   font-size: 12px;
   font-weight: 500;
 }
+
 
 /* Action buttons with icons */
 .action-col {

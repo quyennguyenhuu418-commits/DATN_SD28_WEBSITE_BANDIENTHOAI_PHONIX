@@ -20,6 +20,9 @@ const CameraTruocPage = () => import('../views/CameraTruocPage.vue')
 const CameraSauPage = () => import('../views/CameraSauPage.vue')
 const CpuPage = () => import('../views/CpuPage.vue')
 const GpuPage = () => import('../views/GpuPage.vue')
+const DanhMucPage = () => import('../views/DanhMucPage.vue')
+const ProductDetailPage = () => import('../views/ProductDetailPage.vue')
+const AdminReviewPage = () => import('../views/AdminReviewPage.vue')
 
 
 const router = createRouter({
@@ -36,6 +39,7 @@ const router = createRouter({
     { path: '/hoa-don', name: 'hoa-don', component: HoaDonPage },
     { path: '/voucher', name: 'voucher', component: VoucherPage },
     { path: '/hang', name: 'hang', component: HangPage },
+    { path: '/admin-reviews', name: 'admin-reviews', component: AdminReviewPage },
     { path: '/chip', name: 'chip', component: ChipPage },
     { path: '/ram', name: 'ram', component: RamPage },
     { path: '/rom', name: 'rom', component: RomPage },
@@ -47,6 +51,9 @@ const router = createRouter({
     { path: '/camera-sau', name: 'camera-sau', component: CameraSauPage },
     { path: '/cpu', name: 'cpu', component: CpuPage },
     { path: '/gpu', name: 'gpu', component: GpuPage },
+    { path: '/danh-muc', name: 'danh-muc', component: DanhMucPage },
+    // Customer product detail page
+    { path: '/product/:id', name: 'product-detail', component: ProductDetailPage },
    
   ],
 })

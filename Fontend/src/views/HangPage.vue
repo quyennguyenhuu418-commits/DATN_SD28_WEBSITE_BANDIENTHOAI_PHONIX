@@ -26,7 +26,6 @@
     :title="editingHang ? 'Sửa Hãng' : 'Thêm Hãng'"
     :fields="hangFields"
     :initial-data="editingHang ? {
-      maHang: editingHang.maHang || '',
       ten: editingHang.ten,
       xuatXu: editingHang.xuatXu || '',
       moTa: editingHang.moTa || '',
@@ -50,7 +49,6 @@ import '@/styles/admin-layout.css'
 
 interface Hang {
   id: number
-  maHang?: string
   ten: string
   xuatXu?: string
   moTa?: string
@@ -72,7 +70,6 @@ const confirmMessage = ref('')
 const pendingAction = ref<(() => void) | null>(null)
 
 const hangColumns = [
-  { key: 'maHang', label: 'Mã', class: 'code-col', type: 'code' as const },
   { key: 'ten', label: 'Tên Hãng', class: 'name-col' },
   { key: 'xuatXu', label: 'Xuất xứ', class: 'origin-col' },
   { key: 'moTa', label: 'Mô tả', class: 'desc-col' },
@@ -80,7 +77,6 @@ const hangColumns = [
 ]
 
 const hangFields = [
-  { key: 'maHang', label: 'Mã Hãng', type: 'text' as const, required: true },
   { key: 'ten', label: 'Tên Hãng', type: 'text' as const, required: true },
   { key: 'xuatXu', label: 'Xuất xứ', type: 'text' as const },
   { key: 'moTa', label: 'Mô tả', type: 'textarea' as const },

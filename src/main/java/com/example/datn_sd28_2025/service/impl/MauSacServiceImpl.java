@@ -5,8 +5,7 @@ import com.example.datn_sd28_2025.entity.MauSac;
 import com.example.datn_sd28_2025.repository.MauSacRepository;
 import com.example.datn_sd28_2025.service.MauSacService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;

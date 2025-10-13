@@ -1299,6 +1299,22 @@ async function loadProductData() {
         originalIndex: index
       }))
       
+      // QUAN TRỌNG: Load ảnh theo màu sắc từ variants
+      variants.value.forEach(variant => {
+        if (variant.idMauSac && variant.imageUrls && variant.imageUrls.length > 0) {
+          // Initialize color images if not exists
+          if (!colorImages.value[variant.idMauSac]) {
+            colorImages.value[variant.idMauSac] = []
+          }
+          // Add images to color group (avoid duplicates)
+          variant.imageUrls.forEach(imageUrl => {
+            if (!colorImages.value[variant.idMauSac].includes(imageUrl)) {
+              colorImages.value[variant.idMauSac].push(imageUrl)
+            }
+          })
+        }
+      })
+      
       // Load selected values for the first variant into variantForm
       if (variants.value.length > 0) {
         const firstVariant = variants.value[0]
@@ -1424,6 +1440,18 @@ async function handleColorImageUpload(colorId: number, event: Event) {
         // Add URL to color images
         colorImages.value[colorId].push(response.data.url)
         
+        // QUAN TRỌNG: Gán ảnh vào tất cả variants có cùng màu sắc
+        variants.value.forEach((variant, index) => {
+          if (variant.idMauSac === colorId) {
+            // Initialize imageUrls if not exists
+            if (!variant.imageUrls) {
+              variant.imageUrls = []
+            }
+            // Add the new image URL to this variant
+            variant.imageUrls.push(response.data.url)
+          }
+        })
+        
         toastRef.value?.success('Upload thành công', `Đã thêm ảnh cho màu sắc`)
       }
     } catch (error) {
@@ -1442,7 +1470,22 @@ async function handleColorImageUpload(colorId: number, event: Event) {
 
 function removeColorImage(colorId: number, imageIndex: number) {
   if (colorImages.value[colorId] && colorImages.value[colorId].length > imageIndex) {
+    // Get the image URL to remove
+    const imageUrlToRemove = colorImages.value[colorId][imageIndex]
+    
+    // Remove from color images
     colorImages.value[colorId].splice(imageIndex, 1)
+    
+    // QUAN TRỌNG: Cũng xóa ảnh khỏi tất cả variants có cùng màu sắc
+    variants.value.forEach(variant => {
+      if (variant.idMauSac === colorId && variant.imageUrls) {
+        const variantImageIndex = variant.imageUrls.indexOf(imageUrlToRemove)
+        if (variantImageIndex !== -1) {
+          variant.imageUrls.splice(variantImageIndex, 1)
+        }
+      }
+    })
+    
     toastRef.value?.success('Xóa ảnh thành công', 'Đã xóa ảnh khỏi màu sắc')
   }
 }

@@ -325,4 +325,59 @@ public class SanPhamController {
             ));
         }
     }
+
+    // API cho trang sản phẩm khách hàng
+    @GetMapping("/related")
+    public ResponseEntity<List<SanPhamViewDTO>> getRelatedProducts() {
+        try {
+            List<SanPhamDTO> activeProducts = sanPhamService.getActiveSanPham();
+            // Giới hạn số lượng sản phẩm liên quan
+            if (activeProducts.size() > 8) {
+                activeProducts = activeProducts.subList(0, 8);
+            }
+            
+            // Convert SanPhamDTO to SanPhamViewDTO để có đầy đủ thông tin variants và images
+            List<SanPhamViewDTO> relatedProducts = activeProducts.stream()
+                .map(sanPham -> sanPhamService.getSanPhamForView(sanPham.getId()).orElse(null))
+                .filter(viewDTO -> viewDTO != null)
+                .toList();
+            
+            return ResponseEntity.ok(relatedProducts);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(List.of());
+        }
+    }
+
+    @GetMapping("/{id}/reviews")
+    public ResponseEntity<List<Map<String, Object>>> getProductReviews(@PathVariable Integer id) {
+        try {
+            // Tạo dữ liệu đánh giá mẫu (có thể thay thế bằng logic thực tế)
+            List<Map<String, Object>> reviews = List.of(
+                Map.of(
+                    "id", 1,
+                    "tenKhachHang", "Nguyễn Văn A",
+                    "diem", 5,
+                    "noiDung", "Sản phẩm rất tốt, chất lượng cao, giao hàng nhanh. Rất hài lòng với sản phẩm này!",
+                    "ngayTao", "2024-01-15T10:30:00"
+                ),
+                Map.of(
+                    "id", 2,
+                    "tenKhachHang", "Trần Thị B",
+                    "diem", 4,
+                    "noiDung", "Điện thoại đẹp, pin trâu, camera chụp ảnh rất đẹp. Chỉ có điều giá hơi cao một chút.",
+                    "ngayTao", "2024-01-10T14:20:00"
+                ),
+                Map.of(
+                    "id", 3,
+                    "tenKhachHang", "Lê Văn C",
+                    "diem", 5,
+                    "noiDung", "Tuyệt vời! Màn hình sắc nét, hiệu năng mượt mà. Khuyến nghị mua!",
+                    "ngayTao", "2024-01-08T09:15:00"
+                )
+            );
+            return ResponseEntity.ok(reviews);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(List.of());
+        }
+    }
 }
