@@ -17,11 +17,11 @@ public class ChiTietHoaDonDTO {
     private Double donGia;
     private Double thanhTien;
     private String ghiChu;
-    
+
     // Thông tin sản phẩm
     private String tenSanPham;
     private String hinhAnh;
-    
+
     // IMEI đã chọn
     private List<String> selectedImeis;
 }

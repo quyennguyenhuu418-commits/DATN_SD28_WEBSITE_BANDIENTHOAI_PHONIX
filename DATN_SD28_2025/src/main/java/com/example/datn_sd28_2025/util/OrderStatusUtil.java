@@ -1,25 +1,25 @@
 package com.example.datn_sd28_2025.util;
 
 public class OrderStatusUtil {
-    
-    // Order status constants
-    public static final int CHO_XAC_NHAN = 0;           // Chờ xác nhận
-    public static final int CHO_GIAO_HANG = 1;          // Chờ giao hàng  
-    public static final int DANG_GIAO = 2;              // Đang giao
-    public static final int HOAN_THANH = 3;             // Hoàn thành
-    public static final int DA_THANH_TOAN_CHO_XAC_NHAN = 4; // Đã thanh toán chờ xác nhận
-    public static final int DA_HUY = 5;                 // Đã hủy
-    
+
+    // Order status constants (updated according to new logic)
+    public static final int CHO_XAC_NHAN = 0;           // Chờ xác nhận (New order created, not yet confirmed)
+    public static final int DA_THANH_TOAN_CHO_XAC_NHAN = 1; // Đã thanh toán chờ xác nhận (Customer has paid, waiting for confirmation)
+    public static final int CHO_GIAO_HANG = 2;          // Chờ giao hàng (Confirmed, waiting for delivery)
+    public static final int DANG_GIAO = 3;              // Đang giao (Being transported / In delivery)
+    public static final int HOAN_THANH = 4;             // Hoàn thành (Delivered / Completed)
+    public static final int DA_HUY = 5;                 // Đã hủy (Order cancelled)
+
     // Payment method constants
     public static final String CASH = "CASH";           // Tiền mặt
     public static final String COD = "COD";             // Thu hộ
     public static final String BANK_TRANSFER = "BANK_TRANSFER"; // Chuyển khoản
     public static final String CREDIT_CARD = "CREDIT_CARD";     // Thẻ tín dụng
-    
+
     // Order type constants
     public static final String NORMAL = "NORMAL";       // Bán trực tiếp
     public static final String DELIVERY = "DELIVERY";   // Giao hàng
-    
+
     /**
      * Get initial status based on order type
      */
@@ -31,25 +31,25 @@ public class OrderStatusUtil {
         }
         return HOAN_THANH; // Default
     }
-    
+
     /**
      * Get next status in the workflow
      */
     public static int getNextStatus(int currentStatus) {
         switch (currentStatus) {
             case CHO_XAC_NHAN:
-                return CHO_GIAO_HANG;
-            case CHO_GIAO_HANG:
-                return DANG_GIAO;
-            case DANG_GIAO:
-                return HOAN_THANH;
+                return DA_THANH_TOAN_CHO_XAC_NHAN; // Chờ xác nhận -> Đã thanh toán chờ xác nhận
             case DA_THANH_TOAN_CHO_XAC_NHAN:
-                return CHO_GIAO_HANG;
+                return CHO_GIAO_HANG; // Đã thanh toán chờ xác nhận -> Chờ giao hàng
+            case CHO_GIAO_HANG:
+                return DANG_GIAO; // Chờ giao hàng -> Đang giao
+            case DANG_GIAO:
+                return HOAN_THANH; // Đang giao -> Hoàn thành
             default:
                 return currentStatus; // No change
         }
     }
-    
+
     /**
      * Get status name in Vietnamese
      */
@@ -71,7 +71,7 @@ public class OrderStatusUtil {
                 return "Không xác định";
         }
     }
-    
+
     /**
      * Get payment method name in Vietnamese
      */
@@ -89,7 +89,7 @@ public class OrderStatusUtil {
                 return "Không xác định";
         }
     }
-    
+
     /**
      * Check if status can be updated
      */
@@ -98,7 +98,7 @@ public class OrderStatusUtil {
         if (newStatus == DA_HUY) {
             return currentStatus != HOAN_THANH && currentStatus != DA_HUY;
         }
-        
+
         // Can only move to next status or stay the same
         return newStatus == currentStatus || newStatus == getNextStatus(currentStatus);
     }

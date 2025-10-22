@@ -21,6 +21,8 @@ public interface ChiTietHoaDonRepository extends JpaRepository<ChiTietHoaDon, In
     @Query("SELECT SUM(c.soLuong) FROM ChiTietHoaDon c WHERE c.sanPhamId = :sanPhamId AND c.hoaDon.trangThai = 1")
     Integer sumSoLuongBySanPhamId(@Param("sanPhamId") Integer sanPhamId);
     
+    // Note: ChiTietHoaDon doesn't have chiTietSanPham relationship, using HoaDonCt instead
+    
     void deleteByHoaDonId(Integer hoaDonId);
 }
 

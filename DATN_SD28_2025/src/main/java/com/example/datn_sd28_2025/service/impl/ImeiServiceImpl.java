@@ -111,6 +111,16 @@ public class ImeiServiceImpl implements ImeiService {
         List<Imei> imeis = imeiRepository.findByChiTietSanPhamId(chiTietSanPhamId);
         return imeis.stream().map(this::convertToDto).toList();
     }
+    
+    @Override
+    public Imei findByImeiString(String imei) {
+        return imeiRepository.findByImei(imei).orElse(null);
+    }
+    
+    @Override
+    public ImeiDTO convertToDTO(Imei imei) {
+        return convertToDto(imei);
+    }
 
     private ImeiDTO convertToDto(Imei imei) {
         return ImeiDTO.builder()

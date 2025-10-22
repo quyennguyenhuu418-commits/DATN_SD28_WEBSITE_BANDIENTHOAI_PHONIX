@@ -5,6 +5,7 @@ import com.example.datn_sd28_2025.entity.ChiTietSanPham;
 import com.example.datn_sd28_2025.entity.HinhAnh;
 import com.example.datn_sd28_2025.entity.Imei;
 import com.example.datn_sd28_2025.repository.ChiTietSanPhamRepository;
+import com.example.datn_sd28_2025.repository.HoaDonCtRepository;
 import com.example.datn_sd28_2025.repository.HinhAnhRepository;
 import com.example.datn_sd28_2025.repository.ImeiRepository;
 import com.example.datn_sd28_2025.service.SanPhamPosService;
@@ -22,6 +23,9 @@ public class SanPhamPosServiceImpl implements SanPhamPosService {
 
     @Autowired
     private ChiTietSanPhamRepository chiTietSanPhamRepository;
+
+    @Autowired
+    private HoaDonCtRepository hoaDonCtRepository;
 
     @Autowired
     private HinhAnhRepository hinhAnhRepository;
@@ -135,6 +139,11 @@ public class SanPhamPosServiceImpl implements SanPhamPosService {
             // Count available IMEI records for this ChiTietSanPham
             int soLuongTon = (int) imeiRepository.countAvailableByChiTiet(chiTiet.getId());
             dto.setSoLuongTon(soLuongTon);
+            
+            // Tính số lượng đã bán từ ImeiDaBan (qua HoaDonCt)
+            Long soLuongDaBan = hoaDonCtRepository.countSoLuongDaBanByChiTietSanPhamId(chiTiet.getId());
+            dto.setSoLuongDaBan(soLuongDaBan != null ? soLuongDaBan.intValue() : 0);
+            
             dto.setTrangThai(chiTiet.getTrangThai() != null ? chiTiet.getTrangThai() : 0);
             
             // Thông tin sản phẩm
@@ -150,6 +159,15 @@ public class SanPhamPosServiceImpl implements SanPhamPosService {
                                   chiTiet.getSanPham().getHang().getTen() : "Không rõ hãng");
                 } else {
                     dto.setTenHang("Không rõ hãng");
+                }
+                
+                // Thông tin danh mục
+                if (chiTiet.getSanPham().getDanhMuc() != null) {
+                    dto.setDanhMucId(chiTiet.getSanPham().getDanhMuc().getId());
+                    dto.setTenDanhMuc(chiTiet.getSanPham().getDanhMuc().getTenDanhMuc() != null ? 
+                                     chiTiet.getSanPham().getDanhMuc().getTenDanhMuc() : "Không rõ danh mục");
+                } else {
+                    dto.setTenDanhMuc("Không rõ danh mục");
                 }
             } else {
                 dto.setTenSanPham("Sản phẩm không tên");
