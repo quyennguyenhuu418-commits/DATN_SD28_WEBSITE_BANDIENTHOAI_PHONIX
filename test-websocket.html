@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+</head>
+<body>
+    <h1>WebSocket Test</h1>
+    <div id="status">Disconnected</div>
+    <div id="messages"></div>
+    
+    <button onclick="testCustomerJoin()">Test Customer Join</button>
+    <button onclick="testStaffJoin()">Test Staff Join</button>
+    <button onclick="checkWaitingCustomers()">Check Waiting Customers</button>
+    
+    <script>
+        let stompClient = null;
+        let customerSessionId = 'test_customer_' + Date.now();
+        let staffId = 'test_staff_' + Date.now();
+        
+        function connect() {
+            const socket = new SockJS('http://localhost:8080/ws');
+            stompClient = Stomp.over(socket);
+            
+            stompClient.connect({}, function(frame) {
+                document.getElementById('status').textContent = 'Connected';
+                console.log('Connected: ' + frame);
+                
+                // Subscribe to all messages
+                stompClient.subscribe('/topic/staff/notifications', function(message) {
+                    console.log('Staff notification:', message.body);
+                    addMessage('Staff notification: ' + message.body);
+                });
+                
+                stompClient.subscribe('/topic/customer/joined', function(message) {
+                    console.log('Customer joined:', message.body);
+                    addMessage('Customer joined: ' + message.body);
+                });
+                
+            }, function(error) {
+                console.error('Error: ' + error);
+                document.getElementById('status').textContent = 'Error: ' + error;
+            });
+        }
+        
+        function testCustomerJoin() {
+            if (!stompClient) {
+                connect();
+                return;
+            }
+            
+            const customerData = {
+                sessionId: customerSessionId,
+                customerName: 'Test Customer',
+                email: 'test@example.com',
+                phoneNumber: '0123456789',
+                gender: 'male',
+                message: 'Hello, I need help'
+            };
+            
+            console.log('Sending customer join:', customerData);
+            stompClient.send('/app/customer/join', {}, JSON.stringify(customerData));
+        }
+        
+        function testStaffJoin() {
+            if (!stompClient) {
+                connect();
+                return;
+            }
+            
+            const staffData = {
+                staffId: staffId,
+                staffName: 'Test Staff'
+            };
+            
+            console.log('Sending staff join:', staffData);
+            stompClient.send('/app/staff/join', {}, JSON.stringify(staffData));
+        }
+        
+        function checkWaitingCustomers() {
+            fetch('http://localhost:8080/api/chat/debug/waiting-customers')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Waiting customers:', data);
+                    addMessage('Waiting customers: ' + JSON.stringify(data));
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    addMessage('Error: ' + error);
+                });
+        }
+        
+        function addMessage(message) {
+            const div = document.createElement('div');
+            div.textContent = new Date().toLocaleTimeString() + ': ' + message;
+            document.getElementById('messages').appendChild(div);
+        }
+        
+        // Auto connect
+        connect();
+    </script>
+</body>
+</html>
+
+

@@ -1,0 +1,221 @@
+/* Global Dark Mode Styles */
+
+/* Font Import and Global Typography */
+* {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* CSS Variables for Light/Dark Mode */
+:root {
+  /* Light Mode Colors */
+  --bg-primary: #f5f7fa;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f9fafb;
+  --bg-sidebar: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-tertiary: #9ca3af;
+  --text-sidebar: rgba(255, 255, 255, 0.8);
+  --border-color: #e5e7eb;
+  --border-light: #f3f4f6;
+  --shadow-light: rgba(0, 0, 0, 0.1);
+  --shadow-medium: rgba(0, 0, 0, 0.15);
+  --topbar-bg: rgba(255, 255, 255, 0.9);
+  --card-bg: #ffffff;
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+  --button-primary: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  --button-success: linear-gradient(135deg, #10b981, #059669);
+  --button-warning: linear-gradient(135deg, #f59e0b, #d97706);
+  --button-danger: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+:root.dark {
+  /* Dark Mode Colors */
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --bg-sidebar: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #94a3b8;
+  --text-sidebar: rgba(241, 245, 249, 0.8);
+  --border-color: #334155;
+  --border-light: #475569;
+  --shadow-light: rgba(0, 0, 0, 0.3);
+  --shadow-medium: rgba(0, 0, 0, 0.4);
+  --topbar-bg: rgba(30, 41, 59, 0.9);
+  --card-bg: #1e293b;
+  --input-bg: #334155;
+  --input-border: #475569;
+  --button-primary: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  --button-success: linear-gradient(135deg, #10b981, #059669);
+  --button-warning: linear-gradient(135deg, #f59e0b, #d97706);
+  --button-danger: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+/* Global Dark Mode Styles */
+* {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* Card Styles */
+.card, .bg-white {
+  background: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
+  box-shadow: 0 4px 6px -1px var(--shadow-light) !important;
+}
+
+/* Text Colors */
+.text-gray-900, .text-gray-800, .text-gray-700 {
+  color: var(--text-primary) !important;
+}
+
+.text-gray-600, .text-gray-500 {
+  color: var(--text-secondary) !important;
+}
+
+.text-gray-400, .text-gray-300 {
+  color: var(--text-tertiary) !important;
+}
+
+/* Border Colors */
+.border-gray-200, .border-gray-300 {
+  border-color: var(--border-color) !important;
+}
+
+.border-gray-100 {
+  border-color: var(--border-light) !important;
+}
+
+/* Background Colors */
+.bg-gray-50, .bg-gray-100 {
+  background: var(--bg-tertiary) !important;
+}
+
+.bg-gray-200 {
+  background: var(--border-color) !important;
+}
+
+/* Input Styles */
+input, textarea, select {
+  background: var(--input-bg) !important;
+  border-color: var(--input-border) !important;
+  color: var(--text-primary) !important;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Button Styles */
+.btn-primary {
+  background: var(--button-primary) !important;
+}
+
+.btn-success {
+  background: var(--button-success) !important;
+}
+
+.btn-warning {
+  background: var(--button-warning) !important;
+}
+
+.btn-danger {
+  background: var(--button-danger) !important;
+}
+
+/* Table Styles */
+table {
+  background: var(--card-bg) !important;
+}
+
+thead {
+  background: var(--bg-tertiary) !important;
+}
+
+th {
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+td {
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Modal Styles */
+.modal-content {
+  background: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Dropdown Styles */
+.dropdown-menu {
+  background: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
+  box-shadow: 0 10px 25px var(--shadow-medium) !important;
+}
+
+.dropdown-item {
+  color: var(--text-primary) !important;
+}
+
+.dropdown-item:hover {
+  background: var(--bg-tertiary) !important;
+}
+
+/* Scrollbar Styles - Ẩn hoàn toàn */
+::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+  background: transparent;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: transparent;
+}
+
+/* Firefox scrollbar ẩn */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+/* Animation for smooth transitions */
+.dark-mode-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Status badges */
+.status {
+  transition: all 0.3s ease;
+}
+
+/* Charts and graphs (if using any chart library) */
+.chart-container {
+  background: var(--card-bg) !important;
+}
+
+/* Toast notifications */
+.toast {
+  background: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}

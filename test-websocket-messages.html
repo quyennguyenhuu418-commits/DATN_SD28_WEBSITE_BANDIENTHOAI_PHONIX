@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Message Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+</head>
+<body>
+    <h1>WebSocket Message Test</h1>
+    <div id="status">Disconnected</div>
+    <div id="messages"></div>
+    
+    <button onclick="testStaffJoin()">Test Staff Join</button>
+    <button onclick="checkAPI()">Check API</button>
+    <button onclick="clearMessages()">Clear Messages</button>
+    
+    <script>
+        let stompClient = null;
+        let staffId = 'test_staff_' + Date.now();
+        
+        function connect() {
+            const socket = new SockJS('http://localhost:8080/ws/staff');
+            stompClient = Stomp.over(socket);
+            
+            stompClient.connect({}, function(frame) {
+                document.getElementById('status').textContent = 'Connected';
+                console.log('Connected: ' + frame);
+                
+                // Subscribe to staff notifications
+                stompClient.subscribe('/topic/staff/notifications', function(message) {
+                    console.log('🔔 Received staff notification:', message.body);
+                    addMessage('Staff notification: ' + message.body);
+                    
+                    try {
+                        const data = JSON.parse(message.body);
+                        if (data.type === 'waiting_customers_update') {
+                            addMessage('✅ Waiting customers: ' + data.count);
+                            addMessage('Customers: ' + JSON.stringify(data.waitingCustomers));
+                        }
+                    } catch (e) {
+                        addMessage('❌ Parse error: ' + e.message);
+                    }
+                });
+                
+                // Subscribe to staff-specific messages
+                stompClient.subscribe('/topic/staff/' + staffId, function(message) {
+                    console.log('📨 Received staff-specific message:', message.body);
+                    addMessage('Staff-specific: ' + message.body);
+                });
+                
+            }, function(error) {
+                console.error('Error: ' + error);
+                document.getElementById('status').textContent = 'Error: ' + error;
+            });
+        }
+        
+        function testStaffJoin() {
+            if (!stompClient) {
+                connect();
+                return;
+            }
+            
+            const staffData = {
+                staffId: staffId,
+                staffName: 'Test Staff'
+            };
+            
+            console.log('Sending staff join:', staffData);
+            addMessage('Sending staff join: ' + JSON.stringify(staffData));
+            stompClient.send('/app/staff/join', {}, JSON.stringify(staffData));
+        }
+        
+        function checkAPI() {
+            fetch('http://localhost:8080/api/chat/waiting-customers')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('API response:', data);
+                    addMessage('API response: ' + JSON.stringify(data));
+                })
+                .catch(error => {
+                    console.error('API error:', error);
+                    addMessage('API error: ' + error);
+                });
+        }
+        
+        function addMessage(message) {
+            const div = document.createElement('div');
+            div.textContent = new Date().toLocaleTimeString() + ': ' + message;
+            document.getElementById('messages').appendChild(div);
+        }
+        
+        function clearMessages() {
+            document.getElementById('messages').innerHTML = '';
+        }
+        
+        // Auto connect
+        connect();
+    </script>
+</body>
+</html>
+
+

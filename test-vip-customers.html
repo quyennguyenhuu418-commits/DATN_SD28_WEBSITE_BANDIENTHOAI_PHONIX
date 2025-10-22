@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test VIP Customers API</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>Test VIP Customers API</h1>
+    
+    <button onclick="testVipCustomers()">Test VIP Customers API</button>
+    <button onclick="testDetailedStats()">Test Detailed Stats API</button>
+    
+    <div id="result"></div>
+
+    <script>
+        async function testVipCustomers() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<div class="result">Đang test VIP Customers API...</div>';
+            
+            try {
+                const response = await fetch('http://localhost:8080/api/thong-ke/khach-hang-vip?tuNgay=2024-01-01&denNgay=2024-12-31&limit=10');
+                const data = await response.json();
+                
+                if (data.thanhCong) {
+                    resultDiv.innerHTML = `
+                        <div class="result success">
+                            <h3>✅ VIP Customers API thành công!</h3>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="result error">
+                            <h3>❌ VIP Customers API lỗi:</h3>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <h3>❌ Lỗi kết nối:</h3>
+                        <pre>${error.message}</pre>
+                    </div>
+                `;
+            }
+        }
+
+        async function testDetailedStats() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<div class="result">Đang test Detailed Stats API...</div>';
+            
+            try {
+                const response = await fetch('http://localhost:8080/api/thong-ke/chi-tiet?tuNgay=2024-01-01&denNgay=2024-12-31');
+                const data = await response.json();
+                
+                if (data.thanhCong) {
+                    resultDiv.innerHTML = `
+                        <div class="result success">
+                            <h3>✅ Detailed Stats API thành công!</h3>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="result error">
+                            <h3>❌ Detailed Stats API lỗi:</h3>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <h3>❌ Lỗi kết nối:</h3>
+                        <pre>${error.message}</pre>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

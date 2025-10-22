@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Staff Code Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        .test-case {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .input {
+            font-weight: bold;
+            color: #007bff;
+        }
+        .output {
+            color: #28a745;
+            font-family: monospace;
+        }
+        .description {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test Staff Code Generator</h1>
+        
+        <div class="test-section">
+            <h3>📋 Test Cases</h3>
+            <div id="test-results"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🎯 Custom Test</h3>
+            <input type="text" id="custom-name" placeholder="Nhập tên nhân viên..." style="width: 300px; padding: 8px; margin-right: 10px;">
+            <button onclick="testCustomName()">Generate Code</button>
+            <div id="custom-result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📊 Logic Explanation</h3>
+            <ul>
+                <li><strong>Format:</strong> Tên + Chữ cái đầu họ + Chữ cái đầu tên đệm + 3 số ngẫu nhiên</li>
+                <li><strong>Example:</strong> "Nguyễn Văn Hùng" → "hungnv123"</li>
+                <li><strong>Fallback:</strong> Nếu tên rỗng → "NV" + timestamp</li>
+                <li><strong>Accent removal:</strong> Tự động loại bỏ dấu tiếng Việt</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Simulate StaffCodeGenerator logic
+        function generateStaffCode(hoTen) {
+            if (!hoTen || hoTen.trim() === '') {
+                return 'NV' + Date.now();
+            }
+            
+            const cleanName = removeVietnameseAccents(hoTen.trim().toLowerCase());
+            const nameParts = cleanName.split(/\s+/);
+            
+            if (nameParts.length === 0) {
+                return 'NV' + Date.now();
+            }
+            
+            let maNhanVien = '';
+            
+            // Tên (phần cuối)
+            const ten = nameParts[nameParts.length - 1];
+            if (ten) {
+                maNhanVien += ten;
+            }
+            
+            // Chữ cái đầu họ
+            if (nameParts.length > 0 && nameParts[0]) {
+                maNhanVien += nameParts[0].charAt(0);
+            }
+            
+            // Chữ cái đầu tên đệm
+            if (nameParts.length > 2 && nameParts[1]) {
+                maNhanVien += nameParts[1].charAt(0);
+            } else if (nameParts.length === 2 && nameParts[1]) {
+                maNhanVien += nameParts[1].charAt(0);
+            }
+            
+            // 3 số ngẫu nhiên
+            const randomNumber = Math.floor(Math.random() * 900) + 100;
+            maNhanVien += randomNumber;
+            
+            return maNhanVien;
+        }
+        
+        function removeVietnameseAccents(text) {
+            if (!text) return '';
+            
+            return text
+                .replace(/[àáạảãâầấậẩẫăằắặẳẵ]/g, 'a')
+                .replace(/[èéẹẻẽêềếệểễ]/g, 'e')
+                .replace(/[ìíịỉĩ]/g, 'i')
+                .replace(/[òóọỏõôồốộổỗơờớợởỡ]/g, 'o')
+                .replace(/[ùúụủũưừứựửữ]/g, 'u')
+                .replace(/[ỳýỵỷỹ]/g, 'y')
+                .replace(/[đ]/g, 'd')
+                .replace(/[ÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ]/g, 'A')
+                .replace(/[ÈÉẸẺẼÊỀẾỆỂỄ]/g, 'E')
+                .replace(/[ÌÍỊỈĨ]/g, 'I')
+                .replace(/[ÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠ]/g, 'O')
+                .replace(/[ÙÚỤỦŨƯỪỨỰỬỮ]/g, 'U')
+                .replace(/[ỲÝỴỶỸ]/g, 'Y')
+                .replace(/[Đ]/g, 'D');
+        }
+        
+        function runTests() {
+            const testCases = [
+                { name: 'Nguyễn Văn Hùng', description: 'Tên đầy đủ với dấu' },
+                { name: 'Tran Thi Mai', description: 'Tên không dấu' },
+                { name: 'Le Van Nam', description: 'Tên 3 phần' },
+                { name: 'Pham Hoa', description: 'Tên 2 phần' },
+                { name: 'Hung', description: 'Chỉ có tên' },
+                { name: '', description: 'Tên rỗng' },
+                { name: 'Nguyễn Thị Hương', description: 'Tên nữ với dấu' },
+                { name: 'Hoàng Văn Đức', description: 'Tên có chữ Đ' },
+                { name: 'Vũ Thị Lan', description: 'Tên có chữ ư' },
+                { name: 'Đặng Văn Minh', description: 'Tên có chữ Đ và ư' }
+            ];
+            
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML = '';
+            
+            testCases.forEach((testCase, index) => {
+                const code = generateStaffCode(testCase.name);
+                const testDiv = document.createElement('div');
+                testDiv.className = 'test-case';
+                testDiv.innerHTML = `
+                    <div class="input">Input: "${testCase.name}"</div>
+                    <div class="output">Output: ${code}</div>
+                    <div class="description">${testCase.description}</div>
+                `;
+                resultsDiv.appendChild(testDiv);
+            });
+        }
+        
+        function testCustomName() {
+            const customName = document.getElementById('custom-name').value;
+            const code = generateStaffCode(customName);
+            const resultDiv = document.getElementById('custom-result');
+            resultDiv.innerHTML = `
+                <div class="test-case">
+                    <div class="input">Input: "${customName}"</div>
+                    <div class="output">Output: ${code}</div>
+                </div>
+            `;
+        }
+        
+        // Run tests on page load
+        window.onload = function() {
+            runTests();
+        };
+    </script>
+</body>
+</html>

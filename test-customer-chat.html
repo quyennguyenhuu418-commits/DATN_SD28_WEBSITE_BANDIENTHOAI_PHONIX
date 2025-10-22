@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Customer Chat WebSocket</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .form-group {
+            margin: 10px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.connecting {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Customer Chat WebSocket</h1>
+    
+    <div class="test-section">
+        <h2>Kết nối WebSocket</h2>
+        <div id="status" class="status disconnected">Chưa kết nối</div>
+        <button id="connectBtn" onclick="connect()">Kết nối</button>
+        <button id="disconnectBtn" onclick="disconnect()" disabled>Ngắt kết nối</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Thông tin khách hàng</h2>
+        <div class="form-group">
+            <label for="customerName">Tên khách hàng:</label>
+            <input type="text" id="customerName" value="Nguyễn Văn A">
+        </div>
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" value="test@example.com">
+        </div>
+        <div class="form-group">
+            <label for="phoneNumber">Số điện thoại:</label>
+            <input type="tel" id="phoneNumber" value="0123456789">
+        </div>
+        <div class="form-group">
+            <label for="gender">Giới tính:</label>
+            <select id="gender">
+                <option value="Nam">Nam</option>
+                <option value="Nữ">Nữ</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="message">Tin nhắn:</label>
+            <textarea id="message" rows="3">Xin chào, tôi cần hỗ trợ!</textarea>
+        </div>
+        <button onclick="joinChat()" id="joinBtn" disabled>Tham gia chat</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Gửi tin nhắn</h2>
+        <div class="form-group">
+            <label for="newMessage">Tin nhắn mới:</label>
+            <input type="text" id="newMessage" placeholder="Nhập tin nhắn...">
+        </div>
+        <button onclick="sendMessage()" id="sendBtn" disabled>Gửi tin nhắn</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Log</h2>
+        <div id="log" class="log"></div>
+        <button onclick="clearLog()">Xóa log</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <script>
+        let stompClient = null;
+        let sessionId = null;
+        let isConnected = false;
+
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function updateStatus(status, message) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = `status ${status}`;
+            statusDiv.textContent = message;
+        }
+
+        function updateButtons() {
+            document.getElementById('connectBtn').disabled = isConnected;
+            document.getElementById('disconnectBtn').disabled = !isConnected;
+            document.getElementById('joinBtn').disabled = !isConnected;
+            document.getElementById('sendBtn').disabled = !isConnected;
+        }
+
+        function connect() {
+            log('🔄 Đang kết nối WebSocket...');
+            updateStatus('connecting', 'Đang kết nối...');
+            
+            const socket = new SockJS('/ws/customer');
+            stompClient = Stomp.over(socket);
+            
+            stompClient.debug = (str) => {
+                log('🔍 STOMP: ' + str);
+            };
+            
+            stompClient.connect({}, function(frame) {
+                log('✅ Kết nối WebSocket thành công!');
+                updateStatus('connected', 'Đã kết nối');
+                isConnected = true;
+                updateButtons();
+                
+                // Subscribe to customer messages
+                sessionId = 'test_' + Date.now();
+                stompClient.subscribe(`/topic/customer/${sessionId}`, function(message) {
+                    log('📨 Nhận tin nhắn: ' + message.body);
+                    try {
+                        const data = JSON.parse(message.body);
+                        log('📋 Dữ liệu: ' + JSON.stringify(data, null, 2));
+                    } catch (error) {
+                        log('❌ Lỗi parse JSON: ' + error.message);
+                    }
+                });
+                
+            }, function(error) {
+                log('❌ Lỗi kết nối WebSocket: ' + error);
+                updateStatus('disconnected', 'Lỗi kết nối');
+                isConnected = false;
+                updateButtons();
+            });
+        }
+
+        function disconnect() {
+            if (stompClient) {
+                stompClient.disconnect();
+                log('🔌 Đã ngắt kết nối WebSocket');
+            }
+            updateStatus('disconnected', 'Đã ngắt kết nối');
+            isConnected = false;
+            updateButtons();
+        }
+
+        function joinChat() {
+            if (!isConnected) {
+                log('❌ Chưa kết nối WebSocket');
+                return;
+            }
+
+            const joinData = {
+                sessionId: sessionId,
+                customerName: document.getElementById('customerName').value,
+                email: document.getElementById('email').value,
+                phoneNumber: document.getElementById('phoneNumber').value,
+                gender: document.getElementById('gender').value,
+                message: document.getElementById('message').value
+            };
+
+            log('📤 Gửi dữ liệu join: ' + JSON.stringify(joinData, null, 2));
+            stompClient.send('/app/customer/join', {}, JSON.stringify(joinData));
+        }
+
+        function sendMessage() {
+            if (!isConnected) {
+                log('❌ Chưa kết nối WebSocket');
+                return;
+            }
+
+            const message = document.getElementById('newMessage').value;
+            if (!message.trim()) {
+                log('❌ Tin nhắn không được để trống');
+                return;
+            }
+
+            const messageData = {
+                sessionId: sessionId,
+                message: message
+            };
+
+            log('📤 Gửi tin nhắn: ' + message);
+            stompClient.send('/app/customer/message', {}, JSON.stringify(messageData));
+            document.getElementById('newMessage').value = '';
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        // Initialize
+        updateButtons();
+        log('🚀 Sẵn sàng test WebSocket');
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

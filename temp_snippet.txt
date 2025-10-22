@@ -1,0 +1,8 @@
+          addBotMessage({ 
+            type: 'comparison', 
+            content: {
+              title: 'Bảng so sánh sản phẩm',
+              products: payload.products
+            }
+          })
+        } else {
