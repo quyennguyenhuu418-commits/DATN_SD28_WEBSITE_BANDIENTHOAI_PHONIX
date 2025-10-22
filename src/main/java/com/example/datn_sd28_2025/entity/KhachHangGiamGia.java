@@ -1,0 +1,86 @@
+package com.example.datn_sd28_2025.entity;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "khach_hang_giam_gia")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class KhachHangGiamGia {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_khach_hang")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private KhachHang khachHang;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_phieu_giam_gia")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private PhieuGiamGia phieuGiamGia;
+
+    @Column(name = "nguoi_su_dung", length = 255)
+    private String nguoiSuDung;
+
+    @Column(name = "ngay_cap")
+    private LocalDateTime ngayCap;
+
+    @Column(name = "trang_thai")
+    private Integer trangThai;
+
+    // Tạm thời comment để không lỗi database
+    // @Column(name = "da_su_dung")
+    // private Boolean daSuDung = false; // Đánh dấu khách hàng đã sử dụng voucher này chưa
+
+    // @Column(name = "ngay_su_dung")
+    // private LocalDateTime ngaySuDung; // Thời gian sử dụng voucher
+
+    // @Column(name = "so_tien_giam")
+    // private Double soTienGiam; // Số tiền đã giảm khi sử dụng
+
+    // Transient fields for JSON mapping
+    @Transient
+    @JsonProperty("idKhachHang")
+    private Integer idKhachHang;
+
+    @Transient
+    @JsonProperty("idPhieuGiamGia")
+    private Integer idPhieuGiamGia;
+
+    // Getter/setter cho các field tạm thời comment
+    public Boolean getDaSuDung() {
+        return false; // Mặc định chưa sử dụng
+    }
+
+    public void setDaSuDung(Boolean daSuDung) {
+        // Không làm gì vì field đã comment
+    }
+
+    public LocalDateTime getNgaySuDung() {
+        return null; // Mặc định null
+    }
+
+    public void setNgaySuDung(LocalDateTime ngaySuDung) {
+        // Không làm gì vì field đã comment
+    }
+
+    public Double getSoTienGiam() {
+        return 0.0; // Mặc định 0
+    }
+
+    public void setSoTienGiam(Double soTienGiam) {
+        // Không làm gì vì field đã comment
+    }
+}
