@@ -1,8 +1,9 @@
 <template>
   <div id="app" class="h-screen bg-gradient-to-br from-slate-50 to-blue-50">
     <div class="flex h-full">
-      <!-- Modern Sidebar -->
+      <!-- Modern Sidebar - Hide on login page -->
       <aside
+        v-if="!isLoginPage"
         class="sidebar-container transition-all duration-300 ease-in-out"
         :class="{ 'sidebar-collapsed': sidebarCollapsed }"
       >
@@ -36,32 +37,32 @@
 
         <!-- Navigation Menu -->
         <nav class="navigation-menu">
-          <!-- Dashboard -->
-          <router-link to="/dashboard" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
+          <!-- Trang chủ -->
+          <router-link to="/trang-chu" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
             <div class="nav-icon">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                       d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
               </svg>
             </div>
-            <span v-if="!sidebarCollapsed" class="nav-text">Dashboard</span>
-          </router-link>
-
-          <!-- Thống kê -->
-          <router-link to="/thong-ke" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
-            <div class="nav-icon">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-            </div>
-            <span v-if="!sidebarCollapsed" class="nav-text">Thống kê</span>
+            <span v-if="!sidebarCollapsed" class="nav-text">Trang chủ</span>
           </router-link>
 
           <!-- Divider -->
           <div v-if="!sidebarCollapsed" class="nav-divider">
             <span class="nav-section-title">Quản lý bán hàng</span>
           </div>
+
+          <!-- Bán hàng -->
+          <router-link to="/pos" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
+            <div class="nav-icon">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <span v-if="!sidebarCollapsed" class="nav-text">Bán hàng</span>
+          </router-link>
 
           <!-- Sản phẩm -->
           <router-link to="/san-pham" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
@@ -96,27 +97,7 @@
             <span v-if="!sidebarCollapsed" class="nav-text">Hóa đơn</span>
           </router-link>
 
-          <!-- Voucher -->
-          <router-link to="/voucher" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
-            <div class="nav-icon">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                      d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-            </svg>
-            </div>
-            <span v-if="!sidebarCollapsed" class="nav-text">Voucher</span>
-          </router-link>
 
-          <!-- Voucher Khách hàng -->
-          <router-link to="/customer-vouchers" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
-            <div class="nav-icon">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            </div>
-            <span v-if="!sidebarCollapsed" class="nav-text">Voucher KH</span>
-          </router-link>
 
           <!-- Thuộc Tính with Submenu -->
           <div class="nav-dropdown">
@@ -180,15 +161,20 @@
             </div>
           </div>
 
-          <!-- Giảm Giá -->
-          <router-link to="/giam-gia" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
+          <!-- Divider -->
+          <div v-if="!sidebarCollapsed" class="nav-divider">
+            <span class="nav-section-title">Quản lý giảm giá</span>
+          </div>
+
+          <!-- Phiếu giảm giá -->
+          <router-link to="/phieu-giam-gia" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
             <div class="nav-icon">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                      d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
             </svg>
             </div>
-            <span v-if="!sidebarCollapsed" class="nav-text">Giảm Giá</span>
+            <span v-if="!sidebarCollapsed" class="nav-text">Phiếu giảm giá</span>
           </router-link>
 
           <!-- Đợt Giảm Giá -->
@@ -199,7 +185,7 @@
                       d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
               </svg>
             </div>
-            <span v-if="!sidebarCollapsed" class="nav-text">Đợt Giảm Giá</span>
+            <span v-if="!sidebarCollapsed" class="nav-text">Đợt giảm giá</span>
           </router-link>
 
           <!-- Divider -->
@@ -224,48 +210,96 @@
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                       d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            </svg>
+              </svg>
             </div>
             <span v-if="!sidebarCollapsed" class="nav-text">Cài đặt</span>
           </router-link>
+
+          <!-- Messenger Settings -->
+          <router-link to="/messenger-settings" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
+            <div class="nav-icon">
+              <i class="fab fa-facebook-messenger"></i>
+            </div>
+            <span v-if="!sidebarCollapsed" class="nav-text">Messenger</span>
+          </router-link>
+
+          <!-- Staff Chat Dashboard -->
+          <router-link to="/staff-chat" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
+            <div class="nav-icon">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            </div>
+            <span v-if="!sidebarCollapsed" class="nav-text">Chat Hỗ Trợ</span>
+          </router-link>
+
 
           <!-- Divider -->
           <div v-if="!sidebarCollapsed" class="nav-divider">
             <span class="nav-section-title">Báo cáo & Phân tích</span>
           </div>
 
-          <!-- Báo cáo bán hàng -->
-          <router-link to="/bao-cao-ban-hang" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
+          <!-- Thống kê -->
+          <router-link to="/thong-ke" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
             <div class="nav-icon">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                      d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
             </div>
-            <span v-if="!sidebarCollapsed" class="nav-text">Báo cáo bán hàng</span>
+            <span v-if="!sidebarCollapsed" class="nav-text">Thống kê</span>
           </router-link>
 
-          <!-- Báo cáo tồn kho -->
-          <router-link to="/bao-cao-ton-kho" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
+
+          <!-- Quản lý ca làm việc -->
+          <router-link to="/ca" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
             <div class="nav-icon">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                      d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-            </svg>
-            </div>
-            <span v-if="!sidebarCollapsed" class="nav-text">Báo cáo tồn kho</span>
-          </router-link>
-
-          <!-- Phân tích khách hàng -->
-          <router-link to="/phan-tich-khach-hang" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
-            <div class="nav-icon">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                      d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <span v-if="!sidebarCollapsed" class="nav-text">Phân tích KH</span>
-            </router-link>
+            <span v-if="!sidebarCollapsed" class="nav-text">Ca làm việc</span>
+          </router-link>
+
+          <!-- Phân ca -->
+          <router-link to="/phan-ca" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
+            <div class="nav-icon">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <span v-if="!sidebarCollapsed" class="nav-text">Phân ca</span>
+          </router-link>
+
+          <!-- Giao ca -->
+          <router-link to="/giao-ca" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
+            <div class="nav-icon">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+              </svg>
+            </div>
+            <span v-if="!sidebarCollapsed" class="nav-text">Giao ca</span>
+          </router-link>
+
+          <!-- Divider -->
+          <div v-if="!sidebarCollapsed" class="nav-divider">
+            <span class="nav-section-title">HỖ TRỢ & QUẢN LÝ</span>
+          </div>
+
+          <!-- Hỗ trợ -->
+          <router-link to="/staff-chat" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
+            <div class="nav-icon">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            </div>
+            <span v-if="!sidebarCollapsed" class="nav-text">Hỗ trợ</span>
+          </router-link>
 
           <!-- Divider -->
           <div v-if="!sidebarCollapsed" class="nav-divider">
@@ -285,43 +319,59 @@
 
         </nav>
 
-        <!-- User Profile Section -->
-        <div class="user-profile-section">
-          <div class="user-profile" :class="{ 'user-profile-collapsed': sidebarCollapsed }">
-            <div class="user-avatar">
-              <img src="@/assets/avatar.png" alt="User Avatar" class="w-8 h-8 rounded-full">
-            </div>
-            <div v-if="!sidebarCollapsed" class="user-info">
-              <div class="user-name">Admin User</div>
-              <div class="user-role">Quản trị viên</div>
-              </div>
-            <div v-if="!sidebarCollapsed" class="user-actions">
-              <button class="user-action-btn">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
+        <!-- User Profile Section - Removed UserMenu -->
       </aside>
 
       <!-- Main Content -->
-      <main class="flex-1 overflow-y-auto h-full">
+      <main 
+        class="flex-1 overflow-y-auto h-full"
+        :class="{ 'full-width': isLoginPage }"
+      >
           <router-view />
       </main>
     </div>
+    
+    <!-- Simple Chat Widget -->
+    <SimpleChatWidget />
+    
+    <!-- Ultra Chat Box (AI Chatbot) -->
+    <UltraChatBox />
+    
+    <!-- Facebook Messenger Manager - TẠM THỜI ẨN -->
+    <!-- <MessengerManager 
+      :pageId="'796591066879645'"
+      :showControls="false"
+      :defaultEnabled="false"
+    /> -->
+    
+    <!-- Shift Handover Modal -->
+    <ShiftHandoverModal
+      :isOpen="showShiftHandoverModal"
+      @close="closeShiftHandoverModal"
+      @confirm="handleShiftHandoverConfirmed"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
 import { useDarkMode } from '@/composables/useDarkMode.js'
+import api from '@/services/api'
+import SimpleChatWidget from '@/components/SimpleChatWidget.vue'
+import UltraChatBox from '@/components/UltraChatBox.vue'
+import ShiftHandoverModal from '@/components/ShiftHandoverModal.vue'
+import MessengerManager from '@/components/MessengerManager.vue'
+// import UserMenu from '@/components/UserMenu.vue' // Removed
 
 const sidebarCollapsed = ref(false)
 const showThuocTinh = ref(false)
+const showShiftHandoverModal = ref(false)
+
+// Auth store
+const authStore = useAuthStore()
+const router = useRouter()
 
 // Dark mode
 const { isDark, toggleDarkMode } = useDarkMode()
@@ -334,13 +384,63 @@ function toggleThuocTinh() {
   showThuocTinh.value = !showThuocTinh.value
 }
 
+// Check for pending handovers on app load
+onMounted(async () => {
+  // Remove login-active class from body on app mount
+  document.body.classList.remove('login-active')
+  
+  // Wait for auth store to initialize
+  await new Promise(resolve => setTimeout(resolve, 200))
+  
+  // Only check if user is authenticated and not on login page
+  if (authStore.isAuthenticated && authStore.user?.id && router.currentRoute.value.path !== '/login') {
+    try {
+      const response = await api.get(`/api/auth/pending-shift-handover?nhanVienId=${authStore.user.id}`)
+      if (response.data && response.data.length > 0) {
+        showShiftHandoverModal.value = true
+      }
+    } catch (error) {
+      // Log error but don't show to user - this is a non-critical feature
+      console.warn('Could not check pending handovers (backend may be offline):', error.message)
+    }
+  }
+})
+
+const closeShiftHandoverModal = () => {
+  showShiftHandoverModal.value = false
+}
+
+const handleShiftHandoverConfirmed = (confirmedGiaoCa) => {
+  console.log('App.vue: Shift handover confirmed:', confirmedGiaoCa)
+  showShiftHandoverModal.value = false
+  // Reload the page to refresh all data
+  setTimeout(() => {
+    window.location.reload()
+  }, 500)
+}
+
 const route = useRoute()
 const currentPathName = computed(() => route.name || route.path)
+
+// Check if current page is login
+const isLoginPage = computed(() => {
+  return route.path === '/login' || route.name === 'LoginPage' || 
+         route.path === '/forgot-password' || route.name === 'forgot-password'
+})
 const globalSearch = ref('')
 function doGlobalSearch() {
   // hook tìm kiếm toàn cục, có thể emit event hoặc điều hướng sang trang có ô filter keyword
   console.log('Global search:', globalSearch.value)
 }
+
+// Watch for route changes to manage body class
+watch(() => route.path, (newPath) => {
+  if (newPath === '/login' || newPath === '/forgot-password') {
+    document.body.classList.add('login-active')
+  } else {
+    document.body.classList.remove('login-active')
+  }
+}, { immediate: true })
 </script>
 
 <style scoped>
@@ -399,10 +499,14 @@ html, body {
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease;
+  overflow: hidden; /* Không scroll toàn bộ sidebar */
+  position: relative;
+  z-index: 1000;
 }
 
 .sidebar-collapsed {
   width: 80px;
+  overflow: hidden; /* Không scroll toàn bộ sidebar khi collapsed */
 }
 
 /* Sidebar Header */
@@ -413,6 +517,7 @@ html, body {
   display: flex;
   align-items: center;
   min-height: 60px;
+  flex-shrink: 0; /* Prevent header from shrinking */
 }
 
 /* Logo styling */
@@ -620,12 +725,7 @@ html, body {
   color: #1e40af !important;
 }
 
-/* User Profile Section */
-.user-profile-section {
-  padding: 1rem;
-  border-top: 1px solid #e2e8f0;
-  margin-top: auto;
-}
+/* User Profile Section - Removed */
 
 .user-profile {
   display: flex;
@@ -704,6 +804,7 @@ main {
   min-height: 100vh;
   transition: all 0.3s ease;
   overflow-x: hidden; /* Ẩn thanh trượt ngang */
+  z-index: 1;
 }
 
 /* Ẩn thanh trượt dọc cho main content */
@@ -816,35 +917,44 @@ main::-webkit-scrollbar-thumb {
   100% { transform: scale(1); }
 }
 
-/* Ẩn scrollbar cho sidebar */
-.sidebar-container::-webkit-scrollbar {
-  width: 0px;
+/* Custom scrollbar cho navigation menu */
+.navigation-menu::-webkit-scrollbar {
+  width: 6px;
   background: transparent;
 }
 
-.sidebar-container::-webkit-scrollbar-track {
+.navigation-menu::-webkit-scrollbar-track {
   background: transparent;
+  border-radius: 3px;
 }
 
-.sidebar-container::-webkit-scrollbar-thumb {
-  background: transparent;
+.navigation-menu::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.3);
+  border-radius: 3px;
+  transition: all 0.2s ease;
 }
 
-.sidebar-container::-webkit-scrollbar-thumb:hover {
-  background: transparent;
+.navigation-menu::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.6);
 }
 
-/* Navigation Menu - ẩn overflow */
+/* Dark mode scrollbar */
+:root.dark .navigation-menu::-webkit-scrollbar-thumb {
+  background: rgba(107, 114, 128, 0.4);
+}
+
+:root.dark .navigation-menu::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.7);
+}
+
+/* Navigation Menu - scrollable */
 .navigation-menu {
   flex: 1;
   padding: 1rem;
-  overflow-y: auto;
-  overflow-x: hidden; /* Ẩn thanh trượt ngang */
-}
-
-.navigation-menu::-webkit-scrollbar {
-  width: 0px;
-  background: transparent;
+  overflow-y: auto; /* Chỉ scroll phần navigation menu */
+  overflow-x: visible; /* Cho phép dropdown hiển thị */
+  min-height: 0; /* Cho phép flex item shrink */
+  max-height: calc(100vh - 80px); /* Trừ đi chiều cao header */
 }
 
 /* Responsive */
@@ -854,6 +964,8 @@ main::-webkit-scrollbar-thumb {
     position: fixed;
     z-index: 50;
     height: 100vh;
+    overflow: hidden; /* Không scroll toàn bộ sidebar */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
   }
   
   .sidebar-container.open {
@@ -862,6 +974,16 @@ main::-webkit-scrollbar-thumb {
   
   main {
     width: 100%;
+  }
+  
+  /* Mobile scrollbar - thinner cho navigation menu */
+  .navigation-menu::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  /* Điều chỉnh max-height cho mobile */
+  .navigation-menu {
+    max-height: calc(100vh - 70px); /* Trừ đi chiều cao header trên mobile */
   }
 }
 
@@ -879,6 +1001,168 @@ main::-webkit-scrollbar-thumb {
 
 .nav-item {
   animation: slideIn 0.3s ease-out;
+}
+
+/* Full width for login page */
+.full-width {
+  width: 100vw !important;
+  margin-left: 0 !important;
+}
+
+/* Force show sidebar when not on login page */
+body:not(.login-active) .sidebar-container {
+  display: block !important;
+}
+
+body:not(.login-active) .sidebar-header {
+  display: block !important;
+}
+
+body:not(.login-active) .navigation-menu {
+  display: block !important;
+}
+
+body:not(.login-active) .main-content {
+  display: block !important;
+}
+
+/* Force show all table and data elements */
+body:not(.login-active) .data-table,
+body:not(.login-active) .table,
+body:not(.login-active) .table-container,
+body:not(.login-active) .table-responsive,
+body:not(.login-active) .card,
+body:not(.login-active) .dashboard-content,
+body:not(.login-active) .page-content {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Force show table rows and cells */
+body:not(.login-active) .table tbody,
+body:not(.login-active) .table tbody tr,
+body:not(.login-active) .table tbody td,
+body:not(.login-active) .table tbody th {
+  display: table !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+body:not(.login-active) .table tbody tr {
+  display: table-row !important;
+}
+
+body:not(.login-active) .table tbody td,
+body:not(.login-active) .table tbody th {
+  display: table-cell !important;
+}
+
+body:not(.login-active) .header {
+  display: block !important;
+}
+
+body:not(.login-active) .pos-header {
+  display: block !important;
+}
+
+/* Force show all header elements */
+body:not(.login-active) header {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+body:not(.login-active) .pos-header {
+  display: grid !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 280px !important;
+  right: 0 !important;
+  width: calc(100vw - 280px) !important;
+  z-index: 1000 !important;
+  background: white !important;
+  padding: 1rem 2rem !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  grid-template-columns: auto 1fr auto !important;
+  align-items: center !important;
+  gap: 2rem !important;
+  min-height: 80px !important;
+  box-sizing: border-box !important;
+}
+
+body:not(.login-active) .header-left,
+body:not(.login-active) .header-center,
+body:not(.login-active) .header-right {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  align-items: center !important;
+}
+
+/* Global override for any page */
+:global(.pos-header) {
+  display: grid !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 280px !important;
+  right: 0 !important;
+  width: calc(100vw - 280px) !important;
+  z-index: 1000 !important;
+  background: white !important;
+  padding: 1rem 2rem !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  grid-template-columns: auto 1fr auto !important;
+  align-items: center !important;
+  gap: 2rem !important;
+  min-height: 80px !important;
+  box-sizing: border-box !important;
+}
+
+:global(body:not(.login-active) .pos-header) {
+  display: grid !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 280px !important;
+  right: 0 !important;
+  width: calc(100vw - 280px) !important;
+  z-index: 1000 !important;
+  background: white !important;
+  padding: 1rem 2rem !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  grid-template-columns: auto 1fr auto !important;
+  align-items: center !important;
+  gap: 2rem !important;
+  min-height: 80px !important;
+  box-sizing: border-box !important;
+}
+
+/* Khi sidebar collapsed */
+:global(body:not(.login-active) .sidebar-collapsed + main .pos-header) {
+  left: 80px !important;
+  width: calc(100vw - 80px) !important;
+}
+
+:global(body:not(.login-active) .sidebar-collapsed .pos-header) {
+  left: 80px !important;
+  width: calc(100vw - 80px) !important;
+}
+
+/* TẠM THỜI ẨN FACEBOOK MESSENGER */
+.facebook-messenger-floating,
+.messenger-manager {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
 }
 </style>
           

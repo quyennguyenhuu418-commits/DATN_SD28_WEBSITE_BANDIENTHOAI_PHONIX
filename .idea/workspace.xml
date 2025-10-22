@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="f37cc08e-c0b0-40ba-a901-457d6ea34b0f" name="Changes" comment="Quản lý nhân viên, login jwt dashboard tại quầy" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="PATH_TO_GIT" value="C:\Program Files\Git\bin\git.exe" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;HungGa888&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/quyennguyenhuu418-commits/DATN_SD28_WEBSITE_BANDIENTHOAI_PHONIX.git&quot;,
+    &quot;accountId&quot;: &quot;071087ba-0476-44d3-afd7-74e7161733df&quot;
+  }
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7
+}</component>
+  <component name="ProjectId" id="34PEBIpLtiHvMAhykIitWcZ2Orb" />
+  <component name="ProjectViewState">
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "Hung",
+    "ignore.virus.scanning.warn.message": "true",
+    "junie.onboarding.icon.badge.shown": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "E:/New folder/DATN_SD28_WEBSITE_BANDIENTHOAI_PHONIX/DATN_SD28_2025/Fontend/src/views",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "vcs.Git",
+    "to.speed.mode.migration.done": "true",
+    "ts.external.directory.path": "C:\\Users\\hungb\\AppData\\Local\\Programs\\IntelliJ IDEA Ultimate 2025.1.4.1\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="E:\New folder\DATN_SD28_WEBSITE_BANDIENTHOAI_PHONIX\DATN_SD28_2025\Fontend\src\views" />
+      <recent name="E:\New folder\DATN_SD28_WEBSITE_BANDIENTHOAI_PHONIX\DATN_SD28_2025\Fontend\src" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="com.example.datn_sd28_2025.service.impl" />
+      <recent name="com.example.datn_sd28_2025.util" />
+      <recent name="com.example.datn_sd28_2025.service" />
+      <recent name="com.example.datn_sd28_2025.repository" />
+      <recent name="com.example.datn_sd28_2025.config" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="DatnSd282025Application" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="DATN_SD28_2025" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.datn_sd28_2025.DatnSd282025Application" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-bf35d07a577b-intellij.indexing.shared.core-IU-252.23892.409" />
+        <option value="bundled-js-predefined-d6986cc7102b-e03c56caf84a-JavaScript-IU-252.23892.409" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="f37cc08e-c0b0-40ba-a901-457d6ea34b0f" name="Changes" comment="" />
+      <created>1761106669679</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1761106669679</updated>
+      <workItem from="1761106671070" duration="1750000" />
+      <workItem from="1761108441985" duration="165000" />
+    </task>
+    <task id="LOCAL-00001" summary="Quản lý nhân viên, login jwt dashboard tại quầy">
+      <option name="closed" value="true" />
+      <created>1761107903017</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1761107903017</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Quản lý nhân viên, login jwt dashboard tại quầy" />
+    <option name="LAST_COMMIT_MESSAGE" value="Quản lý nhân viên, login jwt dashboard tại quầy" />
+  </component>
+</project>

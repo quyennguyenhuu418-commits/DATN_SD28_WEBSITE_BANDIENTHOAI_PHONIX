@@ -32,4 +32,13 @@ public interface NhanVienRepository extends JpaRepository<NhanVien, Integer> {
     
     @Query("SELECT n FROM NhanVien n WHERE n.chucVu = :chucVu")
     List<NhanVien> findByChucVu(@Param("chucVu") String chucVu);
+    
+    @Query("SELECT n FROM NhanVien n WHERE n.cccd = :cccd")
+    Optional<NhanVien> findByCccd(@Param("cccd") String cccd);
+    
+    @Query("SELECT COUNT(n) > 0 FROM NhanVien n WHERE n.cccd = :cccd")
+    boolean existsByCccd(@Param("cccd") String cccd);
+    
+    @Query(value = "SELECT ma_nhan_vien FROM nhan_vien WHERE ma_nhan_vien LIKE 'NV%' AND ISNUMERIC(SUBSTRING(ma_nhan_vien, 3, LEN(ma_nhan_vien))) = 1 ORDER BY CAST(SUBSTRING(ma_nhan_vien, 3, LEN(ma_nhan_vien)) AS BIGINT) DESC", nativeQuery = true)
+    List<String> findAllMaNhanVienOrderByNumber();
 }
