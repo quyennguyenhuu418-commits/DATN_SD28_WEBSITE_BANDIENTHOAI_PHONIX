@@ -250,7 +250,6 @@ public class HoaDonController {
                         OrderStatusUtil.CHO_GIAO_HANG, OrderStatusUtil.getStatusName(OrderStatusUtil.CHO_GIAO_HANG),
                         OrderStatusUtil.DANG_GIAO, OrderStatusUtil.getStatusName(OrderStatusUtil.DANG_GIAO),
                         OrderStatusUtil.HOAN_THANH, OrderStatusUtil.getStatusName(OrderStatusUtil.HOAN_THANH),
-                        OrderStatusUtil.DA_THANH_TOAN_CHO_XAC_NHAN, OrderStatusUtil.getStatusName(OrderStatusUtil.DA_THANH_TOAN_CHO_XAC_NHAN),
                         OrderStatusUtil.DA_HUY, OrderStatusUtil.getStatusName(OrderStatusUtil.DA_HUY)
                 ),
                 "orderTypes", Map.of(
