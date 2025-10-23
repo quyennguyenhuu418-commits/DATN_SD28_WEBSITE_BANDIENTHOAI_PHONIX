@@ -23,6 +23,12 @@ public interface ImeiService {
     
     // Get IMEIs by ChiTietSanPham ID
     List<ImeiDTO> getByChiTietSanPham(Integer chiTietSanPhamId);
+    
+    // Find IMEI by IMEI string
+    Imei findByImeiString(String imei);
+    
+    // Convert entity to DTO
+    ImeiDTO convertToDTO(Imei imei);
 }
 
 

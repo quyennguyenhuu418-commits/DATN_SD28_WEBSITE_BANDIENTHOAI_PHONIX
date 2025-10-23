@@ -20,6 +20,12 @@ public class HoaDonDTO {
     private String tenKhachHang;
     private String soDienThoai;
     private String diaChi;
+    private String email;
+    private String tinhThanh;
+    private String quanHuyen;
+    private String phuongThucGiaoHang;
+    private String phuongThucThanhToan;
+    private Double phiVanChuyen;
     private Double tongTienSauGiam;
     private LocalDateTime ngayThanhToan;
     private String loaiHoaDon;
@@ -29,10 +35,10 @@ public class HoaDonDTO {
     private LocalDateTime ngayCapNhat;
     private String nguoiTao;
     private String nguoiCapNhat;
-    
+
     // Thông tin khách hàng (nếu có) - for additional customer info
     private String soDienThoaiKhachHang;
-    
+
     // Chi tiết hóa đơn
     private List<ChiTietHoaDonDTO> chiTietHoaDonList;
 }

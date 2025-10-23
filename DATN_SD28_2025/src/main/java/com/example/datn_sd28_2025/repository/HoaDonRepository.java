@@ -53,6 +53,6 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer> {
                                           @Param("endDate") LocalDateTime endDate,
                                           @Param("trangThai") Integer trangThai);
     
-    @Query("SELECT h FROM HoaDon h ORDER BY h.ngayTao DESC")
+    @Query("SELECT h FROM HoaDon h")
     Page<HoaDon> findRecentOrders(Pageable pageable);
 }

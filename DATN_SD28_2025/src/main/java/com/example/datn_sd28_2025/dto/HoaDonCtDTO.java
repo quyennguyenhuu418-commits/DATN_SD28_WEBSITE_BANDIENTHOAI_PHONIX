@@ -21,7 +21,7 @@ public class HoaDonCtDTO {
     // private LocalDateTime ngayTao;
     // private LocalDateTime ngayCapNhat;
     private Integer trangThai;
-    
+
     // Related entities
     private HoaDonDTO hoaDon;
     private ChiTietSanPhamDTO chiTietSanPham;

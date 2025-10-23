@@ -1,9 +1,21 @@
 package com.example.datn_sd28_2025.controller;
 
 import com.example.datn_sd28_2025.dto.HoaDonDTO;
+import com.example.datn_sd28_2025.dto.HoaDonTrackingDTO;
+import com.example.datn_sd28_2025.dto.HoaDonSearchRequestDTO;
 import com.example.datn_sd28_2025.dto.PosOrderRequest;
+import com.example.datn_sd28_2025.dto.OnlineOrderRequest;
+import com.example.datn_sd28_2025.dto.OnlineOrderResponse;
 import com.example.datn_sd28_2025.service.HoaDonService;
+import com.example.datn_sd28_2025.service.ImeiService;
 import com.example.datn_sd28_2025.util.OrderStatusUtil;
+import com.example.datn_sd28_2025.repository.HoaDonRepository;
+import com.example.datn_sd28_2025.repository.HoaDonCtRepository;
+import com.example.datn_sd28_2025.repository.ImeiDaBanRepository;
+import com.example.datn_sd28_2025.entity.HoaDon;
+import com.example.datn_sd28_2025.entity.HoaDonCt;
+// removed unused import: ChiTietHoaDon
+import com.example.datn_sd28_2025.entity.ImeiDaBan;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,8 +24,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+// removed unused import: Collectors
 
 @RestController
 @RequestMapping("/api/hoa-don")
@@ -22,6 +36,20 @@ public class HoaDonController {
 
     @Autowired
     private HoaDonService hoaDonService;
+
+    // removed unused imeiDaBanService field
+    
+    @Autowired
+    private HoaDonRepository hoaDonRepository;
+
+    @Autowired
+    private HoaDonCtRepository hoaDonCtRepository;
+
+    @Autowired
+    private ImeiDaBanRepository imeiDaBanRepository;
+
+    @Autowired
+    private ImeiService imeiService;
 
     @GetMapping
     public ResponseEntity<List<HoaDonDTO>> getAll() {
@@ -65,6 +93,46 @@ public class HoaDonController {
         return ResponseEntity.ok(hoaDons);
     }
 
+    @PostMapping("/search-advanced")
+    public ResponseEntity<Page<HoaDonDTO>> searchHoaDonAdvanced(@RequestBody HoaDonSearchRequestDTO searchRequest) {
+        Page<HoaDonDTO> hoaDons = hoaDonService.searchHoaDonAdvanced(searchRequest);
+        return ResponseEntity.ok(hoaDons);
+    }
+
+    @GetMapping("/tracking/{maHoaDon}")
+    public ResponseEntity<?> getTrackingInfo(@PathVariable String maHoaDon) {
+        try {
+            HoaDonTrackingDTO trackingInfo = hoaDonService.getTrackingInfo(maHoaDon);
+            if (trackingInfo != null) {
+                return ResponseEntity.ok(trackingInfo);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of(
+                    "error", "Lỗi khi lấy thông tin tracking",
+                    "message", e.getMessage(),
+                    "maHoaDon", maHoaDon
+            ));
+        }
+    }
+
+    @GetMapping("/{id}/products")
+    public ResponseEntity<?> getHoaDonProducts(@PathVariable Integer id) {
+        try {
+            List<Map<String, Object>> products = hoaDonService.getHoaDonProducts(id);
+            return ResponseEntity.ok(products);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of(
+                    "error", "Lỗi khi lấy danh sách sản phẩm",
+                    "message", e.getMessage(),
+                    "hoaDonId", id
+            ));
+        }
+    }
+
     @PostMapping
     public ResponseEntity<HoaDonDTO> create(@RequestBody HoaDonDTO hoaDonDTO) {
         try {
@@ -76,6 +144,41 @@ public class HoaDonController {
         }
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<HoaDonDTO> updateHoaDon(@PathVariable Integer id, @RequestBody HoaDonDTO hoaDonDTO) {
+        try {
+            HoaDonDTO updated = hoaDonService.updateHoaDon(id, hoaDonDTO);
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    @PutMapping("/{id}/status")
+    public ResponseEntity<HoaDonDTO> updateStatus(@PathVariable Integer id, @RequestBody Map<String, Integer> request) {
+        try {
+            Integer newStatus = request.get("trangThai");
+            HoaDonDTO updated = hoaDonService.updateTrangThai(id, newStatus);
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    @PutMapping("/update-status/{maHoaDon}")
+    public ResponseEntity<HoaDonDTO> updateStatusByMaHoaDon(@PathVariable String maHoaDon, @RequestBody Map<String, Integer> request) {
+        try {
+            Integer newStatus = request.get("trangThai");
+            HoaDonDTO updated = hoaDonService.updateTrangThaiByMaHoaDon(maHoaDon, newStatus);
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
     @PostMapping("/pos-order")
     public ResponseEntity<?> createPosOrder(@RequestBody PosOrderRequest request) {
         try {
@@ -84,22 +187,28 @@ public class HoaDonController {
         } catch (Exception e) {
             e.printStackTrace(); // Log the error for debugging
             return ResponseEntity.badRequest().body(Map.of(
-                "error", "Có lỗi xảy ra khi tạo hóa đơn",
-                "message", e.getMessage(),
-                "details", e.getClass().getSimpleName()
+                    "error", "Có lỗi xảy ra khi tạo hóa đơn",
+                    "message", e.getMessage(),
+                    "details", e.getClass().getSimpleName()
             ));
         }
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<HoaDonDTO> update(@PathVariable Integer id, @RequestBody HoaDonDTO hoaDonDTO) {
+    @PostMapping("/online-order")
+    public ResponseEntity<?> createOnlineOrder(@RequestBody OnlineOrderRequest request) {
         try {
-            HoaDonDTO updated = hoaDonService.updateHoaDon(id, hoaDonDTO);
-            return ResponseEntity.ok(updated);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            OnlineOrderResponse response = hoaDonService.createOnlineOrder(request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (Exception e) {
+            e.printStackTrace(); // Log the error for debugging
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Có lỗi xảy ra khi tạo đơn hàng online",
+                    "message", e.getMessage(),
+                    "details", e.getClass().getSimpleName()
+            ));
         }
     }
+
 
     @PutMapping("/{id}/trang-thai")
     public ResponseEntity<HoaDonDTO> updateTrangThai(@PathVariable Integer id, @RequestParam Integer trangThai) {
@@ -136,20 +245,471 @@ public class HoaDonController {
     @GetMapping("/status-options")
     public ResponseEntity<Map<String, Object>> getStatusOptions() {
         Map<String, Object> options = Map.of(
-            "statuses", Map.of(
-                OrderStatusUtil.CHO_XAC_NHAN, OrderStatusUtil.getStatusName(OrderStatusUtil.CHO_XAC_NHAN),
-                OrderStatusUtil.CHO_GIAO_HANG, OrderStatusUtil.getStatusName(OrderStatusUtil.CHO_GIAO_HANG),
-                OrderStatusUtil.DANG_GIAO, OrderStatusUtil.getStatusName(OrderStatusUtil.DANG_GIAO),
-                OrderStatusUtil.HOAN_THANH, OrderStatusUtil.getStatusName(OrderStatusUtil.HOAN_THANH),
-                OrderStatusUtil.DA_THANH_TOAN_CHO_XAC_NHAN, OrderStatusUtil.getStatusName(OrderStatusUtil.DA_THANH_TOAN_CHO_XAC_NHAN),
-                OrderStatusUtil.DA_HUY, OrderStatusUtil.getStatusName(OrderStatusUtil.DA_HUY)
-            ),
-            "orderTypes", Map.of(
-                OrderStatusUtil.NORMAL, "Bán trực tiếp",
-                OrderStatusUtil.DELIVERY, "Giao hàng"
-            )
+                "statuses", Map.of(
+                        OrderStatusUtil.CHO_XAC_NHAN, OrderStatusUtil.getStatusName(OrderStatusUtil.CHO_XAC_NHAN),
+                        OrderStatusUtil.CHO_GIAO_HANG, OrderStatusUtil.getStatusName(OrderStatusUtil.CHO_GIAO_HANG),
+                        OrderStatusUtil.DANG_GIAO, OrderStatusUtil.getStatusName(OrderStatusUtil.DANG_GIAO),
+                        OrderStatusUtil.HOAN_THANH, OrderStatusUtil.getStatusName(OrderStatusUtil.HOAN_THANH),
+                        OrderStatusUtil.DA_HUY, OrderStatusUtil.getStatusName(OrderStatusUtil.DA_HUY)
+                ),
+                "orderTypes", Map.of(
+                        OrderStatusUtil.NORMAL, "Bán tại quầy",
+                        OrderStatusUtil.DELIVERY, "Bán online"
+                )
         );
         return ResponseEntity.ok(options);
+    }
+
+    @PostMapping("/update-sample-data")
+    public ResponseEntity<String> updateSampleData() {
+        try {
+            // Cập nhật dữ liệu mẫu với các trạng thái đa dạng
+            hoaDonService.updateSampleDataWithDiverseStatuses();
+            return ResponseEntity.ok("Dữ liệu mẫu đã được cập nhật thành công");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Lỗi khi cập nhật dữ liệu: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/test-tracking/{maHoaDon}")
+    public ResponseEntity<?> testTracking(@PathVariable String maHoaDon) {
+        try {
+            // Test endpoint đơn giản để debug
+            var hoaDon = hoaDonService.getByMaHoaDon(maHoaDon);
+            if (hoaDon != null) {
+                return ResponseEntity.ok(Map.of(
+                        "found", true,
+                        "maHoaDon", hoaDon.getMaHoaDon(),
+                        "tenKhachHang", hoaDon.getTenKhachHang(),
+                        "trangThai", hoaDon.getTrangThai(),
+                        "loaiHoaDon", hoaDon.getLoaiHoaDon()
+                ));
+            } else {
+                return ResponseEntity.ok(Map.of(
+                        "found", false,
+                        "maHoaDon", maHoaDon,
+                        "message", "Không tìm thấy hóa đơn"
+                ));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of(
+                    "error", "Lỗi khi test tracking",
+                    "message", e.getMessage(),
+                    "maHoaDon", maHoaDon
+            ));
+        }
+    }
+
+    @GetMapping("/test-status")
+    public ResponseEntity<?> testStatus() {
+        try {
+            // Test endpoint để kiểm tra trạng thái của tất cả hóa đơn
+            var allHoaDons = hoaDonService.getAll();
+            
+            return ResponseEntity.ok(Map.of(
+                    "totalHoaDons", allHoaDons.size(),
+                    "message", "Test successful"
+            ));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of(
+                    "error", "Lỗi khi test status",
+                    "message", e.getMessage()
+            ));
+        }
+    }
+
+    @GetMapping("/create-test-data")
+    public ResponseEntity<?> createTestData() {
+        try {
+            // Tạo một số hóa đơn test với trạng thái khác nhau
+            hoaDonService.updateSampleDataWithDiverseStatuses();
+            
+            return ResponseEntity.ok(Map.of(
+                    "message", "Test data created successfully",
+                    "status", "success"
+            ));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of(
+                    "error", "Lỗi khi tạo test data",
+                    "message", e.getMessage()
+            ));
+        }
+    }
+
+    @GetMapping("/create-status-0")
+    public ResponseEntity<?> createStatus0() {
+        try {
+            // Tạo một hóa đơn với trạng thái 0 (Chờ xác nhận)
+            HoaDon hoaDon = new HoaDon();
+            hoaDon.setMaHoaDon("TEST_STATUS_0_" + System.currentTimeMillis());
+            hoaDon.setTenKhachHang("Test Customer Status 0");
+            hoaDon.setSoDienThoai("0900000000");
+            hoaDon.setDiaChi("Test Address Status 0");
+            hoaDon.setTongTien(1000000.0);
+            hoaDon.setTongTienSauGiam(1000000.0);
+            hoaDon.setLoaiHoaDon("BAN_THUONG");
+            hoaDon.setTrangThai(0); // Chờ xác nhận
+            hoaDon.setGhiChu("Test data with status 0");
+            hoaDon.setNguoiTao("admin");
+            hoaDon.setNgayTao(java.time.LocalDateTime.now());
+            hoaDon.setNgayCapNhat(java.time.LocalDateTime.now());
+            
+            HoaDon savedHoaDon = hoaDonRepository.save(hoaDon);
+            
+            return ResponseEntity.ok(Map.of(
+                    "message", "Hóa đơn với trạng thái 0 đã được tạo",
+                    "maHoaDon", savedHoaDon.getMaHoaDon(),
+                    "trangThai", savedHoaDon.getTrangThai(),
+                    "status", "success"
+            ));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of(
+                    "error", "Lỗi khi tạo hóa đơn status 0",
+                    "message", e.getMessage()
+            ));
+        }
+    }
+
+    @GetMapping("/delete-test-data")
+    public ResponseEntity<?> deleteTestData() {
+        try {
+            // Xóa tất cả hóa đơn test với maHoaDon bắt đầu bằng "TEST_STATUS_0_"
+            List<HoaDon> allHoaDons = hoaDonRepository.findAll();
+            System.out.println("Total hóa đơn: " + allHoaDons.size());
+            
+            List<HoaDon> testHoaDons = allHoaDons.stream()
+                    .filter(hd -> hd.getMaHoaDon().startsWith("TEST_STATUS_0_"))
+                    .toList();
+            
+            System.out.println("Found " + testHoaDons.size() + " test hóa đơn to delete");
+            
+            int deletedCount = 0;
+            for (HoaDon hoaDon : testHoaDons) {
+                try {
+                    System.out.println("Attempting to delete: " + hoaDon.getMaHoaDon() + " (ID: " + hoaDon.getId() + ")");
+                    hoaDonRepository.deleteById(hoaDon.getId());
+                    deletedCount++;
+                    System.out.println("Successfully deleted: " + hoaDon.getMaHoaDon());
+                } catch (Exception e) {
+                    System.out.println("Error deleting " + hoaDon.getMaHoaDon() + ": " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+            
+            return ResponseEntity.ok(Map.of(
+                    "message", "Deleted " + deletedCount + " test invoices",
+                    "deletedCount", deletedCount,
+                    "status", "success"
+            ));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of(
+                    "error", "Error deleting test data",
+                    "message", e.getMessage()
+            ));
+        }
+    }
+
+    @PostMapping("/save-imei")
+    public ResponseEntity<Map<String, Object>> saveImei(@RequestBody Map<String, Object> request) {
+        try {
+            String maHoaDon = (String) request.get("maHoaDon");
+            String imei = (String) request.get("imei");
+            // Optional identifiers to target the correct order line
+            Integer chiTietHoaDonId = request.get("chiTietHoaDonId") != null ? Integer.valueOf(request.get("chiTietHoaDonId").toString()) : null;
+            Integer ctspId = request.get("ctspId") != null ? Integer.valueOf(request.get("ctspId").toString()) : null;
+            String maCtsp = request.get("maCtsp") != null ? request.get("maCtsp").toString() : null;
+            Integer lineIndex = request.get("lineIndex") != null ? Integer.valueOf(request.get("lineIndex").toString()) : null;
+            
+            System.out.println("🔼 /api/hoa-don/save-imei payload: maHoaDon=" + maHoaDon + ", imei=" + imei + ", chiTietHoaDonId=" + chiTietHoaDonId + ", ctspId=" + ctspId + ", maCtsp=" + maCtsp + ", lineIndex=" + lineIndex);
+
+            if (maHoaDon == null || imei == null) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "Thiếu thông tin maHoaDon hoặc imei"));
+            }
+            
+            // Find the HoaDon by maHoaDon
+            HoaDon hoaDon = hoaDonService.findByMaHoaDon(maHoaDon);
+            if (hoaDon == null) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "Không tìm thấy hóa đơn với mã: " + maHoaDon));
+            }
+            
+            // Resolve correct HoaDonCt
+            HoaDonCt hoaDonCt;
+            if (chiTietHoaDonId != null) {
+                hoaDonCt = hoaDonCtRepository.findById(chiTietHoaDonId).orElse(null);
+                if (hoaDonCt == null) {
+                    return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Không tìm thấy chiTietHoaDonId=" + chiTietHoaDonId));
+                }
+            } else {
+                // Fallback: find by order id then match by ctspId/maCtsp if provided, otherwise first
+                List<HoaDonCt> hoaDonCts = hoaDonCtRepository.findByIdHoaDon(hoaDon.getId());
+                if (hoaDonCts == null || hoaDonCts.isEmpty()) {
+                    return ResponseEntity.badRequest()
+                            .body(Map.of("success", false, "message", "Không tìm thấy chi tiết hóa đơn"));
+                }
+
+                HoaDonCt selectedHoaDonCt = null;
+
+                // If frontend provides a lineIndex, try to use it directly when valid
+                if (lineIndex != null && lineIndex >= 0 && lineIndex < hoaDonCts.size()) {
+                    selectedHoaDonCt = hoaDonCts.get(lineIndex);
+                }
+
+                if (selectedHoaDonCt == null && ctspId != null) {
+                    selectedHoaDonCt = hoaDonCts.stream()
+                            .filter(ct -> {
+                                try {
+                                    // ct.getChiTietSanPham().getId() or similar; attempt via reflection-safe to avoid compile break
+                                    var field = ct.getClass().getDeclaredField("ctspId");
+                                    field.setAccessible(true);
+                                    Object val = field.get(ct);
+                                    return val != null && Integer.valueOf(val.toString()).equals(ctspId);
+                                } catch (Exception ignore) { }
+                                return false;
+                            })
+                            .findFirst().orElse(null);
+                }
+                if (selectedHoaDonCt == null && maCtsp != null) {
+                    selectedHoaDonCt = hoaDonCts.stream()
+                            .filter(ct -> {
+                                try {
+                                    var field = ct.getClass().getDeclaredField("maCtsp");
+                                    field.setAccessible(true);
+                                    Object val = field.get(ct);
+                                    return val != null && maCtsp.equals(val.toString());
+                                } catch (Exception ignore) { }
+                                return false;
+                            })
+                            .findFirst().orElse(null);
+                }
+                if (selectedHoaDonCt == null) {
+                    selectedHoaDonCt = hoaDonCts.get(0);
+                }
+                
+                hoaDonCt = selectedHoaDonCt;
+            }
+            
+            // Prevent duplicate IMEI save if already exists on another order line
+            try {
+                List<ImeiDaBan> existingByImei = imeiDaBanRepository.findByImei(imei);
+                if (existingByImei != null && !existingByImei.isEmpty()) {
+                    boolean existsOnSameLine = false;
+                    for (ImeiDaBan existed : existingByImei) {
+                        try {
+                            if (existed.getHoaDonChiTiet() != null && hoaDonCt != null &&
+                                    existed.getHoaDonChiTiet().getId() != null &&
+                                    existed.getHoaDonChiTiet().getId().equals(hoaDonCt.getId())) {
+                                existsOnSameLine = true;
+                                break;
+                            }
+                        } catch (Exception ignore) {}
+                    }
+
+                    if (existsOnSameLine) {
+                        // Idempotent behavior: already saved for this line, return success
+                        return ResponseEntity.ok(Map.of(
+                                "success", true,
+                                "message", "IMEI đã tồn tại trên dòng sản phẩm này (idempotent)",
+                                "maHoaDon", maHoaDon,
+                                "imei", imei,
+                                "chiTietHoaDonId", hoaDonCt != null ? hoaDonCt.getId() : -1
+                        ));
+                    }
+
+                    // Exists on a different line/order: block
+                    return ResponseEntity.badRequest().body(Map.of(
+                            "success", false,
+                            "message", "IMEI đã tồn tại trong hệ thống",
+                            "imei", imei
+                    ));
+                }
+            } catch (Exception e) {
+                // Continue; not a blocker, but log for visibility
+                System.out.println("⚠️ Error checking duplicate IMEI: " + e.getMessage());
+            }
+
+            // Assign IMEI from imei table to order line and mark as sold
+            try {
+                System.out.println("🔍 Looking for available IMEI in imei table: " + imei);
+                
+                // Check if IMEI is already assigned to this order line (idempotent)
+                List<ImeiDaBan> existingAssignments = imeiDaBanRepository.findByImei(imei).stream()
+                    .filter(existing -> existing.getHoaDonChiTiet() != null && 
+                            existing.getHoaDonChiTiet().getId() != null &&
+                            existing.getHoaDonChiTiet().getId().equals(hoaDonCt.getId()))
+                    .toList();
+                
+                if (!existingAssignments.isEmpty()) {
+                    System.out.println("✅ IMEI already assigned to this order line, returning success (idempotent)");
+                    return ResponseEntity.ok(Map.of(
+                        "success", true,
+                        "message", "IMEI đã được gán cho dòng sản phẩm này (idempotent)",
+                        "maHoaDon", maHoaDon,
+                        "imei", imei,
+                        "chiTietHoaDonId", hoaDonCt.getId(),
+                        "existing", true
+                    ));
+                }
+                
+                // Check if IMEI is already assigned to another order line
+                List<ImeiDaBan> assignedToOther = imeiDaBanRepository.findByImei(imei).stream()
+                    .filter(existing -> existing.getHoaDonChiTiet() != null && 
+                            existing.getHoaDonChiTiet().getId() != null &&
+                            !existing.getHoaDonChiTiet().getId().equals(hoaDonCt.getId()))
+                    .toList();
+                
+                if (!assignedToOther.isEmpty()) {
+                    return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "message", "IMEI đã được gán cho đơn hàng khác",
+                        "imei", imei
+                    ));
+                }
+                
+                // Check if IMEI is available in imei table (not sold yet)
+                System.out.println("🔍 Checking if IMEI is available in imei table: " + imei);
+                try {
+                    // Use ImeiService to check if IMEI exists and is available
+                    var imeiEntity = imeiService.findByImeiString(imei);
+                    if (imeiEntity == null) {
+                        return ResponseEntity.badRequest().body(Map.of(
+                            "success", false,
+                            "message", "IMEI không tồn tại trong hệ thống",
+                            "imei", imei
+                        ));
+                    }
+                    
+                    // Check if IMEI is available (trangThai = 1)
+                    if (imeiEntity.getTrangThai() != 1) {
+                        return ResponseEntity.badRequest().body(Map.of(
+                            "success", false,
+                            "message", "IMEI không khả dụng (đã bán hoặc bị khóa)",
+                            "imei", imei
+                        ));
+                    }
+                    
+                    System.out.println("✅ IMEI is available, creating ImeiDaBan record");
+                } catch (Exception e) {
+                    System.err.println("❌ Error checking IMEI availability: " + e.getMessage());
+                    return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "message", "Lỗi khi kiểm tra IMEI: " + e.getMessage(),
+                        "imei", imei
+                    ));
+                }
+                
+                System.out.println("🔍 Creating new ImeiDaBan record for IMEI: " + imei);
+                
+                // Create new ImeiDaBan record
+                ImeiDaBan imeiDaBan = new ImeiDaBan();
+                imeiDaBan.setHoaDonChiTiet(hoaDonCt);
+                imeiDaBan.setImei(imei);
+                imeiDaBan.setTrangThai(0); // Mark as sold
+                
+                // Save the new assignment
+                ImeiDaBan saved = imeiDaBanRepository.save(imeiDaBan);
+                System.out.println("✅ Created ImeiDaBan ID=" + (saved != null ? saved.getId() : "NULL") + " for chiTietHoaDonId=" + (hoaDonCt != null ? hoaDonCt.getId() : "NULL"));
+                
+                // Update IMEI status in imei table (mark as sold)
+                try {
+                    var imeiEntity = imeiService.findByImeiString(imei);
+                    if (imeiEntity != null) {
+                        imeiEntity.setTrangThai(0); // Mark as sold
+                        imeiService.update(imeiEntity.getId(), imeiService.convertToDTO(imeiEntity));
+                        System.out.println("✅ Updated IMEI status to sold in imei table");
+                    }
+                } catch (Exception e) {
+                    System.err.println("⚠️ Error updating IMEI status in imei table: " + e.getMessage());
+                    // Don't fail the whole operation, just log the warning
+                }
+                
+                // Check if saved object is null
+                if (saved == null) {
+                    System.err.println("❌ Saved ImeiDaBan is NULL!");
+                    throw new RuntimeException("Saved ImeiDaBan is null");
+                }
+                
+                // Check if saved.getId() is null
+                if (saved.getId() == null) {
+                    System.err.println("❌ Saved ImeiDaBan.getId() is NULL!");
+                    throw new RuntimeException("Saved ImeiDaBan.getId() is null");
+                }
+                
+                System.out.println("🔍 Creating response map...");
+                try {
+                    Map<String, Object> responseMap = new HashMap<>();
+                    System.out.println("🔍 HashMap created successfully");
+                    
+                    responseMap.put("success", true);
+                    System.out.println("🔍 Added success field");
+                    
+                    responseMap.put("message", "IMEI đã được gán cho sản phẩm và đánh dấu đã bán");
+                    System.out.println("🔍 Added message field");
+                    
+                    responseMap.put("maHoaDon", maHoaDon);
+                    System.out.println("🔍 Added maHoaDon field: " + maHoaDon);
+                    
+                    responseMap.put("imei", imei);
+                    System.out.println("🔍 Added imei field: " + imei);
+                    
+                    if (chiTietHoaDonId != null) {
+                        responseMap.put("chiTietHoaDonId", chiTietHoaDonId);
+                        System.out.println("🔍 Added chiTietHoaDonId field: " + chiTietHoaDonId);
+                    }
+                    if (ctspId != null) {
+                        responseMap.put("ctspId", ctspId);
+                        System.out.println("🔍 Added ctspId field: " + ctspId);
+                    }
+                    if (maCtsp != null) {
+                        responseMap.put("maCtsp", maCtsp);
+                        System.out.println("🔍 Added maCtsp field: " + maCtsp);
+                    }
+                    if (lineIndex != null) {
+                        responseMap.put("lineIndex", lineIndex);
+                        System.out.println("🔍 Added lineIndex field: " + lineIndex);
+                    }
+                    
+                    System.out.println("🔍 Response map created successfully: " + responseMap);
+                    System.out.println("🔍 About to return ResponseEntity.ok...");
+                    
+                    ResponseEntity<Map<String, Object>> response = ResponseEntity.ok(responseMap);
+                    System.out.println("🔍 ResponseEntity.ok created successfully");
+                    return response;
+                    
+                } catch (Exception responseError) {
+                    System.err.println("❌ Error creating response: " + responseError.getMessage());
+                    responseError.printStackTrace();
+                    throw responseError;
+                }
+                
+            } catch (Exception e) {
+                String errMsg = e.getMessage();
+                if (e.getCause() != null && e.getCause().getMessage() != null) {
+                    errMsg = e.getCause().getMessage();
+                }
+                String errClass = e.getClass() != null ? e.getClass().getName() : "UnknownException";
+                System.err.println("❌ Error saving IMEI: " + errMsg);
+                e.printStackTrace();
+                return ResponseEntity.badRequest()
+                        .body(Map.of(
+                                "success", false,
+                                "message", "Lỗi khi lưu IMEI: " + (errMsg != null ? errMsg : "unknown"),
+                                "errorClass", errClass,
+                                "maHoaDon", maHoaDon,
+                                "imei", imei
+                        ));
+            }
+            
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "message", "Lỗi khi lưu IMEI: " + e.getMessage()));
+        }
     }
 }
 

@@ -53,8 +53,12 @@ public class ImeiDaBanServiceImpl implements ImeiDaBanService {
 
     @Override
     public ImeiDaBanDTO getByImei(String imei) {
-        ImeiDaBan imeiDaBan = imeiDaBanRepository.findByImei(imei);
-        return imeiDaBan != null ? convertToDto(imeiDaBan) : null;
+        List<ImeiDaBan> imeiDaBanList = imeiDaBanRepository.findByImei(imei);
+        if (imeiDaBanList != null && !imeiDaBanList.isEmpty()) {
+            // Trả về bản ghi đầu tiên
+            return convertToDto(imeiDaBanList.get(0));
+        }
+        return null;
     }
 
     @Override

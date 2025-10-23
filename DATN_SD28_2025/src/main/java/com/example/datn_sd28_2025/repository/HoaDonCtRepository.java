@@ -19,6 +19,15 @@ public interface HoaDonCtRepository extends JpaRepository<HoaDonCt, Integer> {
     
     @Query("SELECT h FROM HoaDonCt h WHERE h.trangThai = :trangThai")
     List<HoaDonCt> findByTrangThai(@Param("trangThai") Integer trangThai);
+    
+    // Tính số lượng đã bán theo chi tiết sản phẩm (dựa trên số lượng IMEI đã bán)
+    // Tạm thời đếm tất cả IMEI để test (không filter trạng thái)
+    @Query("SELECT COUNT(i) FROM ImeiDaBan i WHERE i.hoaDonChiTiet.chiTietSanPham.id = :chiTietSanPhamId")
+    Long countSoLuongDaBanByChiTietSanPhamId(@Param("chiTietSanPhamId") Integer chiTietSanPhamId);
+    
+    // Test query - đếm tất cả ImeiDaBan (không filter trạng thái)
+    @Query("SELECT COUNT(i) FROM ImeiDaBan i")
+    Long countAllImeiDaBan();
 }
 
 

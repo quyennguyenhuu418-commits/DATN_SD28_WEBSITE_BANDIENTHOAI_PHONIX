@@ -90,18 +90,18 @@ public class SanPhamController {
             SanPhamDTO sp = sanPhamService.updateSanPhamFull(id, request);
             return ResponseEntity.ok(sp);
         } catch (RuntimeException e) {
-            // Trả về thông báo lỗi chi tiết thay vì 404
+            // Return detailed error message instead of 404
             return ResponseEntity.badRequest().body(Map.of(
-                "error", "Cập nhật sản phẩm thất bại",
-                "message", e.getMessage(),
-                "timestamp", java.time.LocalDateTime.now()
+                    "error", "Cập nhật sản phẩm thất bại",
+                    "message", e.getMessage(),
+                    "timestamp", java.time.LocalDateTime.now()
             ));
         } catch (Exception e) {
-            // Xử lý các lỗi khác
+            // Handle other errors
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                "error", "Lỗi hệ thống",
-                "message", e.getMessage(),
-                "timestamp", java.time.LocalDateTime.now()
+                    "error", "Lỗi hệ thống",
+                    "message", e.getMessage(),
+                    "timestamp", java.time.LocalDateTime.now()
             ));
         }
     }
@@ -210,15 +210,15 @@ public class SanPhamController {
         try {
             // Xóa dữ liệu NULL trong chi_tiet_san_pham
             int deletedChiTiet = sanPhamService.cleanupNullData();
-            
+
             return ResponseEntity.ok(Map.of(
-                "message", "Database cleanup completed",
-                "deletedChiTiet", deletedChiTiet
+                    "message", "Database cleanup completed",
+                    "deletedChiTiet", deletedChiTiet
             ));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of(
-                "error", e.getMessage(),
-                "message", "Lỗi khi cleanup database"
+                    "error", e.getMessage(),
+                    "message", "Lỗi khi cleanup database"
             ));
         }
     }
@@ -233,7 +233,7 @@ public class SanPhamController {
             request.setMoTa("Test product with IMEI");
             request.setIdDanhMuc(1);
             request.setIdHang(1);
-            
+
             // Tạo variant với IMEI
             SanPhamFullRequest.Variant variant = new SanPhamFullRequest.Variant();
             variant.setIdRam(1);
@@ -242,19 +242,19 @@ public class SanPhamController {
             variant.setSoLuong(2);
             variant.setDonGia(1000000L);
             variant.setImeis(List.of("123456789012345", "987654321098765"));
-            
+
             request.setVariants(List.of(variant));
-            
+
             SanPhamDTO result = sanPhamService.createSanPhamFull(request);
-            
+
             return ResponseEntity.ok(Map.of(
-                "message", "Test IMEI product created successfully",
-                "product", result
+                    "message", "Test IMEI product created successfully",
+                    "product", result
             ));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of(
-                "error", e.getMessage(),
-                "message", "Lỗi khi test IMEI"
+                    "error", e.getMessage(),
+                    "message", "Lỗi khi test IMEI"
             ));
         }
     }
@@ -264,17 +264,17 @@ public class SanPhamController {
         try {
             // Lấy chi tiết sản phẩm và IMEI
             List<ChiTietSanPham> chiTietList = sanPhamService.getChiTietSanPhamBySanPhamId(productId);
-            
+
             return ResponseEntity.ok(Map.of(
-                "message", "IMEI check completed",
-                "productId", productId,
-                "chiTietCount", chiTietList.size(),
-                "chiTietList", chiTietList
+                    "message", "IMEI check completed",
+                    "productId", productId,
+                    "chiTietCount", chiTietList.size(),
+                    "chiTietList", chiTietList
             ));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of(
-                "error", e.getMessage(),
-                "message", "Lỗi khi kiểm tra IMEI"
+                    "error", e.getMessage(),
+                    "message", "Lỗi khi kiểm tra IMEI"
             ));
         }
     }
@@ -284,13 +284,35 @@ public class SanPhamController {
         try {
             // Test đơn giản để kiểm tra IMEI
             return ResponseEntity.ok(Map.of(
-                "message", "IMEI test endpoint working",
-                "timestamp", java.time.LocalDateTime.now()
+                    "message", "IMEI test endpoint working",
+                    "timestamp", java.time.LocalDateTime.now()
             ));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of(
-                "error", e.getMessage(),
-                "message", "Lỗi khi test IMEI"
+                    "error", e.getMessage(),
+                    "message", "Lỗi khi test IMEI"
+            ));
+        }
+    }
+
+    @GetMapping("/{id}/debug")
+    public ResponseEntity<Object> debugProduct(@PathVariable Integer id) {
+        try {
+            // Debug endpoint để kiểm tra dữ liệu sản phẩm
+            var product = sanPhamService.getSanPhamForView(id);
+            var chiTietList = sanPhamService.getChiTietSanPhamBySanPhamId(id);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Debug product data",
+                    "productId", id,
+                    "product", product.orElse(null),
+                    "chiTietList", chiTietList,
+                    "chiTietCount", chiTietList.size()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of(
+                    "error", e.getMessage(),
+                    "message", "Lỗi khi debug sản phẩm"
             ));
         }
     }
