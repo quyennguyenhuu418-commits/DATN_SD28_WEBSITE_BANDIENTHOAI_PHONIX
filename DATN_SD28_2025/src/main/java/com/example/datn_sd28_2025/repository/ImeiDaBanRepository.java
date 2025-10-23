@@ -15,7 +15,7 @@ public interface ImeiDaBanRepository extends JpaRepository<ImeiDaBan, Integer> {
     List<ImeiDaBan> findByIdHoaDonChiTiet(@Param("idHoaDonChiTiet") Integer idHoaDonChiTiet);
     
     @Query("SELECT i FROM ImeiDaBan i WHERE i.imei = :imei")
-    ImeiDaBan findByImei(@Param("imei") String imei);
+    List<ImeiDaBan> findByImei(@Param("imei") String imei);
     
     @Query("SELECT i FROM ImeiDaBan i WHERE i.trangThai = 1")
     List<ImeiDaBan> findAllActive();

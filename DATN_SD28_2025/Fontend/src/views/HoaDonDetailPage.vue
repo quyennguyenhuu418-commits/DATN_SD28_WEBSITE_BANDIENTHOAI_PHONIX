@@ -38,9 +38,9 @@ const isScanningQR = ref(false)
 // Tracking steps - 4 bước cố định cho BAN_ONLINE
 const trackingSteps = ref([
   { title: 'Chờ xác nhận', icon: 'clock', time: '', status: 0, isBranch: true },
-  { title: 'Chờ giao hàng', icon: 'box', time: '', status: 2, isBranch: false },
-  { title: 'Đang giao hàng', icon: 'truck', time: '', status: 3, isBranch: false },
-  { title: 'Hoàn thành', icon: 'check-circle', time: '', status: 4, isBranch: false }
+  { title: 'Chờ giao hàng', icon: 'box', time: '', status: 1, isBranch: false },
+  { title: 'Đang giao hàng', icon: 'truck', time: '', status: 2, isBranch: false },
+  { title: 'Hoàn thành', icon: 'check-circle', time: '', status: 3, isBranch: false }
 ])
 
 // Computed property để lấy steps phù hợp với loại đơn hàng
@@ -91,10 +91,15 @@ watch(trackingData, (newData) => {
     // Chỉ cập nhật cho BAN_ONLINE
     console.log('🔍 Updating step times from database:', newData.lichSuTrangThai)
     
-    // Reset thời gian cho các step chưa có thời gian (trừ step "Chờ giao hàng" đã có thời gian)
-    trackingSteps.value.forEach((step, index) => {
-      // Chỉ reset nếu không phải step "Chờ giao hàng" hoặc step "Chờ giao hàng" chưa có thời gian
-      if (!(step.status === 2 && step.time)) {
+    // Reset tất cả step times trước khi cập nhật từ database
+    trackingSteps.value.forEach(step => {
+      // Reset step "Chờ xác nhận" (status 0) khi đơn hàng về trạng thái 0
+      if (step.status === 0 && newData.trangThai === 0) {
+        step.time = ''
+        console.log('🔄 Reset step "Chờ xác nhận" - chưa activated')
+      }
+      // Giữ nguyên step "Chờ giao hàng" nếu đã có thời gian
+      else if (!(step.status === 1 && step.time)) {
         step.time = ''
       }
     })
@@ -113,18 +118,22 @@ watch(trackingData, (newData) => {
           let stepIndex = -1
           switch (status) {
             case 0: stepIndex = 0; break  // Chờ xác nhận
-            case 1: stepIndex = 1; break  // Đã thanh toán chờ xác nhận -> Chờ giao hàng
-            case 2: stepIndex = 1; break  // Chờ giao hàng
-            case 3: stepIndex = 2; break  // Đang giao hàng
-            case 4: stepIndex = 3; break  // Hoàn thành
+            case 1: stepIndex = 1; break  // Chờ giao hàng
+            case 2: stepIndex = 2; break  // Đang giao hàng
+            case 3: stepIndex = 3; break  // Hoàn thành
           }
           
           if (stepIndex !== -1 && stepIndex < trackingSteps.value.length) {
-            // Đặc biệt cho step "Chờ giao hàng" (status = 2): chỉ set thời gian nếu đã có thời gian trước đó
+            // Đặc biệt cho step "Chờ xác nhận" (status = 0): không tự động set thời gian từ database
+            // Chỉ set thời gian khi user click nút "Xác nhận"
+            if (status === 0) {
+              console.log('⚠️ Skipping auto-set time for step "Chờ xác nhận" - waiting for manual confirmation')
+            }
+            // Đặc biệt cho step "Chờ giao hàng" (status = 1): chỉ set thời gian nếu đã có thời gian trước đó
             // (tức là đã được click trước đó)
-            if (status === 2 && !trackingSteps.value[stepIndex].time) {
+            else if (status === 1 && !trackingSteps.value[stepIndex].time) {
               console.log('⚠️ Skipping auto-set time for step "Chờ giao hàng" - waiting for manual click')
-            } else if (status === 2 && trackingSteps.value[stepIndex].time) {
+            } else if (status === 1 && trackingSteps.value[stepIndex].time) {
               // Nếu step "Chờ giao hàng" đã có thời gian, giữ nguyên thời gian đã set
               console.log('✅ Keeping existing time for step "Chờ giao hàng":', trackingSteps.value[stepIndex].time)
             } else {
@@ -135,12 +144,14 @@ watch(trackingData, (newData) => {
         }
       })
     } else {
-      // Fallback: nếu không có lichSuTrangThai, sử dụng ngayTao cho step đầu tiên
-      if (newData.ngayTao) {
+      // Fallback: nếu không có lichSuTrangThai, chỉ set thời gian cho step đầu tiên nếu đơn hàng không ở trạng thái 0
+      if (newData.ngayTao && newData.trangThai !== 0) {
         const ngayTao = new Date(newData.ngayTao)
         const timeString = ngayTao.toLocaleTimeString('vi-VN') + ' ' + ngayTao.toLocaleDateString('vi-VN')
         trackingSteps.value[0].time = timeString
         console.log('✅ Fallback: Set time from ngayTao for step 0:', timeString)
+      } else if (newData.trangThai === 0) {
+        console.log('⚠️ Fallback: Skipping auto-set time for step 0 when order status is 0 - waiting for manual confirmation')
       }
     }
   }
@@ -197,10 +208,9 @@ const expandedProductList = computed(() => {
 // Status options
 const statusOptions = ref([
   { value: 0, label: 'Chờ xác nhận' },
-  { value: 1, label: 'Đã xác nhận' },
-  { value: 2, label: 'Chờ giao hàng' },
-  { value: 3, label: 'Đang giao hàng' },
-  { value: 4, label: 'Hoàn thành' }
+  { value: 1, label: 'Chờ giao hàng' },
+  { value: 2, label: 'Đang giao hàng' },
+  { value: 3, label: 'Hoàn thành' }
 ])
 
 // Confirm modal
@@ -212,6 +222,11 @@ const currentStep = ref<any>(null)
 // IMEI modal
 const showImeiModal = ref(false)
 const selectedProductForImei = ref<any>(null)
+
+// Product QR Scanner state
+const showProductQRScannerModal = ref(false)
+const currentProductForQR = ref<any>(null)
+const productQRScanner = ref(null)
 
 // Payment method modal - REMOVED: No longer needed, data comes from backend
 
@@ -366,10 +381,9 @@ function getCurrentStepIndex(): number {
     // Bán online: 4 bước đầy đủ
     switch (status) {
       case 0: return 0  // Chờ xác nhận
-      case 1: return 1  // Đã thanh toán chờ xác nhận -> chuyển thành Chờ giao hàng
-      case 2: return 1  // Chờ giao hàng
-      case 3: return 2  // Đang giao hàng
-      case 4: return 3  // Hoàn thành
+      case 1: return 1  // Chờ giao hàng
+      case 2: return 2  // Đang giao hàng
+      case 3: return 3  // Hoàn thành
       case 5: return 0  // Đã hủy - reset về bước đầu
       default: return 0
     }
@@ -384,10 +398,9 @@ function getStatusName(trangThai: number): string {
 function getStatusClass(trangThai: number): string {
   const statusClasses = {
     0: 'status-pending',
-    1: 'status-confirmed',
-    2: 'status-waiting',
-    3: 'status-shipping',
-    4: 'status-completed'
+    1: 'status-waiting',
+    2: 'status-shipping',
+    3: 'status-completed'
   }
   return statusClasses[trangThai] || 'status-pending'
 }
@@ -469,27 +482,42 @@ function stopImeiQRScanner() {
   console.log('Stopping IMEI QR scanner...')
 }
 
-async function saveImeiToDatabase(imei: string) {
+async function saveImeiToDatabase(imei: string, product?: any) {
   try {
     console.log('Saving IMEI to database:', imei)
     
     const API_BASE_URL = 'http://localhost:8080'
+    // Xác định index của dòng sản phẩm trong đơn (nếu tìm được)
+    let lineIndex: number | null = null
+    try {
+      if (trackingData.value?.danhSachSanPham && product) {
+        lineIndex = trackingData.value.danhSachSanPham.indexOf(product)
+      }
+    } catch {}
     const response = await fetch(`${API_BASE_URL}/api/hoa-don/save-imei`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        maHoaDon: trackingData.value.maHoaDon,
-        imei: imei
-      })
+      body: JSON.stringify((() => {
+        const payload: any = { maHoaDon: trackingData.value.maHoaDon, imei, lineIndex }
+        // Tránh gửi chiTietHoaDonId khi không chắc chắn để backend fallback chọn dòng phù hợp
+        // if (product?.chiTietHoaDonId || product?.idChiTietHoaDon) payload.chiTietHoaDonId = product.chiTietHoaDonId ?? product.idChiTietHoaDon
+        if (product?.ctspId || product?.id) payload.ctspId = product.ctspId ?? product.id
+        if (product?.maCtsp) payload.maCtsp = product.maCtsp
+        console.log('🔼 save-imei payload:', payload)
+        return payload
+      })())
     })
     
+    // Đọc response body (kể cả khi lỗi) để hiển thị thông điệp chi tiết từ backend
+    const rawText = await response.text()
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
+      console.error('save-imei error body:', rawText)
+      throw new Error(`HTTP error! status: ${response.status} body: ${rawText}`)
     }
     
-    const result = await response.json()
+    const result = rawText ? JSON.parse(rawText) : {}
     console.log('IMEI saved successfully:', result)
     
     // Sau khi lưu IMEI thành công, cần đánh dấu IMEI đã bán (giống như trong PosPage.vue)
@@ -535,6 +563,43 @@ async function markImeiAsSold(imei: string) {
   }
 }
 
+async function confirmOrder() {
+  try {
+    console.log('🔍 Confirming order:', trackingData.value?.maHoaDon)
+    
+    // Chỉ kích hoạt bước "Chờ xác nhận" (status = 0) mà không chuyển trạng thái
+    const currentTime = new Date()
+    const timeString = currentTime.toLocaleTimeString('vi-VN') + ' ' + currentTime.toLocaleDateString('vi-VN')
+    
+    // Cập nhật thời gian cho step "Chờ xác nhận"
+    trackingSteps.value[0].time = timeString
+    
+    // Print invoice
+    try {
+      await printInvoice()
+      console.log('✅ Invoice printed successfully')
+    } catch (printError) {
+      console.warn('⚠️ Failed to print invoice:', printError)
+    }
+    
+    // Refresh tracking data
+    await refreshTrackingData()
+    
+    // Show success message
+    toastRef.value?.success('Thành công', 'Đơn hàng đã được xác nhận và kích hoạt')
+    
+    console.log('✅ Order confirmation completed:')
+    console.log('📋 Order ID:', trackingData.value?.maHoaDon)
+    console.log('📄 Invoice printed automatically')
+    console.log('🔄 Step "Chờ xác nhận" activated with time:', timeString)
+    console.log('📊 Tracking data refreshed')
+    
+  } catch (error) {
+    console.error('Error confirming order:', error)
+    toastRef.value?.error('Lỗi', 'Có lỗi xảy ra khi xác nhận đơn hàng')
+  }
+}
+
 async function confirmImei() {
   if (!imeiInput.value.trim()) {
     toastRef.value?.error('Lỗi', 'Vui lòng nhập IMEI hoặc quét QR code')
@@ -547,8 +612,8 @@ async function confirmImei() {
     // Call API to save IMEI to database
     await saveImeiToDatabase(imeiInput.value)
     
-    // Update status to confirmed (status = 1) - giống như khâu bán hàng trong PosPage
-    await updateOrderStatusDirectly(1, { title: 'Đã xác nhận', status: 1 })
+    // Update status to confirmed (status = 1) - Chờ giao hàng
+    await updateOrderStatusDirectly(1, { title: 'Chờ giao hàng', status: 1 })
     
     // Close modal
     closeImeiConfirmationModal()
@@ -610,10 +675,14 @@ async function handleStepClick(step: any, stepIndex: number) {
     return
   }
 
-  // Nếu là bước "Chờ xác nhận" (status = 0), cập nhật trạng thái trực tiếp
+  // Nếu là bước "Chờ xác nhận" (status = 0), chỉ kích hoạt mà không chuyển trạng thái
   if (step.status === 0 && currentStepIndex === 0) {
-    console.log('✅ Updating status to confirmed (step 0)')
-    await updateOrderStatusDirectly(step.status, step)
+    console.log('✅ Activating step "Chờ xác nhận" without status change')
+    const currentTime = new Date()
+    const timeString = currentTime.toLocaleTimeString('vi-VN') + ' ' + currentTime.toLocaleDateString('vi-VN')
+    trackingSteps.value[0].time = timeString
+    step.time = timeString
+    toastRef.value?.success('Thành công', 'Bước "Chờ xác nhận" đã được kích hoạt')
     return
   }
 
@@ -642,8 +711,8 @@ async function handleStepClick(step: any, stepIndex: number) {
     }
   }
 
-  // Xử lý đặc biệt cho step "Chờ giao hàng" (status = 2) khi trạng thái hiện tại đã là 2
-  if (step.status === 2 && trackingData.value.trangThai === 2 && !step.time) {
+  // Xử lý đặc biệt cho step "Chờ giao hàng" (status = 1) 
+  if (step.status === 1 && (trackingData.value.trangThai === 0 || trackingData.value.trangThai === 1) && !step.time) {
     console.log('✅ Special case: Clicking "Chờ giao hàng" to complete it')
     currentStep.value = step
     confirmMessage.value = `Bạn có chắc chắn muốn hoàn thành bước "${step.title}"?`
@@ -667,10 +736,12 @@ async function handleStepClick(step: any, stepIndex: number) {
      // Cho phép click nếu:
      // 1. Bước tiếp theo (stepIndex = currentStepIndex + 1)
      // 2. Hoặc bước hiện tại (stepIndex = currentStepIndex) và không phải bước 0
-  // 3. Hoặc đang ở status 1 và click vào bước 1 (Chờ giao hàng)
+  // 3. Hoặc đang ở status 0 và click vào bước 1 (Chờ giao hàng) khi bước 0 đã được kích hoạt
+  // 4. Hoặc đang ở status 1 và click vào bước 1 (Chờ giao hàng)
   canClick = (stepIndex === currentStepIndex + 1) ||
     (stepIndex === currentStepIndex && step.status !== 0) ||
-    (trackingData.value?.trangThai === 1 && stepIndex === 1 && step.status === 2)
+    (trackingData.value?.trangThai === 0 && stepIndex === 1 && step.status === 1 && !!trackingSteps.value[0].time) ||
+    (trackingData.value?.trangThai === 1 && stepIndex === 1 && step.status === 1)
   }
   
      console.log('🔍 Can click check:', { 
@@ -718,10 +789,9 @@ async function updateOrderStatusDirectly(newStatus: number, step: any) {
     let stepIndex = -1
     switch (newStatus) {
       case 0: stepIndex = 0; break  // Chờ xác nhận
-      case 1: stepIndex = 1; break  // Đã thanh toán chờ xác nhận -> Chờ giao hàng
-      case 2: stepIndex = 1; break  // Chờ giao hàng
-      case 3: stepIndex = 2; break  // Đang giao hàng
-      case 4: stepIndex = 3; break  // Hoàn thành
+      case 1: stepIndex = 1; break  // Chờ giao hàng
+      case 2: stepIndex = 2; break  // Đang giao hàng
+      case 3: stepIndex = 3; break  // Hoàn thành
     }
     
     if (stepIndex !== -1 && stepIndex < trackingSteps.value.length) {
@@ -733,10 +803,10 @@ async function updateOrderStatusDirectly(newStatus: number, step: any) {
     // Cũng cập nhật step.time để đảm bảo consistency
     step.time = timeString
     
-    // Đặc biệt cho step "Chờ xác nhận" (status = 0) và "Chờ giao hàng" (status = 2): completed ngay lập tức khi click
+    // Đặc biệt cho step "Chờ xác nhận" (status = 0) và "Chờ giao hàng" (status = 1): completed ngay lập tức khi click
     if (newStatus === 0) {
       console.log('✅ Step "Chờ xác nhận" completed immediately after click')
-    } else if (newStatus === 2) {
+    } else if (newStatus === 1) {
       console.log('✅ Step "Chờ giao hàng" completed immediately after click')
     }
     
@@ -829,16 +899,24 @@ async function cancelImei(imei: string) {
     console.log('Canceling IMEI:', imei)
     
     const API_BASE_URL = 'http://localhost:8080'
+    const requestBody = {
+      imei: imei,
+      trangThai: 1 // Chuyển về trạng thái khả dụng (1 = khả dụng, 0 = đã bán)
+    }
+    
+    console.log('🚀 Sending API request to:', `${API_BASE_URL}/api/imei/mark-sold`)
+    console.log('🚀 Request body:', requestBody)
+    
     const response = await fetch(`${API_BASE_URL}/api/imei/mark-sold`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        imei: imei,
-        trangThai: 1 // Chuyển về trạng thái khả dụng
-      })
+      body: JSON.stringify(requestBody)
     })
+    
+    console.log('🚀 Response status:', response.status)
+    console.log('🚀 Response ok:', response.ok)
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`)
@@ -929,11 +1007,111 @@ function showImeiDetailsForAllProducts() {
     console.log('🔍 Products for IMEI modal:', trackingData.value.danhSachSanPham)
     trackingData.value.danhSachSanPham.forEach((product, index) => {
       console.log(`🔍 Product ${index} imeis:`, product.imeis)
+      // Khởi tạo newImei cho mỗi sản phẩm
+      if (!product.newImei) {
+        product.newImei = ''
+      }
     })
     selectedProductForImei.value = trackingData.value.danhSachSanPham
     showImeiModal.value = true
   } else {
     console.log('No products available to show IMEI details')
+  }
+}
+
+// Product QR Scanner methods
+async function startProductQRScanner(product: any) {
+  try {
+    currentProductForQR.value = product
+    showProductQRScannerModal.value = true
+    await nextTick()
+
+    const video = document.getElementById('product-qr-scanner-video') as HTMLVideoElement
+    if (video) {
+      productQRScanner.value = new QrScanner(
+        video,
+        result => {
+          console.log('Product QR Code detected:', result)
+          product.newImei = result.data
+          closeProductQRScanner()
+        },
+        {
+          onDecodeError: error => {
+            // Ignore decode errors
+          }
+        }
+      )
+      await productQRScanner.value.start()
+    }
+  } catch (error) {
+    console.error('Error starting product QR scanner:', error)
+    toastRef.value?.error('Lỗi', 'Không thể khởi động camera')
+  }
+}
+
+function closeProductQRScanner() {
+  if (productQRScanner.value) {
+    productQRScanner.value.stop()
+    productQRScanner.value = null
+  }
+  showProductQRScannerModal.value = false
+  currentProductForQR.value = null
+}
+
+// Add IMEI to product
+async function addImeiToProduct(product: any) {
+  if (!product.newImei?.trim()) {
+    toastRef.value?.error('Lỗi', 'Vui lòng nhập IMEI')
+    return
+  }
+
+  try {
+    console.log('Adding IMEI to product:', product.newImei)
+
+    const newImei = String(product.newImei).trim()
+
+    // Chặn IMEI trùng toàn đơn
+    if (isImeiDuplicatedInOrder(newImei)) {
+      toastRef.value?.warning('Cảnh báo', 'IMEI này đã tồn tại trong đơn hàng')
+      return
+    }
+
+    // Kiểm tra IMEI đã tồn tại trong UI hiện tại
+    if (!product.imeis) {
+      product.imeis = []
+    }
+    const existingImei = product.imeis.find((imei: any) => {
+      const imeiValue = typeof imei === 'object' ? imei.imei : imei
+      return String(imeiValue).trim() === newImei
+    })
+    if (existingImei) {
+      toastRef.value?.warning('Cảnh báo', 'IMEI này đã tồn tại trong sản phẩm')
+      return
+    }
+
+    // Validate IMEI thuộc sản phẩm (nếu backend hỗ trợ)
+    const belongs = await validateImeiBelongsToProduct(newImei, product)
+    if (!belongs) {
+      toastRef.value?.error('Lỗi', 'IMEI không khớp với sản phẩm này')
+      return
+    }
+
+    // Lưu vào backend để không bị mất khi reload
+    await saveImeiToDatabase(newImei, product)
+
+    // Cập nhật UI ngay lập tức
+    product.imeis.push({ imei: newImei, trangThai: 0 })
+    const savedImei = newImei
+    product.newImei = ''
+
+    toastRef.value?.success('Thành công', `Đã thêm IMEI ${savedImei}`)
+
+    // Reload dữ liệu từ backend để đồng bộ đầy đủ
+    await refreshTrackingData()
+
+  } catch (error) {
+    console.error('Error adding IMEI to product:', error)
+    toastRef.value?.error('Lỗi', 'Có lỗi xảy ra khi thêm IMEI')
   }
 }
 
@@ -1178,7 +1356,46 @@ async function printInvoice() {
 // Cleanup
 onBeforeUnmount(() => {
   closeQRScanner()
+  closeProductQRScanner()
 })
+
+// Utility: kiểm tra IMEI đã tồn tại trong toàn bộ đơn hàng
+function isImeiDuplicatedInOrder(imeiToCheck: string): boolean {
+  if (!trackingData.value?.danhSachSanPham) return false
+  const normalized = String(imeiToCheck).trim()
+  for (const p of trackingData.value.danhSachSanPham) {
+    const list = p?.imeis || []
+    for (const item of list) {
+      const value = typeof item === 'object' ? item.imei : item
+      if (String(value).trim() === normalized) return true
+    }
+    if (p?.imei && String((typeof p.imei === 'object' ? p.imei.imei : p.imei)).trim() === normalized) return true
+  }
+  return false
+}
+
+// Validate IMEI thuộc đúng sản phẩm (best-effort)
+async function validateImeiBelongsToProduct(imei: string, product: any): Promise<boolean> {
+  try {
+    const API_BASE_URL = 'http://localhost:8080'
+    const res = await fetch(`${API_BASE_URL}/api/imei/validate?imei=${encodeURIComponent(imei)}`)
+    if (!res.ok) {
+      console.warn('IMEI validate API not available, skipping strict validation')
+      return true
+    }
+    const data = await res.json()
+    if (data?.valid === false) return false
+
+    const productMaCtsp = product?.maCtsp
+    const productCtspId = product?.ctspId || product?.id
+    if (data?.maCtsp && productMaCtsp && String(data.maCtsp) !== String(productMaCtsp)) return false
+    if (data?.ctspId && productCtspId && String(data.ctspId) !== String(productCtspId)) return false
+    return true
+  } catch (e) {
+    console.warn('IMEI validation error, skipping strict validation', e)
+    return true
+  }
+}
 </script>
 
 <template>
@@ -1228,8 +1445,9 @@ onBeforeUnmount(() => {
               :class="['status-step', {
                     active: !(index < getCurrentStepIndex() || (step.time && index === getCurrentStepIndex()) || (trackingData?.loaiHoaDon === 'BAN_THUONG' || trackingData?.loaiHoaDon === 'NORMAL')),
                     completed: index < getCurrentStepIndex() || (step.time && index === getCurrentStepIndex()) || (trackingData?.loaiHoaDon === 'BAN_THUONG' || trackingData?.loaiHoaDon === 'NORMAL'),
-                clickable: ((index === getCurrentStepIndex() + 1) || (index === getCurrentStepIndex() && step.status !== 0) || (trackingData?.trangThai === 1 && index === 1 && step.status === 2)) && !isUpdatingStatus && !(trackingData?.loaiHoaDon === 'BAN_THUONG' || trackingData?.loaiHoaDon === 'NORMAL'),
-                'pending-confirmation': step.status === 0 && trackingData?.trangThai === 0
+                clickable: ((index === getCurrentStepIndex() + 1) || (index === getCurrentStepIndex() && step.status !== 0) || (trackingData?.trangThai === 0 && index === 1 && step.status === 1 && trackingSteps[0].time) || (trackingData?.trangThai === 1 && index === 1 && step.status === 1)) && !isUpdatingStatus && !(trackingData?.loaiHoaDon === 'BAN_THUONG' || trackingData?.loaiHoaDon === 'NORMAL'),
+                'pending-confirmation': step.status === 0 && trackingData?.trangThai === 0 && !step.time,
+                'activated': step.status === 0 && step.time && trackingData?.trangThai === 0
                   }]"
               :title="`Step ${index}: ${step.title} (status: ${step.status}), Current: ${getCurrentStepIndex()}, Clickable: ${((index === getCurrentStepIndex() + 1) || (index === getCurrentStepIndex())) && !isUpdatingStatus && !(trackingData?.loaiHoaDon === 'BAN_THUONG' || trackingData?.loaiHoaDon === 'NORMAL')}`"
                   @click="(trackingData?.loaiHoaDon === 'BAN_THUONG' || trackingData?.loaiHoaDon === 'NORMAL') ? null : handleStepClick(step, index)"
@@ -1396,12 +1614,13 @@ onBeforeUnmount(() => {
         <div class="action-buttons-left">
           <button class="btn-action" @click="showImeiDetailsForAllProducts()">
             <font-awesome-icon icon="barcode" />
-            Xem IMEI
+            IMEI
           </button>
           <button 
             v-if="trackingData?.trangThai === 0" 
             class="btn-action btn-confirm" 
-            @click="openImeiConfirmationModal"
+            @click="confirmOrder"
+            :disabled="isUpdatingStatus"
           >
             <font-awesome-icon icon="check" />
             Xác nhận
@@ -1492,7 +1711,7 @@ onBeforeUnmount(() => {
           <div class="flex justify-end space-x-3">
             <button
               @click="closeQRScanner"
-              class="px-6 py-2 bg-gray-500 text-white font-medium rounded-lg hover:bg-gray-600 transition-all"
+              class="px-6 py-2 bg-gray-500 text-white font-medium rounded-full hover:bg-gray-600 transition-all"
             >
               Đóng
             </button>
@@ -1587,10 +1806,40 @@ onBeforeUnmount(() => {
 
               <!-- IMEI Section -->
               <div class="space-y-3">
-                <h5 class="font-semibold text-gray-700">Mã IMEI:</h5>
+                <div class="flex items-center gap-3">
+                  <h5 class="font-semibold text-gray-700">Mã IMEI:</h5>
+                  <input
+                    v-model="product.newImei"
+                    type="text"
+                    placeholder="Nhập IMEI..."
+                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  />
+                  <button
+                    @click="startProductQRScanner(product)"
+                    class="w-10 h-10 bg-purple-500 hover:bg-purple-600 rounded-full transition-colors flex items-center justify-center"
+                    title="Quét QR Code"
+                  >
+                    <img src="/QR.png" alt="QR" class="w-6 h-6" />
+                  </button>
+                  <button
+                    @click="addImeiToProduct(product)"
+                    :disabled="!product.newImei?.trim()"
+                    :class="[
+                      'w-10 h-10 rounded-full transition-colors flex items-center justify-center',
+                      product.newImei?.trim() 
+                        ? 'bg-orange-500 hover:bg-orange-600 text-white' 
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    ]"
+                    title="Thêm IMEI"
+                  >
+                    <font-awesome-icon icon="plus" class="text-lg" />
+                  </button>
+                </div>
+
+                <!-- Existing IMEI List -->
                 <div v-if="product.imeis && product.imeis.length > 0" class="space-y-2">
                   <div v-for="(imei, imeiIndex) in product.imeis" :key="imeiIndex" 
-                       v-show="typeof imei === 'object' ? imei.trangThai === 1 : true"
+                       v-show="typeof imei === 'object' ? imei.trangThai === 0 : true"
                        class="bg-gradient-to-r from-orange-50 to-yellow-50 border-2 border-orange-300 rounded-lg p-4 flex items-center justify-between">
                     <div class="flex-1">
                       <div class="font-bold text-gray-800 text-lg font-mono">{{ typeof imei === 'object' ? imei.imei : imei }}</div>
@@ -1609,8 +1858,8 @@ onBeforeUnmount(() => {
                     </div>
                   </div>
                 </div>
-                <div v-else class="text-center py-8 text-gray-500 italic">
-                  Không có IMEI
+                <div v-else class="text-center py-4 text-gray-500 italic">
+                  Chưa có IMEI nào
                 </div>
               </div>
             </div>
@@ -1635,10 +1884,40 @@ onBeforeUnmount(() => {
 
             <!-- IMEI Section -->
             <div class="space-y-3">
-              <h5 class="font-semibold text-gray-700">Mã IMEI:</h5>
+              <div class="flex items-center gap-3">
+                <h5 class="font-semibold text-gray-700">Mã IMEI:</h5>
+                <input
+                  v-model="selectedProductForImei.newImei"
+                  type="text"
+                  placeholder="Nhập IMEI..."
+                  class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                />
+                <button
+                  @click="startProductQRScanner(selectedProductForImei)"
+                  class="w-10 h-10 bg-purple-500 hover:bg-purple-600 rounded-full transition-colors flex items-center justify-center"
+                  title="Quét QR Code"
+                >
+                  <img src="/QR.png" alt="QR" class="w-6 h-6" />
+                </button>
+                <button
+                  @click="addImeiToProduct(selectedProductForImei)"
+                  :disabled="!selectedProductForImei.newImei?.trim()"
+                  :class="[
+                    'w-10 h-10 rounded-full transition-colors flex items-center justify-center',
+                    selectedProductForImei.newImei?.trim() 
+                      ? 'bg-orange-500 hover:bg-orange-600 text-white' 
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  ]"
+                  title="Thêm IMEI"
+                >
+                  <font-awesome-icon icon="plus" class="text-lg" />
+                </button>
+              </div>
+
+              <!-- Existing IMEI List -->
               <div v-if="selectedProductForImei.imeis && selectedProductForImei.imeis.length > 0" class="space-y-2">
                 <div v-for="(imei, imeiIndex) in selectedProductForImei.imeis" :key="imeiIndex" 
-                     v-show="typeof imei === 'object' ? imei.trangThai === 1 : true"
+                     v-show="typeof imei === 'object' ? imei.trangThai === 0 : true"
                      class="bg-gradient-to-r from-orange-50 to-yellow-50 border-2 border-orange-300 rounded-lg p-4 flex items-center justify-between">
                   <div class="flex-1">
                     <div class="font-bold text-gray-800 text-lg font-mono">{{ typeof imei === 'object' ? imei.imei : imei }}</div>
@@ -1657,8 +1936,8 @@ onBeforeUnmount(() => {
                   </div>
                 </div>
               </div>
-              <div v-else class="text-center py-8 text-gray-500 italic">
-                Không có IMEI
+              <div v-else class="text-center py-4 text-gray-500 italic">
+                Chưa có IMEI nào
               </div>
             </div>
           </div>
@@ -1668,7 +1947,7 @@ onBeforeUnmount(() => {
         <div class="p-6 border-t border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50 flex justify-end">
           <button
             @click="closeImeiModal"
-            class="px-6 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+            class="px-6 py-2 bg-white border border-gray-300 rounded-full text-gray-700 font-medium hover:bg-gray-50 transition-colors"
           >
             Đóng
           </button>
@@ -1720,7 +1999,7 @@ onBeforeUnmount(() => {
         <div class="p-6 border-t border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50 flex justify-end gap-3">
           <button
             @click="closeUpdateStatusModal"
-            class="px-6 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+            class="px-6 py-2 bg-white border border-gray-300 rounded-full text-gray-700 font-medium hover:bg-gray-50 transition-colors"
           >
             Hủy
           </button>
@@ -1732,6 +2011,70 @@ onBeforeUnmount(() => {
             <font-awesome-icon v-if="isUpdatingStatus" icon="spinner" spin />
             {{ isUpdatingStatus ? 'Đang cập nhật...' : 'Cập nhật' }}
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Product QR Scanner Modal -->
+    <div v-if="showProductQRScannerModal" class="fixed inset-0 bg-white/20 flex items-center justify-center z-50" @click="closeProductQRScanner">
+      <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl w-4/5 max-w-2xl max-h-[80vh] flex flex-col shadow-2xl" @click.stop>
+        <!-- Modal Header -->
+        <div class="p-6 border-b border-blue-200 bg-gradient-to-r from-blue-100 to-indigo-100">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xl font-bold text-gray-800">Quét QR Code cho sản phẩm</h3>
+            <button @click="closeProductQRScanner" class="text-gray-500 hover:text-gray-700 transition-colors">
+              <font-awesome-icon icon="times" class="text-xl" />
+            </button>
+          </div>
+          <p class="text-gray-600 mt-2">{{ currentProductForQR?.tenSanPham || 'Sản phẩm' }}</p>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="flex-1 overflow-y-auto p-6">
+          <div class="text-center space-y-6">
+            <!-- Camera Container -->
+            <div class="relative bg-gray-900 rounded-lg overflow-hidden">
+              <video
+                id="product-qr-scanner-video"
+                class="w-full h-64 object-cover"
+                autoplay
+                muted
+                playsinline
+              ></video>
+
+              <!-- QR Scanner Overlay -->
+              <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div class="relative w-48 h-48 border-2 border-blue-400 rounded-lg">
+                  <!-- Scan Line Animation -->
+                  <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-400 to-transparent animate-pulse"></div>
+
+                  <!-- Corner indicators -->
+                  <div class="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-blue-400"></div>
+                  <div class="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-blue-400"></div>
+                  <div class="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-blue-400"></div>
+                  <div class="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-blue-400"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Instructions -->
+            <div class="bg-blue-100 rounded-lg p-4">
+              <p class="text-blue-800 font-medium">Đưa camera vào QR code IMEI để quét</p>
+              <p class="text-sm text-blue-600 mt-1">IMEI sẽ được tự động điền vào ô nhập</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="p-6 border-t border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <div class="flex justify-end space-x-3">
+            <button
+              @click="closeProductQRScanner"
+              class="px-6 py-2 bg-gray-500 text-white font-medium rounded-full hover:bg-gray-600 transition-all"
+            >
+              Đóng
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -1823,7 +2166,7 @@ onBeforeUnmount(() => {
               @click="confirmImei"
               :disabled="!imeiInput.trim()"
               :class="[
-                'px-6 py-2 font-medium rounded-lg transition-all',
+                'px-6 py-2 font-medium rounded-full transition-all',
                 imeiInput.trim() 
                   ? 'bg-orange-500 text-white hover:bg-orange-600' 
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -2057,6 +2400,24 @@ onBeforeUnmount(() => {
   color: white;
   animation: pulse-orange 2s infinite;
   box-shadow: 0 0 20px rgba(249, 115, 22, 0.5);
+}
+
+.status-step.activated .step-icon {
+  background: #10b981;
+  color: white;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+  animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.8);
+  }
 }
 
 @keyframes pulse-orange {

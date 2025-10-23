@@ -475,6 +475,7 @@ public class HoaDonServiceImpl implements HoaDonService {
     }
 
     private HoaDonTrackingDTO convertToTrackingDto(HoaDon hoaDon) {
+        System.out.println("🔍 HoaDonServiceImpl.convertToTrackingDto called for: " + hoaDon.getMaHoaDon());
         HoaDonTrackingDTO dto = new HoaDonTrackingDTO();
         dto.setId(hoaDon.getId());
         dto.setMaHoaDon(hoaDon.getMaHoaDon());
@@ -577,18 +578,25 @@ public class HoaDonServiceImpl implements HoaDonService {
                         // Lấy số lượng (tạm thời để 1, có thể cần thêm field số lượng vào HoaDonCt)
                         product.setSoLuong(1);
                         
-                        // Lấy danh sách IMEI đã bán (chỉ lấy IMEI có trangThai = 1 - khả dụng)
+                        // Lấy danh sách IMEI đã bán (chỉ lấy IMEI có trangThai = 0 - đã bán)
                         List<Map<String, Object>> imeis = new ArrayList<>();
                         if (hoaDonChiTiet.getImeiDaBans() != null) {
+                            System.out.println("🔍 HoaDonServiceImpl - Processing IMEI for product: " + sanPham.getTenSanPham());
+                            System.out.println("🔍 HoaDonServiceImpl - Total ImeiDaBan records: " + hoaDonChiTiet.getImeiDaBans().size());
                             for (ImeiDaBan imeiDaBan : hoaDonChiTiet.getImeiDaBans()) {
-                                // Chỉ lấy IMEI có trạng thái khả dụng (trangThai = 1)
-                                if (imeiDaBan.getTrangThai() == 1) {
+                                System.out.println("🔍 HoaDonServiceImpl - IMEI: " + imeiDaBan.getImei() + ", TrangThai: " + imeiDaBan.getTrangThai());
+                                // Chỉ lấy IMEI đã bán (trangThai = 0)
+                                if (imeiDaBan.getTrangThai() == 0) {
+                                    System.out.println("✅ HoaDonServiceImpl - Adding IMEI (đã bán): " + imeiDaBan.getImei());
                                     Map<String, Object> imeiInfo = new HashMap<>();
                                     imeiInfo.put("imei", imeiDaBan.getImei());
                                     imeiInfo.put("trangThai", imeiDaBan.getTrangThai());
                                     imeis.add(imeiInfo);
+                                } else {
+                                    System.out.println("❌ HoaDonServiceImpl - Skipping IMEI (chưa bán, trangThai = " + imeiDaBan.getTrangThai() + "): " + imeiDaBan.getImei());
                                 }
                             }
+                            System.out.println("🔍 HoaDonServiceImpl - Final IMEI count (đã bán): " + imeis.size());
                         }
                         product.setImeis(imeis);
                         
