@@ -80,6 +80,7 @@ public class GpuServiceImpl implements GpuService {
         gpuRepository.deleteById(id);
     }
 
+<<<<<<< HEAD
     @Override
     public void updateStatus(Integer id, Integer trangThai) {
         Gpu gpu = gpuRepository.findById(id)
@@ -89,6 +90,8 @@ public class GpuServiceImpl implements GpuService {
         gpuRepository.save(gpu);
     }
 
+=======
+>>>>>>> origin/Huan
     private GpuDTO convertToDto(Gpu gpu) {
         return GpuDTO.builder()
                 .id(gpu.getId())
@@ -112,4 +115,16 @@ public class GpuServiceImpl implements GpuService {
                 .trangThai(gpuDTO.getTrangThai())
                 .build();
     }
+<<<<<<< HEAD
+=======
+
+    @Override
+    public void updateStatus(Integer id, Integer trangThai) {
+        Gpu gpu = gpuRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy gpu với ID: " + id));
+        gpu.setTrangThai(trangThai);
+        gpu.setNgayCapNhat(LocalDateTime.now());
+        gpuRepository.save(gpu);
+    }
+>>>>>>> origin/Huan
 }

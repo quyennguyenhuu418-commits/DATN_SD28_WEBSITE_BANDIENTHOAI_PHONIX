@@ -29,12 +29,20 @@ public class Imei {
     @Column(name = "imei", length = 50)
     private String imei;
 
+<<<<<<< HEAD
     // Note: ngay_tao and ngay_cap_nhat columns don't exist in the actual database
     // @Column(name = "ngay_tao")
     // private LocalDateTime ngayTao;
 
     // @Column(name = "ngay_cap_nhat")
     // private LocalDateTime ngayCapNhat;
+=======
+    @Column(name = "ngay_tao")
+    private LocalDateTime ngayTao;
+
+    @Column(name = "ngay_cap_nhat")
+    private LocalDateTime ngayCapNhat;
+>>>>>>> origin/Huan
 
     @Column(name = "trang_thai")
     private Integer trangThai;

@@ -84,12 +84,15 @@ public class ImeiController {
         List<String> duplicates = imeiService.findDuplicateImeis(imeis);
         return ResponseEntity.ok(duplicates);
     }
+<<<<<<< HEAD
     
     @GetMapping("/chi-tiet/{chiTietSanPhamId}")
     public ResponseEntity<List<ImeiDTO>> getByChiTietSanPham(@PathVariable Integer chiTietSanPhamId) {
         List<ImeiDTO> imeis = imeiService.getByChiTietSanPham(chiTietSanPhamId);
         return ResponseEntity.ok(imeis);
     }
+=======
+>>>>>>> origin/Huan
 }
 
 

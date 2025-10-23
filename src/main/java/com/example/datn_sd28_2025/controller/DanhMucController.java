@@ -8,7 +8,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+<<<<<<< HEAD
 import java.util.Map;
+=======
+>>>>>>> origin/Huan
 import java.util.Optional;
 
 @RestController
@@ -54,6 +57,7 @@ public class DanhMucController {
         }
     }
 
+<<<<<<< HEAD
     @PutMapping("/{id}/status")
     public ResponseEntity<?> updateStatus(@PathVariable Integer id, @RequestBody Map<String, Integer> request) {
         try {
@@ -68,6 +72,8 @@ public class DanhMucController {
         }
     }
 
+=======
+>>>>>>> origin/Huan
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         try {

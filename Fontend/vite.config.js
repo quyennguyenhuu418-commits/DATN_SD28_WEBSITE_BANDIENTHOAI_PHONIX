@@ -2,19 +2,26 @@ import { fileURLToPath, URL } from 'node:url'
 
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+<<<<<<< HEAD
 import vueDevTools from 'vite-plugin-vue-devtools'
+=======
+>>>>>>> origin/Huan
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     vue(),
+<<<<<<< HEAD
     vueDevTools(),
+=======
+>>>>>>> origin/Huan
   ],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+<<<<<<< HEAD
   define: {
     global: 'globalThis',
   },
@@ -41,12 +48,15 @@ export default defineConfig({
     // Tối ưu chunk size
     chunkSizeWarningLimit: 1000,
   },
+=======
+>>>>>>> origin/Huan
   server: {
     proxy: {
       '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true,
       },
+<<<<<<< HEAD
       '/ws': {
         target: 'http://localhost:8080',
         changeOrigin: true,
@@ -58,4 +68,8 @@ export default defineConfig({
   optimizeDeps: {
     include: ['vue', 'vue-router', 'pinia', '@fortawesome/fontawesome-free'],
   },
+=======
+    },
+  },
+>>>>>>> origin/Huan
 })

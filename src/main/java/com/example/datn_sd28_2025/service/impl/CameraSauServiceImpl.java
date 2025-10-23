@@ -68,6 +68,7 @@ public class CameraSauServiceImpl implements CameraSauService {
         cameraSauRepository.deleteById(id);
     }
 
+<<<<<<< HEAD
     @Override
     public void updateStatus(Integer id, Integer trangThai) {
         CameraSau cameraSau = cameraSauRepository.findById(id)
@@ -77,6 +78,8 @@ public class CameraSauServiceImpl implements CameraSauService {
         cameraSauRepository.save(cameraSau);
     }
 
+=======
+>>>>>>> origin/Huan
     private CameraSauDTO convertToDto(CameraSau cameraSau) {
         return CameraSauDTO.builder()
                 .id(cameraSau.getId())
@@ -100,4 +103,16 @@ public class CameraSauServiceImpl implements CameraSauService {
                 .trangThai(cameraSauDTO.getTrangThai())
                 .build();
     }
+<<<<<<< HEAD
+=======
+
+    @Override
+    public void updateStatus(Integer id, Integer trangThai) {
+        CameraSau cameraSau = cameraSauRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy camera sau với ID: " + id));
+        cameraSau.setTrangThai(trangThai);
+        cameraSau.setNgayCapNhat(LocalDateTime.now());
+        cameraSauRepository.save(cameraSau);
+    }
+>>>>>>> origin/Huan
 }

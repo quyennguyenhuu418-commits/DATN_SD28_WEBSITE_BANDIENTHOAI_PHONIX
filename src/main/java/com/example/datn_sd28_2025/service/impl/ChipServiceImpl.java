@@ -68,6 +68,7 @@ public class ChipServiceImpl implements ChipService {
         chipRepository.deleteById(id);
     }
 
+<<<<<<< HEAD
     @Override
     public void updateStatus(Integer id, Integer trangThai) {
         Chip chip = chipRepository.findById(id)
@@ -77,6 +78,8 @@ public class ChipServiceImpl implements ChipService {
         chipRepository.save(chip);
     }
 
+=======
+>>>>>>> origin/Huan
     private ChipDTO convertToDto(Chip chip) {
         return ChipDTO.builder()
                 .id(chip.getId())
@@ -100,4 +103,16 @@ public class ChipServiceImpl implements ChipService {
                 .trangThai(chipDTO.getTrangThai())
                 .build();
     }
+<<<<<<< HEAD
+=======
+
+    @Override
+    public void updateStatus(Integer id, Integer trangThai) {
+        Chip chip = chipRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy chip với ID: " + id));
+        chip.setTrangThai(trangThai);
+        chip.setNgayCapNhat(LocalDateTime.now());
+        chipRepository.save(chip);
+    }
+>>>>>>> origin/Huan
 }

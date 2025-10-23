@@ -80,6 +80,7 @@ public class CpuServiceImpl implements CpuService {
         cpuRepository.deleteById(id);
     }
 
+<<<<<<< HEAD
     @Override
     public void updateStatus(Integer id, Integer trangThai) {
         Cpu cpu = cpuRepository.findById(id)
@@ -89,6 +90,8 @@ public class CpuServiceImpl implements CpuService {
         cpuRepository.save(cpu);
     }
 
+=======
+>>>>>>> origin/Huan
     private CpuDTO convertToDto(Cpu cpu) {
         return CpuDTO.builder()
                 .id(cpu.getId())
@@ -112,4 +115,16 @@ public class CpuServiceImpl implements CpuService {
                 .trangThai(cpuDTO.getTrangThai())
                 .build();
     }
+<<<<<<< HEAD
+=======
+
+    @Override
+    public void updateStatus(Integer id, Integer trangThai) {
+        Cpu cpu = cpuRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy cpu với ID: " + id));
+        cpu.setTrangThai(trangThai);
+        cpu.setNgayCapNhat(LocalDateTime.now());
+        cpuRepository.save(cpu);
+    }
+>>>>>>> origin/Huan
 }

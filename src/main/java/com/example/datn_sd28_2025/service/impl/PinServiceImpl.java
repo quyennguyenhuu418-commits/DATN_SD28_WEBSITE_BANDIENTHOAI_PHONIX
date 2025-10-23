@@ -81,6 +81,7 @@ public class PinServiceImpl implements PinService {
         pinRepository.deleteById(id); // Hard delete
     }
 
+<<<<<<< HEAD
     @Override
     public void updateStatus(Integer id, Integer trangThai) {
         Pin pin = pinRepository.findById(id)
@@ -90,6 +91,8 @@ public class PinServiceImpl implements PinService {
         pinRepository.save(pin);
     }
 
+=======
+>>>>>>> origin/Huan
     private PinDTO convertToDto(Pin pin) {
         return PinDTO.builder()
                 .id(pin.getId())
@@ -115,4 +118,16 @@ public class PinServiceImpl implements PinService {
                 .trangThai(pinDTO.getTrangThai())
                 .build();
     }
+<<<<<<< HEAD
+=======
+
+    @Override
+    public void updateStatus(Integer id, Integer trangThai) {
+        Pin pin = pinRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy pin với ID: " + id));
+        pin.setTrangThai(trangThai);
+        pin.setNgayCapNhat(LocalDateTime.now());
+        pinRepository.save(pin);
+    }
+>>>>>>> origin/Huan
 }

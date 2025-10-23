@@ -115,7 +115,11 @@ public class SanPhamServiceImpl implements SanPhamService {
     @Override
     @Transactional(readOnly = true)
     public List<SanPhamDTO> getAllSanPham() {
+<<<<<<< HEAD
         return sanPhamRepository.findAll().stream().map(this::toDTO).toList();
+=======
+        return sanPhamRepository.findAllActive().stream().map(this::toDTO).toList();
+>>>>>>> origin/Huan
     }
 
     @Override
@@ -127,6 +131,7 @@ public class SanPhamServiceImpl implements SanPhamService {
     @Override
     @Transactional(readOnly = true)
     public List<SanPhamDTO> searchSanPham(String searchTerm) {
+<<<<<<< HEAD
         if (searchTerm == null || searchTerm.isBlank()) {
             return getActiveSanPham();
         }
@@ -193,6 +198,12 @@ public class SanPhamServiceImpl implements SanPhamService {
         return sanPhamRepository.searchAdvanced(kw, minPrice, maxPrice, chip, ramId, romId, osName,
                 brandId, brandName, gpu, cpuName, simType, minBattery, maxBattery, minScreen, maxScreen, rearCam, frontCam)
                 .stream().map(this::toDTO).toList();
+=======
+        return sanPhamRepository.findByTenSanPhamContainingIgnoreCaseAndTrangThaiTrue(searchTerm)
+                .stream()
+                .map(this::toDTO)
+                .toList();
+>>>>>>> origin/Huan
     }
 
     @Override
@@ -611,6 +622,7 @@ public class SanPhamServiceImpl implements SanPhamService {
             tongImei += imeis.stream().mapToInt(imei -> imei.getTrangThai() == 1 ? 1 : 0).sum();
         }
         
+<<<<<<< HEAD
         // Lấy thông tin từ chi tiết sản phẩm đầu tiên (nếu có)
         ChiTietSanPham firstChiTiet = chiTietList.isEmpty() ? null : chiTietList.get(0);
         
@@ -621,6 +633,33 @@ public class SanPhamServiceImpl implements SanPhamService {
             if (!images.isEmpty()) {
                 hinhAnh = images.get(0).getUrlAnh();
             }
+=======
+        // Tính giá nhập và giá bán min/max
+        Long giaNhapMin = null, giaNhapMax = null;
+        Long giaBanMin = null, giaBanMax = null;
+        
+        if (!chiTietList.isEmpty()) {
+            giaNhapMin = chiTietList.stream()
+                    .filter(ct -> ct.getGiaNhap() != null)
+                    .map(ct -> ct.getGiaNhap().longValue())
+                    .mapToLong(Long::longValue)
+                    .min().orElse(0);
+            giaNhapMax = chiTietList.stream()
+                    .filter(ct -> ct.getGiaNhap() != null)
+                    .map(ct -> ct.getGiaNhap().longValue())
+                    .mapToLong(Long::longValue)
+                    .max().orElse(0);
+            giaBanMin = chiTietList.stream()
+                    .filter(ct -> ct.getGiaBan() != null)
+                    .map(ct -> ct.getGiaBan().longValue())
+                    .mapToLong(Long::longValue)
+                    .min().orElse(0);
+            giaBanMax = chiTietList.stream()
+                    .filter(ct -> ct.getGiaBan() != null)
+                    .map(ct -> ct.getGiaBan().longValue())
+                    .mapToLong(Long::longValue)
+                    .max().orElse(0);
+>>>>>>> origin/Huan
         }
         
         return SanPhamDTO.builder()
@@ -633,6 +672,7 @@ public class SanPhamServiceImpl implements SanPhamService {
                 .ngayTao(sp.getNgayTao())
                 .ngayCapNhat(sp.getNgayCapNhat())
                 .trangThai(sp.getTrangThai())
+<<<<<<< HEAD
                 .tenDanhMuc(sp.getDanhMuc() != null ? sp.getDanhMuc().getTenDanhMuc() : null)
                 .tenHang(sp.getHang() != null ? sp.getHang().getTen() : null)
                 .tenManHinh(sp.getManHinh() != null ? sp.getManHinh().getKichThuoc() : null)
@@ -651,6 +691,24 @@ public class SanPhamServiceImpl implements SanPhamService {
                 .soLuong(tongImei)
                 .tenRam(firstChiTiet != null && firstChiTiet.getRam() != null ? firstChiTiet.getRam().getTenRam() : null)
                 .tenRom(firstChiTiet != null && firstChiTiet.getRom() != null ? firstChiTiet.getRom().getDungLuong() : null)
+=======
+                .tenDanhMuc(sp.getDanhMuc() != null && sp.getDanhMuc().getTrangThai() == 1 ? sp.getDanhMuc().getTenDanhMuc() : null)
+                .tenHang(sp.getHang() != null && sp.getHang().getTrangThai() == 1 ? sp.getHang().getTen() : null)
+                .tenManHinh(sp.getManHinh() != null && sp.getManHinh().getTrangThai() == 1 ? sp.getManHinh().getKichThuoc() : null)
+                .tenCameraTruoc(sp.getCameraTruoc() != null && sp.getCameraTruoc().getTrangThai() == 1 ? sp.getCameraTruoc().getThongSo() : null)
+                .tenCameraSau(sp.getCameraSau() != null && sp.getCameraSau().getTrangThai() == 1 ? sp.getCameraSau().getThongSo() : null)
+                .tenChip(sp.getChip() != null && sp.getChip().getTrangThai() == 1 ? sp.getChip().getTenChip() : null)
+                .tenGpu(sp.getGpu() != null && sp.getGpu().getTrangThai() == 1 ? sp.getGpu().getTenGpu() : null)
+                .tenSim(sp.getSim() != null && sp.getSim().getTrangThai() == 1 ? sp.getSim().getLoaiSim() : null)
+                .tenHeDieuHanh(sp.getHeDieuHanh() != null && sp.getHeDieuHanh().getTrangThai() == 1 ? sp.getHeDieuHanh().getTenHeDieuHanh() : null)
+                .tenCpu(sp.getCpu() != null && sp.getCpu().getTrangThai() == 1 ? sp.getCpu().getTenCpu() : null)
+                .tenPin(sp.getPin() != null && sp.getPin().getTrangThai() == 1 ? sp.getPin().getDungLuongPin() : null)
+                .tongImei(tongImei)
+                .giaNhapMin(giaNhapMin)
+                .giaNhapMax(giaNhapMax)
+                .giaBanMin(giaBanMin)
+                .giaBanMax(giaBanMax)
+>>>>>>> origin/Huan
                 .build();
     }
 
@@ -698,6 +756,7 @@ public class SanPhamServiceImpl implements SanPhamService {
                 .ngayTao(sp.getNgayTao())
                 .ngayCapNhat(sp.getNgayCapNhat())
                 .trangThai(sp.getTrangThai())
+<<<<<<< HEAD
                 // ID fields
                 .idDanhMuc(sp.getDanhMuc() != null ? sp.getDanhMuc().getId() : null)
                 .idHang(sp.getHang() != null ? sp.getHang().getId() : null)
@@ -722,6 +781,32 @@ public class SanPhamServiceImpl implements SanPhamService {
                 .tenHeDieuHanh(sp.getHeDieuHanh() != null ? sp.getHeDieuHanh().getTenHeDieuHanh() : null)
                 .tenCpu(sp.getCpu() != null ? sp.getCpu().getTenCpu() : null)
                 .tenPin(sp.getPin() != null ? sp.getPin().getDungLuongPin() : null)
+=======
+                // ID fields - only include if attribute is active
+                .idDanhMuc(sp.getDanhMuc() != null && sp.getDanhMuc().getTrangThai() == 1 ? sp.getDanhMuc().getId() : null)
+                .idHang(sp.getHang() != null && sp.getHang().getTrangThai() == 1 ? sp.getHang().getId() : null)
+                .idManHinh(sp.getManHinh() != null && sp.getManHinh().getTrangThai() == 1 ? sp.getManHinh().getId() : null)
+                .idCameraTruoc(sp.getCameraTruoc() != null && sp.getCameraTruoc().getTrangThai() == 1 ? sp.getCameraTruoc().getId() : null)
+                .idCameraSau(sp.getCameraSau() != null && sp.getCameraSau().getTrangThai() == 1 ? sp.getCameraSau().getId() : null)
+                .idChip(sp.getChip() != null && sp.getChip().getTrangThai() == 1 ? sp.getChip().getId() : null)
+                .idGpu(sp.getGpu() != null && sp.getGpu().getTrangThai() == 1 ? sp.getGpu().getId() : null)
+                .idSim(sp.getSim() != null && sp.getSim().getTrangThai() == 1 ? sp.getSim().getId() : null)
+                .idHeDieuHanh(sp.getHeDieuHanh() != null && sp.getHeDieuHanh().getTrangThai() == 1 ? sp.getHeDieuHanh().getId() : null)
+                .idCpu(sp.getCpu() != null && sp.getCpu().getTrangThai() == 1 ? sp.getCpu().getId() : null)
+                .idPin(sp.getPin() != null && sp.getPin().getTrangThai() == 1 ? sp.getPin().getId() : null)
+                // Name fields - only show if attribute is active
+                .tenDanhMuc(sp.getDanhMuc() != null && sp.getDanhMuc().getTrangThai() == 1 ? sp.getDanhMuc().getTenDanhMuc() : null)
+                .tenHang(sp.getHang() != null && sp.getHang().getTrangThai() == 1 ? sp.getHang().getTen() : null)
+                .tenManHinh(sp.getManHinh() != null && sp.getManHinh().getTrangThai() == 1 ? sp.getManHinh().getKichThuoc() : null)
+                .tenCameraTruoc(sp.getCameraTruoc() != null && sp.getCameraTruoc().getTrangThai() == 1 ? sp.getCameraTruoc().getThongSo() : null)
+                .tenCameraSau(sp.getCameraSau() != null && sp.getCameraSau().getTrangThai() == 1 ? sp.getCameraSau().getThongSo() : null)
+                .tenChip(sp.getChip() != null && sp.getChip().getTrangThai() == 1 ? sp.getChip().getTenChip() : null)
+                .tenGpu(sp.getGpu() != null && sp.getGpu().getTrangThai() == 1 ? sp.getGpu().getTenGpu() : null)
+                .tenSim(sp.getSim() != null && sp.getSim().getTrangThai() == 1 ? sp.getSim().getLoaiSim() : null)
+                .tenHeDieuHanh(sp.getHeDieuHanh() != null && sp.getHeDieuHanh().getTrangThai() == 1 ? sp.getHeDieuHanh().getTenHeDieuHanh() : null)
+                .tenCpu(sp.getCpu() != null && sp.getCpu().getTrangThai() == 1 ? sp.getCpu().getTenCpu() : null)
+                .tenPin(sp.getPin() != null && sp.getPin().getTrangThai() == 1 ? sp.getPin().getDungLuongPin() : null)
+>>>>>>> origin/Huan
                 .variants(variants)
                 .build();
     }
@@ -752,18 +837,30 @@ public class SanPhamServiceImpl implements SanPhamService {
 
             return SanPhamViewDTO.VariantViewDTO.builder()
                     .id(ct.getId())
+<<<<<<< HEAD
                     .idRam(ct.getRam() != null ? ct.getRam().getId() : null)
                     .idRom(ct.getRom() != null ? ct.getRom().getId() : null)
                     .idMauSac(ct.getMauSac() != null ? ct.getMauSac().getId() : null)
+=======
+                    .idRam(ct.getRam() != null && ct.getRam().getTrangThai() == 1 ? ct.getRam().getId() : null)
+                    .idRom(ct.getRom() != null && ct.getRom().getTrangThai() == 1 ? ct.getRom().getId() : null)
+                    .idMauSac(ct.getMauSac() != null && ct.getMauSac().getTrangThai() == 1 ? ct.getMauSac().getId() : null)
+>>>>>>> origin/Huan
                     .soLuong(imeis.size())
                     .donGia(ct.getGiaBan() != null ? ct.getGiaBan().longValue() : null)
                     .giaNhap(ct.getGiaNhap() != null ? ct.getGiaNhap().longValue() : null)
                     .ghiChu(ct.getGhiChu())
                     .imeis(imeis)
                     .imageUrls(imageUrls)
+<<<<<<< HEAD
                     .tenRam(ct.getRam() != null ? ct.getRam().getTenRam() : null)
                     .tenRom(ct.getRom() != null ? ct.getRom().getDungLuong() : null)
                     .tenMauSac(ct.getMauSac() != null ? ct.getMauSac().getTenMau() : null)
+=======
+                    .tenRam(ct.getRam() != null && ct.getRam().getTrangThai() == 1 ? ct.getRam().getTenRam() : null)
+                    .tenRom(ct.getRom() != null && ct.getRom().getTrangThai() == 1 ? ct.getRom().getDungLuong() : null)
+                    .tenMauSac(ct.getMauSac() != null && ct.getMauSac().getTrangThai() == 1 ? ct.getMauSac().getTenMau() : null)
+>>>>>>> origin/Huan
                     .build();
         }).toList();
 
@@ -777,6 +874,7 @@ public class SanPhamServiceImpl implements SanPhamService {
                 .ngayTao(sp.getNgayTao())
                 .ngayCapNhat(sp.getNgayCapNhat())
                 .trangThai(sp.getTrangThai())
+<<<<<<< HEAD
                 // Name fields
                 .tenDanhMuc(sp.getDanhMuc() != null ? sp.getDanhMuc().getTenDanhMuc() : null)
                 .tenHang(sp.getHang() != null ? sp.getHang().getTen() : null)
@@ -789,6 +887,20 @@ public class SanPhamServiceImpl implements SanPhamService {
                 .tenHeDieuHanh(sp.getHeDieuHanh() != null ? sp.getHeDieuHanh().getTenHeDieuHanh() : null)
                 .tenCpu(sp.getCpu() != null ? sp.getCpu().getTenCpu() : null)
                 .tenPin(sp.getPin() != null ? sp.getPin().getDungLuongPin() : null)
+=======
+                // Name fields - only show if attribute is active
+                .tenDanhMuc(sp.getDanhMuc() != null && sp.getDanhMuc().getTrangThai() == 1 ? sp.getDanhMuc().getTenDanhMuc() : null)
+                .tenHang(sp.getHang() != null && sp.getHang().getTrangThai() == 1 ? sp.getHang().getTen() : null)
+                .tenManHinh(sp.getManHinh() != null && sp.getManHinh().getTrangThai() == 1 ? sp.getManHinh().getKichThuoc() : null)
+                .tenCameraTruoc(sp.getCameraTruoc() != null && sp.getCameraTruoc().getTrangThai() == 1 ? sp.getCameraTruoc().getThongSo() : null)
+                .tenCameraSau(sp.getCameraSau() != null && sp.getCameraSau().getTrangThai() == 1 ? sp.getCameraSau().getThongSo() : null)
+                .tenChip(sp.getChip() != null && sp.getChip().getTrangThai() == 1 ? sp.getChip().getTenChip() : null)
+                .tenGpu(sp.getGpu() != null && sp.getGpu().getTrangThai() == 1 ? sp.getGpu().getTenGpu() : null)
+                .tenSim(sp.getSim() != null && sp.getSim().getTrangThai() == 1 ? sp.getSim().getLoaiSim() : null)
+                .tenHeDieuHanh(sp.getHeDieuHanh() != null && sp.getHeDieuHanh().getTrangThai() == 1 ? sp.getHeDieuHanh().getTenHeDieuHanh() : null)
+                .tenCpu(sp.getCpu() != null && sp.getCpu().getTrangThai() == 1 ? sp.getCpu().getTenCpu() : null)
+                .tenPin(sp.getPin() != null && sp.getPin().getTrangThai() == 1 ? sp.getPin().getDungLuongPin() : null)
+>>>>>>> origin/Huan
                 .tongImei(tongImei)
                 .variants(variants)
                 .build();
@@ -978,8 +1090,12 @@ public class SanPhamServiceImpl implements SanPhamService {
                                     // Nếu IMEI đã tồn tại, cập nhật chi tiết sản phẩm cho IMEI đó
                                     Imei imei = existingImei.get();
                                     imei.setChiTietSanPham(savedCt);
+<<<<<<< HEAD
                                     // Note: ngay_cap_nhat column doesn't exist in the actual database
                                     // imei.setNgayCapNhat(java.time.LocalDateTime.now());
+=======
+                                    imei.setNgayCapNhat(java.time.LocalDateTime.now());
+>>>>>>> origin/Huan
                                     imei.setTrangThai(1);
                                     imeiRepository.save(imei);
                                     System.out.println("DEBUG - Updated existing IMEI: " + trimmedImei);
@@ -988,8 +1104,12 @@ public class SanPhamServiceImpl implements SanPhamService {
                                     Imei imei = Imei.builder()
                                         .imei(trimmedImei)
                                         .chiTietSanPham(savedCt)
+<<<<<<< HEAD
                                         // Note: ngay_tao column doesn't exist in the actual database
                                         // .ngayTao(java.time.LocalDateTime.now())
+=======
+                                        .ngayTao(java.time.LocalDateTime.now())
+>>>>>>> origin/Huan
                                         .trangThai(1)
                                         .build();
                                     imeiRepository.save(imei);
@@ -1006,8 +1126,12 @@ public class SanPhamServiceImpl implements SanPhamService {
                                 HinhAnh hinhAnh = HinhAnh.builder()
                                     .chiTietSanPham(savedCt)
                                     .urlAnh(imageUrl.trim())
+<<<<<<< HEAD
                                     // Note: ngay_tao column doesn't exist in the actual database
                                     // .ngayTao(java.time.LocalDateTime.now())
+=======
+                                    .ngayTao(java.time.LocalDateTime.now())
+>>>>>>> origin/Huan
                                     .trangThai(1)
                                     .build();
                                 hinhAnhService.save(hinhAnh);
@@ -1212,8 +1336,12 @@ public class SanPhamServiceImpl implements SanPhamService {
                                     // Nếu IMEI đã tồn tại, cập nhật chi tiết sản phẩm cho IMEI đó
                                     Imei imei = existingImei.get();
                                     imei.setChiTietSanPham(savedCt);
+<<<<<<< HEAD
                                     // Note: ngay_cap_nhat column doesn't exist in the actual database
                                     // imei.setNgayCapNhat(java.time.LocalDateTime.now());
+=======
+                                    imei.setNgayCapNhat(java.time.LocalDateTime.now());
+>>>>>>> origin/Huan
                                     imei.setTrangThai(1);
                                     imeiRepository.save(imei);
                                     System.out.println("DEBUG - Updated existing IMEI: " + trimmedImei);
@@ -1222,8 +1350,12 @@ public class SanPhamServiceImpl implements SanPhamService {
                                     Imei imei = Imei.builder()
                                         .imei(trimmedImei)
                                         .chiTietSanPham(savedCt)
+<<<<<<< HEAD
                                         // Note: ngay_tao column doesn't exist in the actual database
                                         // .ngayTao(java.time.LocalDateTime.now())
+=======
+                                        .ngayTao(java.time.LocalDateTime.now())
+>>>>>>> origin/Huan
                                         .trangThai(1)
                                         .build();
                                     imeiRepository.save(imei);
@@ -1240,8 +1372,12 @@ public class SanPhamServiceImpl implements SanPhamService {
                                 HinhAnh hinhAnh = HinhAnh.builder()
                                     .chiTietSanPham(savedCt)
                                     .urlAnh(imageUrl.trim())
+<<<<<<< HEAD
                                     // Note: ngay_tao column doesn't exist in the actual database
                                     // .ngayTao(java.time.LocalDateTime.now())
+=======
+                                    .ngayTao(java.time.LocalDateTime.now())
+>>>>>>> origin/Huan
                                     .trangThai(1)
                                     .build();
                                 hinhAnhService.save(hinhAnh);
@@ -1304,6 +1440,7 @@ public class SanPhamServiceImpl implements SanPhamService {
 
     @Override
     @Transactional
+<<<<<<< HEAD
     public void updateStatus(Integer id, Integer trangThai) {
         SanPham sanPham = sanPhamRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + id));
@@ -1311,5 +1448,50 @@ public class SanPhamServiceImpl implements SanPhamService {
         sanPham.setTrangThai(trangThai);
         sanPham.setNgayCapNhat(LocalDateTime.now());
         sanPhamRepository.save(sanPham);
+=======
+    public SanPhamDTO updateSanPhamStatus(Integer id, Integer trangThai) {
+        SanPham sanPham = sanPhamRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + id));
+        
+        // Kiểm tra số lượng IMEI và tự động chuyển trạng thái
+        List<ChiTietSanPham> chiTietList = chiTietSanPhamRepository.findBySanPhamIdAndTrangThaiTrue(sanPham.getId());
+        int totalImei = chiTietList.stream()
+                .mapToInt(ct -> imeiRepository.countByChiTietSanPhamAndTrangThai(ct, 1))
+                .sum();
+        
+        // Chỉ cho phép chuyển sang "Hoạt động" nếu số lượng > 0
+        // Không tự động chuyển sang "Ngừng hoạt động" khi số lượng = 0
+        if (totalImei == 0 && trangThai == 1) {
+            throw new RuntimeException("Không thể chuyển sang hoạt động vì số lượng = 0");
+        }
+        
+        sanPham.setTrangThai(trangThai);
+        sanPham.setNgayCapNhat(LocalDateTime.now());
+        
+        SanPham updatedSanPham = sanPhamRepository.save(sanPham);
+        
+        return SanPhamDTO.builder()
+                .id(updatedSanPham.getId())
+                .maSanPham(updatedSanPham.getMaSanPham())
+                .tenSanPham(updatedSanPham.getTenSanPham())
+                .moTa(updatedSanPham.getMoTa())
+                .thietKe(updatedSanPham.getThietKe())
+                .kichThuoc(updatedSanPham.getKichThuoc())
+                .ngayTao(updatedSanPham.getNgayTao())
+                .ngayCapNhat(updatedSanPham.getNgayCapNhat())
+                .trangThai(updatedSanPham.getTrangThai())
+                .tenDanhMuc(updatedSanPham.getDanhMuc() != null ? updatedSanPham.getDanhMuc().getTenDanhMuc() : null)
+                .tenHang(updatedSanPham.getHang() != null ? updatedSanPham.getHang().getTen() : null)
+                .tenManHinh(updatedSanPham.getManHinh() != null ? updatedSanPham.getManHinh().getKichThuoc() : null)
+                .tenCameraTruoc(updatedSanPham.getCameraTruoc() != null ? updatedSanPham.getCameraTruoc().getThongSo() : null)
+                .tenCameraSau(updatedSanPham.getCameraSau() != null ? updatedSanPham.getCameraSau().getThongSo() : null)
+                .tenChip(updatedSanPham.getChip() != null ? updatedSanPham.getChip().getTenChip() : null)
+                .tenGpu(updatedSanPham.getGpu() != null ? updatedSanPham.getGpu().getTenGpu() : null)
+                .tenSim(updatedSanPham.getSim() != null ? updatedSanPham.getSim().getLoaiSim() : null)
+                .tenHeDieuHanh(updatedSanPham.getHeDieuHanh() != null ? updatedSanPham.getHeDieuHanh().getTenHeDieuHanh() : null)
+                .tenCpu(updatedSanPham.getCpu() != null ? updatedSanPham.getCpu().getTenCpu() : null)
+                .tenPin(updatedSanPham.getPin() != null ? updatedSanPham.getPin().getDungLuongPin() : null)
+                .build();
+>>>>>>> origin/Huan
     }
 }

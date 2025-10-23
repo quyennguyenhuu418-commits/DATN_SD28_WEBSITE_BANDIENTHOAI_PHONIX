@@ -1,5 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
+<<<<<<< HEAD
 import { setupAuthGuard } from './authGuard'
+=======
+>>>>>>> origin/Huan
 
 const DashboardPage = () => import('../views/DashboardPage.vue')
 const PosPage = () => import('../views/PosPage.vue')
@@ -9,11 +12,14 @@ const SanPhamFormPage = () => import('../views/SanPhamFormPage.vue')
 const SanPhamViewPage = () => import('../views/SanPhamViewPage.vue')
 const HoaDonPage = () => import('../views/HoaDonPage.vue')
 const VoucherPage = () => import('../views/VoucherPage.vue')
+<<<<<<< HEAD
 const VoucherFormPage = () => import('../views/VoucherFormPage.vue')
 const VoucherDetailPage = () => import('../views/VoucherDetailPage.vue')
 const DotGiamGiaPage = () => import('../views/DotGiamGiaPage.vue')
 const DotGiamGiaFormPage = () => import('../views/DotGiamGiaFormPage.vue')
 const DotGiamGiaDetailPage = () => import('../views/DotGiamGiaDetailPage.vue')
+=======
+>>>>>>> origin/Huan
 const HangPage = () => import('../views/HangPage.vue')
 const ChipPage = () => import('../views/ChipPage.vue')
 const RamPage = () => import('../views/RamPage.vue')
@@ -26,6 +32,7 @@ const CameraTruocPage = () => import('../views/CameraTruocPage.vue')
 const CameraSauPage = () => import('../views/CameraSauPage.vue')
 const CpuPage = () => import('../views/CpuPage.vue')
 const GpuPage = () => import('../views/GpuPage.vue')
+<<<<<<< HEAD
 const KhachHangPage = () => import('../views/KhachHangPage.vue')
 const KhachHangDetailPage = () => import('../views/KhachHangDetailPage.vue')
 const NhanVienPage = () => import('../views/NhanVienPage.vue')
@@ -58,12 +65,18 @@ const AuthDebugPage = () => import('../views/AuthDebugPage.vue')
 const TestAuthPage = () => import('../views/TestAuthPage.vue')
 const PaymentResultPage = () => import('../views/PaymentResultPage.vue')
 const ZaloPayResultPage = () => import('../views/ZaloPayResultPage.vue')
+=======
+const DanhMucPage = () => import('../views/DanhMucPage.vue')
+const ProductDetailPage = () => import('../views/ProductDetailPage.vue')
+const AdminReviewPage = () => import('../views/AdminReviewPage.vue')
+>>>>>>> origin/Huan
 
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     { path: '/', redirect: '/dashboard' },
+<<<<<<< HEAD
     { path: '/dashboard', name: 'dashboard', component: DashboardPage, meta: { requiresAuth: true } },
     { path: '/trang-chu', name: 'trang-chu', component: DashboardPage, meta: { requiresAuth: true } },
     { path: '/pos', name: 'pos', component: PosPage, meta: { requiresAuth: true, role: 'STAFF' } },
@@ -139,3 +152,35 @@ const router = createRouter({
 setupAuthGuard(router)
 
 export default router
+=======
+    { path: '/dashboard', name: 'dashboard', component: DashboardPage },
+    { path: '/pos', name: 'pos', component: PosPage },
+    { path: '/online', name: 'online', component: OnlinePage },
+    { path: '/san-pham', name: 'san-pham', component: SanPhamPage },
+    { path: '/san-pham/form/:id?', name: 'san-pham-form', component: SanPhamFormPage },
+    { path: '/san-pham/view/:id', name: 'san-pham-view', component: SanPhamViewPage },
+    // merged into SanPhamPage
+    { path: '/hoa-don', name: 'hoa-don', component: HoaDonPage },
+    { path: '/voucher', name: 'voucher', component: VoucherPage },
+    { path: '/hang', name: 'hang', component: HangPage },
+    { path: '/admin-reviews', name: 'admin-reviews', component: AdminReviewPage },
+    { path: '/chip', name: 'chip', component: ChipPage },
+    { path: '/ram', name: 'ram', component: RamPage },
+    { path: '/rom', name: 'rom', component: RomPage },
+    { path: '/man-hinh', name: 'man-hinh', component: ManHinhPage },
+    { path: '/mau-sac', name: 'mau-sac', component: MauSacPage },
+    { path: '/pin', name: 'pin', component: PinPage },
+    { path: '/he-dieu-hanh', name: 'he-dieu-hanh', component: HeDieuHanhPage },
+    { path: '/camera-truoc', name: 'camera-truoc', component: CameraTruocPage },
+    { path: '/camera-sau', name: 'camera-sau', component: CameraSauPage },
+    { path: '/cpu', name: 'cpu', component: CpuPage },
+    { path: '/gpu', name: 'gpu', component: GpuPage },
+    { path: '/danh-muc', name: 'danh-muc', component: DanhMucPage },
+    // Customer product detail page
+    { path: '/product/:id', name: 'product-detail', component: ProductDetailPage },
+   
+  ],
+})
+
+export default router
+>>>>>>> origin/Huan

@@ -13,7 +13,11 @@ export function useAdminTable(initialItemsPerPage = 10) {
     if (!searchQuery.value.trim()) {
       return data.value
     }
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
     const query = searchQuery.value.toLowerCase().trim()
     return data.value.filter(item => {
       // Search in common fields
@@ -23,8 +27,13 @@ export function useAdminTable(initialItemsPerPage = 10) {
         item.moTa || item.xuatXu || item.doPhanGiai || item.dungLuong || item.dungLuong,
         item.tenSanPham || item.maSanPham
       ]
+<<<<<<< HEAD
 
       return searchableFields.some(field =>
+=======
+      
+      return searchableFields.some(field => 
+>>>>>>> origin/Huan
         field && field.toString().toLowerCase().includes(query)
       )
     })
@@ -44,7 +53,11 @@ export function useAdminTable(initialItemsPerPage = 10) {
     const pages = []
     const total = totalPages.value
     const current = currentPage.value
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
     if (total <= 7) {
       // Show all pages if total is 7 or less
       for (let i = 1; i <= total; i++) {
@@ -53,6 +66,7 @@ export function useAdminTable(initialItemsPerPage = 10) {
     } else {
       // Show first page
       pages.push(1)
+<<<<<<< HEAD
 
       if (current > 4) {
         pages.push('...')
@@ -62,22 +76,45 @@ export function useAdminTable(initialItemsPerPage = 10) {
       const start = Math.max(2, current - 1)
       const end = Math.min(total - 1, current + 1)
 
+=======
+      
+      if (current > 4) {
+        pages.push('...')
+      }
+      
+      // Show pages around current page
+      const start = Math.max(2, current - 1)
+      const end = Math.min(total - 1, current + 1)
+      
+>>>>>>> origin/Huan
       for (let i = start; i <= end; i++) {
         if (!pages.includes(i)) {
           pages.push(i)
         }
       }
+<<<<<<< HEAD
 
       if (current < total - 3) {
         pages.push('...')
       }
 
+=======
+      
+      if (current < total - 3) {
+        pages.push('...')
+      }
+      
+>>>>>>> origin/Huan
       // Show last page
       if (total > 1) {
         pages.push(total)
       }
     }
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
     return pages
   })
 
@@ -108,7 +145,11 @@ export function useAdminTable(initialItemsPerPage = 10) {
 
   const formatDate = (dateString) => {
     if (!dateString) return '-'
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
     try {
       const date = new Date(dateString)
       return date.toLocaleDateString('vi-VN', {
@@ -129,13 +170,21 @@ export function useAdminTable(initialItemsPerPage = 10) {
     currentPage,
     itemsPerPage,
     data,
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
     // Computed
     filteredData,
     totalPages,
     paginatedData,
     visiblePages,
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
     // Methods
     handleSearch,
     resetFilter,

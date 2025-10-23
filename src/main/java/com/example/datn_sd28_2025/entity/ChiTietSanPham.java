@@ -94,6 +94,7 @@ public class ChiTietSanPham {
     // Transient fields for JSON mapping
     @Transient
     @JsonProperty("idSp")
+<<<<<<< HEAD
     public Integer getIdSp() {
         return sanPham != null ? sanPham.getId() : null;
     }
@@ -147,4 +148,19 @@ public class ChiTietSanPham {
             public String getMaHex() { return mauSac.getMaHex(); }
         };
     }
+=======
+    private Integer idSp;
+
+    @Transient
+    @JsonProperty("romId")
+    private Integer romId;
+
+    @Transient
+    @JsonProperty("ramId")
+    private Integer ramId;
+
+    @Transient
+    @JsonProperty("mauSacId")
+    private Integer mauSacId;
+>>>>>>> origin/Huan
 }

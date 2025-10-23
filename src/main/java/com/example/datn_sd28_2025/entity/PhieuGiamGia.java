@@ -71,8 +71,13 @@ public class PhieuGiamGia {
     @Column(name = "nguoi_cap_nhat", length = 255)
     private String nguoiCapNhat;
 
+<<<<<<< HEAD
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "phieu_giam_gia_id")
+=======
+
+    @OneToMany(mappedBy = "phieuGiamGia", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+>>>>>>> origin/Huan
     @JsonIgnore
     private List<HoaDon> hoaDons;
 

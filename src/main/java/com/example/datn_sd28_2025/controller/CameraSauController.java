@@ -58,6 +58,7 @@ public class CameraSauController {
     public ResponseEntity<?> updateStatus(@PathVariable Integer id, @RequestBody Map<String, Integer> request) {
         try {
             Integer trangThai = request.get("trangThai");
+<<<<<<< HEAD
             if (trangThai == null) {
                 return ResponseEntity.badRequest().body(Map.of("error", "trangThai is required"));
             }
@@ -65,6 +66,15 @@ public class CameraSauController {
             return ResponseEntity.ok(Map.of("message", "Status updated successfully"));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
+=======
+            if (trangThai == null || (trangThai != 0 && trangThai != 1)) {
+                return ResponseEntity.badRequest().body("Trạng thái phải là 0 hoặc 1");
+            }
+            cameraSauService.updateStatus(id, trangThai);
+            return ResponseEntity.ok().body("Cập nhật trạng thái thành công");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+>>>>>>> origin/Huan
         }
     }
 

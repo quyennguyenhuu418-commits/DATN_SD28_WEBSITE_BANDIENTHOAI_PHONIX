@@ -1,15 +1,23 @@
 import axios from 'axios'
 
+<<<<<<< HEAD
 const baseURL = 'http://localhost:8080'
 
 const api = axios.create({
   baseURL,
   timeout: 10000, // 10 seconds timeout
+=======
+const baseURL = '/'
+
+const api = axios.create({
+  baseURL,
+>>>>>>> origin/Huan
   headers: {
     'Content-Type': 'application/json',
   },
 })
 
+<<<<<<< HEAD
 // Helper function to validate JWT token format
 const isValidJwtToken = (token: string): boolean => {
   if (!token || typeof token !== 'string') return false
@@ -127,3 +135,6 @@ export const paymentApi = {
     return api.get('/api/payments/zalopay/return', { params })
   }
 }
+=======
+export default api
+>>>>>>> origin/Huan

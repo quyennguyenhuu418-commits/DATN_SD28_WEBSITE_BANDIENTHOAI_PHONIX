@@ -5,8 +5,12 @@ import com.example.datn_sd28_2025.entity.CameraTruoc;
 import com.example.datn_sd28_2025.repository.CameraTruocRepository;
 import com.example.datn_sd28_2025.service.CameraTruocService;
 import org.springframework.beans.factory.annotation.Autowired;
+<<<<<<< HEAD
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+=======
+
+>>>>>>> origin/Huan
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -70,6 +74,7 @@ public class CameraTruocServiceImpl implements CameraTruocService {
         cameraTruocRepository.deleteById(id);
     }
 
+<<<<<<< HEAD
     @Override
     public void updateStatus(Integer id, Integer trangThai) {
         CameraTruoc cameraTruoc = cameraTruocRepository.findById(id)
@@ -79,6 +84,8 @@ public class CameraTruocServiceImpl implements CameraTruocService {
         cameraTruocRepository.save(cameraTruoc);
     }
 
+=======
+>>>>>>> origin/Huan
     private CameraTruocDTO convertToDto(CameraTruoc cameraTruoc) {
         return CameraTruocDTO.builder()
                 .id(cameraTruoc.getId())
@@ -102,4 +109,16 @@ public class CameraTruocServiceImpl implements CameraTruocService {
                 .trangThai(cameraTruocDTO.getTrangThai())
                 .build();
     }
+<<<<<<< HEAD
+=======
+
+    @Override
+    public void updateStatus(Integer id, Integer trangThai) {
+        CameraTruoc cameraTruoc = cameraTruocRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy camera trước với ID: " + id));
+        cameraTruoc.setTrangThai(trangThai);
+        cameraTruoc.setNgayCapNhat(LocalDateTime.now());
+        cameraTruocRepository.save(cameraTruoc);
+    }
+>>>>>>> origin/Huan
 }

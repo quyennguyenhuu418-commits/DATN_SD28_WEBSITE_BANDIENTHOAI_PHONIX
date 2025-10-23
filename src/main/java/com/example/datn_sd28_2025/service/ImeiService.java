@@ -20,9 +20,12 @@ public interface ImeiService {
     
     // Check for duplicate IMEIs
     List<String> findDuplicateImeis(List<String> imeis);
+<<<<<<< HEAD
     
     // Get IMEIs by ChiTietSanPham ID
     List<ImeiDTO> getByChiTietSanPham(Integer chiTietSanPhamId);
+=======
+>>>>>>> origin/Huan
 }
 
 

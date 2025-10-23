@@ -1,6 +1,9 @@
 package com.example.datn_sd28_2025.dto;
 
+<<<<<<< HEAD
 import jakarta.validation.constraints.*;
+=======
+>>>>>>> origin/Huan
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,6 +18,7 @@ import java.time.LocalDateTime;
 @Builder
 public class NhanVienDTO {
     private Integer id;
+<<<<<<< HEAD
 
     @NotBlank(message = "Mã nhân viên không được để trống")
     @Size(max = 50, message = "Mã nhân viên không được quá 50 ký tự")
@@ -60,8 +64,24 @@ public class NhanVienDTO {
     @Size(max = 100, message = "Chức vụ không được quá 100 ký tự")
     private String chucVu;
 
+=======
+    private String maNhanVien;
+    private String hoTen;
+    private String soDienThoai;
+    private LocalDate ngaySinh;
+    private String taiKhoan;
+    private String matKhau;
+    private String gioiTinh;
+    private String diaChi;
+    private String email;
+    private String chucVu;
+>>>>>>> origin/Huan
     private String anhDaiDien;
     private LocalDateTime ngayTao;
     private LocalDateTime ngayCapNhat;
     private Integer trangThai;
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> origin/Huan

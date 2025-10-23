@@ -12,5 +12,8 @@ public interface DanhMucService {
     DanhMucDTO save(DanhMucDTO danhMucDTO);
     void delete(Integer id);
     DanhMucDTO update(Integer id, DanhMucDTO danhMucDTO);
+<<<<<<< HEAD
     void updateStatus(Integer id, Integer trangThai);
+=======
+>>>>>>> origin/Huan
 }

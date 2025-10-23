@@ -41,12 +41,20 @@ public class SanPhamDTO {
     private Integer tongSoLuong;
     private Integer tongImei;
     
+<<<<<<< HEAD
     // Additional fields for product display
     private Double giaBan;
     private String hinhAnh;
     private Integer soLuong;
     private String tenRam;
     private String tenRom;
+=======
+    // Price fields
+    private Long giaNhapMin;
+    private Long giaNhapMax;
+    private Long giaBanMin;
+    private Long giaBanMax;
+>>>>>>> origin/Huan
 }
 
 

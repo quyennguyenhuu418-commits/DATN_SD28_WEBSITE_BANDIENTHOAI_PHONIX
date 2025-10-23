@@ -17,6 +17,10 @@ public class KhuyenMaiDTO {
     private String maKhuyenMai;
     private String tenKhuyenMai;
     private String moTa;
+<<<<<<< HEAD
+=======
+    private Integer mucDoUuTien;
+>>>>>>> origin/Huan
     private BigDecimal phanTramGiam;
     private BigDecimal giamToiDa;
     private LocalDateTime ngayBatDau;
@@ -26,4 +30,8 @@ public class KhuyenMaiDTO {
     private String nguoiTao;
     private String nguoiCapNhat;
     private Integer trangThai;
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> origin/Huan

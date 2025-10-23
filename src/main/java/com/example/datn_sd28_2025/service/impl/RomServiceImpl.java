@@ -75,6 +75,7 @@ public class RomServiceImpl implements RomService {
         romRepository.deleteById(id);
     }
 
+<<<<<<< HEAD
     @Override
     public void updateStatus(Integer id, Integer trangThai) {
         Rom rom = romRepository.findById(id)
@@ -84,6 +85,8 @@ public class RomServiceImpl implements RomService {
         romRepository.save(rom);
     }
 
+=======
+>>>>>>> origin/Huan
     private RomDTO convertToDto(Rom rom) {
         return RomDTO.builder()
                 .id(rom.getId())
@@ -107,4 +110,16 @@ public class RomServiceImpl implements RomService {
                 .trangThai(romDTO.getTrangThai())
                 .build();
     }
+<<<<<<< HEAD
+=======
+
+    @Override
+    public void updateStatus(Integer id, Integer trangThai) {
+        Rom rom = romRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy rom với ID: " + id));
+        rom.setTrangThai(trangThai);
+        rom.setNgayCapNhat(LocalDateTime.now());
+        romRepository.save(rom);
+    }
+>>>>>>> origin/Huan
 }

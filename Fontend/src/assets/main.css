@@ -1,4 +1,5 @@
 @import "tailwindcss";
+<<<<<<< HEAD
 @import "@fortawesome/fontawesome-svg-core/styles.css";
 
 /* Global Font Settings */
@@ -69,3 +70,5 @@ th {
 td {
   font-weight: 400;
 }
+=======
+>>>>>>> origin/Huan

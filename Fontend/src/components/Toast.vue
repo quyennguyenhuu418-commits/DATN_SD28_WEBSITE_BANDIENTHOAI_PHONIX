@@ -29,7 +29,11 @@
         <!-- Content -->
         <div class="flex-1">
           <h4 class="text-sm font-semibold">{{ toast.title }}</h4>
+<<<<<<< HEAD
           <p class="text-sm opacity-90 mt-1">{{ toast.message }}</p>
+=======
+          <p class="text-sm opacity-90 mt-1" v-html="toast.message"></p>
+>>>>>>> origin/Huan
         </div>
 
         <!-- Close button -->

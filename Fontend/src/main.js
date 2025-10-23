@@ -1,7 +1,13 @@
+<<<<<<< HEAD
+=======
+import './assets/main.css'
+
+>>>>>>> origin/Huan
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
+<<<<<<< HEAD
 import './polyfills/global.js'
 import './assets/main.css'
 
@@ -16,10 +22,13 @@ import { useAuthStore } from './stores/authStore'
 
 // Import Messenger Toggle utility
 import { MessengerToggle } from './utils/messengerToggle.js'
+=======
+>>>>>>> origin/Huan
 
 const app = createApp(App)
 const pinia = createPinia()
 
+<<<<<<< HEAD
 // Register global components
 app.component('CustomerChatWidget', CustomerChatWidget)
 app.component('font-awesome-icon', FontAwesomeIcon)
@@ -47,3 +56,9 @@ authStore.initializeAuth().then(() => {
 MessengerToggle.init()
 
 app.mount('#app')
+=======
+app.use(router)
+app.use(pinia)
+
+app.mount('#app')
+>>>>>>> origin/Huan

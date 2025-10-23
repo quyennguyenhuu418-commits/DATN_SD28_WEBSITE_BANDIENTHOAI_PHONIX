@@ -5,6 +5,7 @@ export default {
     './src/**/*.{vue,js,ts,jsx,tsx}',
   ],
   theme: {
+<<<<<<< HEAD
     extend: {
       fontFamily: {
         'sans': ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'Noto Sans', 'sans-serif'],
@@ -43,6 +44,9 @@ export default {
         'widest': '0.1em',
       }
     },
+=======
+    extend: {},
+>>>>>>> origin/Huan
   },
   plugins: [],
 }

@@ -26,6 +26,14 @@ public class HinhAnh {
     @JsonIgnore
     private ChiTietSanPham chiTietSanPham;
 
+<<<<<<< HEAD
+=======
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_danh_muc")
+    @JsonIgnore
+    private DanhMuc danhMuc;
+
+>>>>>>> origin/Huan
     @Column(name = "url_anh", length = 500)
     private String urlAnh;
 
@@ -42,4 +50,11 @@ public class HinhAnh {
     @Transient
     @JsonProperty("idCtsp")
     private Integer idCtsp;
+<<<<<<< HEAD
+=======
+
+    @Transient
+    @JsonProperty("idDanhMuc")
+    private Integer idDanhMuc;
+>>>>>>> origin/Huan
 }

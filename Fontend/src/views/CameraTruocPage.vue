@@ -1,4 +1,5 @@
 <template>
+<<<<<<< HEAD
   <div class="page dark-mode-transition">
     <PosHeader />
 
@@ -320,11 +321,61 @@ import * as XLSX from 'xlsx'
 const router = useRouter()
 
 interface CameraTruoc {
+=======
+  <AdminTable
+    :data="cameras"
+    :columns="columns"
+    title="Danh Sách Camera Trước"
+    titleIcon="📷"
+    entityName="Camera trước"
+    searchPlaceholder="Tìm kiếm theo thông số camera..."
+    @openForm="openForm"
+    @exportExcel="exportExcel"
+    @toggleStatus="toggleCameraTruocStatus"
+  />
+
+  <!-- Confirm Modal -->
+  <ConfirmModal
+    :show="showConfirmModal"
+    :title="confirmTitle"
+    :message="confirmMessage"
+    @confirm="handleConfirm"
+    @cancel="handleCancel"
+  />
+
+  <FormModal
+    :show="showForm"
+    :title="editingCamera ? 'Sửa Camera Trước' : 'Thêm Camera Trước'"
+    :fields="cameraFields"
+    :initial-data="editingCamera ? {
+      maCamera: editingCamera.maCamera,
+      thongSo: editingCamera.thongSo,
+      moTa: editingCamera.moTa || '',
+      trangThai: editingCamera.trangThai
+    } : undefined"
+    @submit="handleFormSubmit"
+    @cancel="showForm = false"
+  />
+
+  <Toast ref="toastRef" />
+</template>
+
+<script setup lang="ts">
+import { onMounted, ref } from 'vue'
+import api from '@/services/api'
+import ConfirmModal from '@/components/ConfirmModal.vue'
+import FormModal from '@/components/FormModal.vue'
+import Toast from '@/components/Toast.vue'
+import AdminTable from '@/components/AdminTable.vue'
+
+interface Camera {
+>>>>>>> origin/Huan
   id: number
   maCamera: string
   thongSo: string
   moTa?: string
   trangThai: number
+<<<<<<< HEAD
   ngayTao?: string
   ngayCapNhat?: string
 }
@@ -348,11 +399,31 @@ const totalItems = ref(0)
 // Modal states
 const showForm = ref(false)
 const editingCameraTruoc = ref<CameraTruoc | null>(null)
+=======
+}
+
+const cameras = ref<Camera[]>([])
+const loading = ref(false)
+const showForm = ref(false)
+const editingCamera = ref<Camera | null>(null)
+const toastRef = ref<InstanceType<typeof Toast> | null>(null)
+
+// Table columns configuration
+const columns = [
+  { key: 'maCamera', label: 'Mã', class: 'code-col', type: 'code' as const },
+  { key: 'thongSo', label: 'Thông số', class: 'name-col' },
+  { key: 'moTa', label: 'Mô tả', class: 'desc-col' },
+  { key: 'trangThai', label: 'Trạng thái', class: 'status-col', type: 'status' as const }
+]
+
+// Confirm modal state
+>>>>>>> origin/Huan
 const showConfirmModal = ref(false)
 const confirmTitle = ref('')
 const confirmMessage = ref('')
 const pendingAction = ref<(() => void) | null>(null)
 
+<<<<<<< HEAD
 // Form data for enhanced modal
 const formData = ref({
   maCamera: '',
@@ -362,12 +433,16 @@ const formData = ref({
 })
 
 const cameraTruocFields = [
+=======
+const cameraFields = [
+>>>>>>> origin/Huan
   { key: 'maCamera', label: 'Mã Camera', type: 'text' as const, required: true },
   { key: 'thongSo', label: 'Thông số', type: 'text' as const, required: true },
   { key: 'moTa', label: 'Mô tả', type: 'textarea' as const },
   { key: 'trangThai', label: 'Hoạt động', type: 'checkbox' as const }
 ]
 
+<<<<<<< HEAD
 // Computed property for filtered cameraTruocs (without pagination)
 const allFilteredCameraTruocs = computed(() => {
   let filtered = cameraTruocs.value
@@ -489,11 +564,19 @@ async function loadCameraTruocs() {
   } catch (error) {
     console.error('Lỗi khi tải danh sách camera trước:', error)
     toastRef.value?.error('Lỗi', 'Không thể tải danh sách camera trước')
+=======
+async function loadCameras() {
+  loading.value = true
+  try {
+    const { data } = await api.get<Camera[]>('/api/camera-truoc')
+    cameras.value = data
+>>>>>>> origin/Huan
   } finally {
     loading.value = false
   }
 }
 
+<<<<<<< HEAD
 function applyFilters() {
   currentPage.value = 1
 }
@@ -795,12 +878,38 @@ async function updateCameraTruoc(id: number, formData: any) {
   } catch (error) {
     console.error('Error updating camera trước:', error)
     toastRef.value?.error('Lỗi cập nhật', 'Không thể cập nhật camera trước')
+=======
+function openForm(camera?: Camera) {
+  editingCamera.value = camera || null
+  showForm.value = true
+}
+
+async function handleFormSubmit(data: any) {
+  try {
+    if (editingCamera.value) {
+      await api.put(`/api/camera-truoc/${editingCamera.value.id}`, data)
+      toastRef.value?.success('Thành công', 'Cập nhật camera trước thành công!')
+    } else {
+      await api.post('/api/camera-truoc', data)
+      toastRef.value?.success('Thành công', 'Thêm camera trước thành công!')
+    }
+    showForm.value = false
+    await loadCameras()
+  } catch (error: any) {
+    console.error('Lỗi khi lưu:', error)
+    if (error.response?.data) {
+      toastRef.value?.error('Lỗi lưu Camera Trước', error.response.data)
+    } else {
+      toastRef.value?.error('Lỗi lưu Camera Trước', 'Có lỗi xảy ra khi lưu camera trước')
+    }
+>>>>>>> origin/Huan
   }
 }
 
 function handleConfirm() {
   if (pendingAction.value) {
     pendingAction.value()
+<<<<<<< HEAD
     pendingAction.value = null
   }
   showConfirmModal.value = false
@@ -2267,4 +2376,61 @@ input:checked + .toggle-slider:before {
     justify-content: center;
   }
 }
+=======
+  }
+  showConfirmModal.value = false
+  pendingAction.value = null
+}
+
+function handleCancel() {
+  showConfirmModal.value = false
+  pendingAction.value = null
+}
+
+async function toggleCameraTruocStatus(camera: Camera) {
+  try {
+    const newStatus = (camera.trangThai || 0) === 1 ? 0 : 1
+    await api.put(`/api/camera-truoc/${camera.id}/status`, { trangThai: newStatus })
+    
+    // Update local data
+    const index = cameras.value.findIndex(c => c.id === camera.id)
+    if (index !== -1) {
+      cameras.value[index].trangThai = newStatus
+    }
+    
+    const statusText = newStatus === 1 ? 'Hoạt động' : 'Ngừng hoạt động'
+    const message = newStatus === 1 
+      ? `Đã chuyển Camera trước "${camera.thongSo}" sang trạng thái <span style="color: #28a745; font-weight: bold;">${statusText}</span>`
+      : `Đã chuyển Camera trước "${camera.thongSo}" sang trạng thái <span style="color: #dc3545; font-weight: bold;">${statusText}</span>`
+    toastRef.value?.success('Thành công', message)
+  } catch (error: any) {
+    console.error('Lỗi khi cập nhật trạng thái:', error)
+    toastRef.value?.error('Lỗi cập nhật', 'Không thể cập nhật trạng thái Camera trước')
+  }
+}
+
+async function exportExcel() {
+  try {
+    const response = await api.get('/api/camera-truoc/export', { responseType: 'blob' })
+    const url = window.URL.createObjectURL(new Blob([response.data]))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', 'danh_sach_camera_truoc.xlsx')
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
+    toastRef.value?.success('Thành công', 'Xuất Excel thành công!')
+  } catch (error: any) {
+    console.error('Lỗi khi xuất Excel:', error)
+    toastRef.value?.error('Lỗi xuất Excel', 'Có lỗi xảy ra khi xuất file Excel')
+  }
+}
+
+onMounted(loadCameras)
+</script>
+
+<style scoped>
+@import '@/styles/admin-layout.css';
+>>>>>>> origin/Huan
 </style>

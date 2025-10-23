@@ -1,4 +1,5 @@
 <template>
+<<<<<<< HEAD
   <div class="h-screen flex flex-col bg-slate-100 overflow-hidden">
     <!-- Header -->
     <header class="bg-white shadow-sm border-b border-slate-200">
@@ -2325,3 +2326,8 @@ export default {
   overflow: hidden;
 }
 </style>
+=======
+  <h1>POS</h1>
+  <p>Tạo đơn bán tại quầy.</p>
+</template>
+>>>>>>> origin/Huan

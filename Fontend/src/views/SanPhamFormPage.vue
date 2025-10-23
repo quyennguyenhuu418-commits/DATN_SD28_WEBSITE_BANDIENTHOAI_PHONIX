@@ -5,13 +5,20 @@ import api from '@/services/api'
 import * as XLSX from 'xlsx'
 import ConfirmModal from '@/components/ConfirmModal.vue'
 import Toast from '@/components/Toast.vue'
+<<<<<<< HEAD
 import { FontAwesomeIcon } from '@/plugins/fontawesome'
+=======
+>>>>>>> origin/Huan
 
 interface DanhMuc { id: number; tenDanhMuc: string }
 interface Hang { id: number; ten: string }
 interface Ram { id: number; tenRam: string }
 interface Rom { id: number; dungLuong: string }
+<<<<<<< HEAD
 interface MauSac { id: number; tenMau: string; maMau?: string; maHex?: string }
+=======
+interface MauSac { id: number; tenMau: string; maMau?: string }
+>>>>>>> origin/Huan
 interface HeDieuHanh { id: number; tenHeDieuHanh: string }
 interface ManHinh { id: number; kichThuoc: string; doPhanGiai?: string }
 interface CameraTruoc { id: number; thongSo: string }
@@ -87,12 +94,21 @@ const form = ref({
   idCpu: null as number | null,
 })
 
+<<<<<<< HEAD
 type Variant = {
   id?: number; // ID của chi tiết sản phẩm (khi edit)
   idRam: number | null;
   idRom: number | null;
   idMauSac: number | null;
   soLuong: number;
+=======
+type Variant = { 
+  id?: number; // ID của chi tiết sản phẩm (khi edit)
+  idRam: number | null; 
+  idRom: number | null; 
+  idMauSac: number | null; 
+  soLuong: number; 
+>>>>>>> origin/Huan
   donGia: number;
   giaNhap: number;
   ghiChu: string;
@@ -110,7 +126,11 @@ type Variant = {
   idChip: number | null;
   imeis: string[];
   images: File[]; // Để hiển thị preview
+<<<<<<< HEAD
   imageUrls: string[]; // Để lưu vào database
+=======
+  imageUrls: string[]; // Để lưu vào database 
+>>>>>>> origin/Huan
   originalIndex?: number; // Index gốc trong array (khi edit)
 }
 const variantForm = ref({
@@ -157,12 +177,20 @@ function addVariant() {
     toastRef.value?.warning('Thiếu thông tin', 'Vui lòng chọn danh mục trước khi thêm phiên bản')
     return
   }
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/Huan
   if (variantForm.value.selectedRams.length === 0 || variantForm.value.selectedRoms.length === 0 || variantForm.value.selectedMauSacs.length === 0) {
     toastRef.value?.warning('Thiếu thông tin', 'Vui lòng chọn ít nhất một RAM, ROM và Màu sắc')
     return
   }
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/Huan
   // Generate all combinations và gắn thông tin form với mỗi phiên bản
   for (const ramId of variantForm.value.selectedRams) {
     for (const romId of variantForm.value.selectedRoms) {
@@ -187,14 +215,24 @@ function addVariant() {
           idSim: form.value.idSim,
           idPin: form.value.idPin,
           idChip: form.value.idChip,
+<<<<<<< HEAD
           imeis: [],
           images: [],
           imageUrls: []
+=======
+          imeis: [], 
+          images: [],
+          imageUrls: [] 
+>>>>>>> origin/Huan
         })
       }
     }
   }
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/Huan
   // Không reset form để giữ lại các lựa chọn đã chọn
   // variantForm.value = {
   //   selectedRams: [],
@@ -271,7 +309,11 @@ function getSelectedMauSacsText() {
 function openAddModal(type: string) {
   modalType.value = type
   modalInputs.value = {}
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/Huan
   // Khởi tạo các trường cần thiết cho từng loại
   const fieldConfigs: Record<string, string[]> = {
     'danh-muc': ['maDanhMuc', 'tenDanhMuc'],
@@ -289,17 +331,29 @@ function openAddModal(type: string) {
     'mau-sac': ['maMau', 'tenMau', 'moTa'],
     'sim': ['loaiSim', 'moTa']
   }
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/Huan
   // Khởi tạo các trường với giá trị rỗng
   const fields = fieldConfigs[type] || ['ten']
   fields.forEach(field => {
     modalInputs.value[field] = ''
   })
+<<<<<<< HEAD
 
   const titles: Record<string, string> = {
     'danh-muc': 'Thêm Mới Danh Mục',
     'he-dieu-hanh': 'Thêm Mới Hệ Điều Hành',
     'man-hinh': 'Thêm Mới Màn Hình',
+=======
+  
+  const titles: Record<string, string> = {
+    'danh-muc': 'Thêm Mới Danh Mục',
+    'he-dieu-hanh': 'Thêm Mới Hệ Điều Hành',
+    'man-hinh': 'Thêm Mới Màn Hình', 
+>>>>>>> origin/Huan
     'hang': 'Thêm Mới Hãng',
     'camera-truoc': 'Thêm Mới Camera Trước',
     'camera-sau': 'Thêm Mới Camera Sau',
@@ -312,7 +366,11 @@ function openAddModal(type: string) {
     'mau-sac': 'Thêm Mới Màu Sắc',
     'sim': 'Thêm Mới Sim',
   }
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/Huan
   modalTitle.value = titles[type] || 'Thêm Mới'
   showModal.value = true
 }
@@ -326,16 +384,28 @@ async function saveModal() {
       return
     }
   }
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/Huan
   modalLoading.value = true
   try {
     let payload: any = {}
     let endpoint = ''
+<<<<<<< HEAD
 
     switch (modalType.value) {
       case 'danh-muc':
         endpoint = '/api/danh-muc'
         payload = {
+=======
+    
+    switch (modalType.value) {
+      case 'danh-muc':
+        endpoint = '/api/danh-muc'
+        payload = { 
+>>>>>>> origin/Huan
           maDanhMuc: modalInputs.value.maDanhMuc?.trim(),
           tenDanhMuc: modalInputs.value.tenDanhMuc?.trim(),
           trangThai: 1
@@ -343,7 +413,11 @@ async function saveModal() {
         break
       case 'he-dieu-hanh':
         endpoint = '/api/he-dieu-hanh'
+<<<<<<< HEAD
         payload = {
+=======
+        payload = { 
+>>>>>>> origin/Huan
           maHeDieuHanh: modalInputs.value.maHeDieuHanh?.trim(),
           tenHeDieuHanh: modalInputs.value.tenHeDieuHanh?.trim(),
           moTa: modalInputs.value.moTa?.trim(),
@@ -352,7 +426,11 @@ async function saveModal() {
         break
       case 'man-hinh':
         endpoint = '/api/man-hinh'
+<<<<<<< HEAD
         payload = {
+=======
+        payload = { 
+>>>>>>> origin/Huan
           maManHinh: modalInputs.value.maManHinh?.trim(),
           kichThuoc: modalInputs.value.kichThuoc?.trim(),
           congNghe: modalInputs.value.congNghe?.trim(),
@@ -365,7 +443,11 @@ async function saveModal() {
         break
       case 'hang':
         endpoint = '/api/hang'
+<<<<<<< HEAD
         payload = {
+=======
+        payload = { 
+>>>>>>> origin/Huan
           ten: modalInputs.value.ten?.trim(),
           xuatXu: modalInputs.value.xuatXu?.trim(),
           moTa: modalInputs.value.moTa?.trim(),
@@ -374,7 +456,11 @@ async function saveModal() {
         break
       case 'camera-truoc':
         endpoint = '/api/camera-truoc'
+<<<<<<< HEAD
         payload = {
+=======
+        payload = { 
+>>>>>>> origin/Huan
           maCamera: modalInputs.value.maCamera?.trim(),
           thongSo: modalInputs.value.thongSo?.trim(),
           moTa: modalInputs.value.moTa?.trim(),
@@ -383,7 +469,11 @@ async function saveModal() {
         break
       case 'camera-sau':
         endpoint = '/api/camera-sau'
+<<<<<<< HEAD
         payload = {
+=======
+        payload = { 
+>>>>>>> origin/Huan
           maCamera: modalInputs.value.maCamera?.trim(),
           thongSo: modalInputs.value.thongSo?.trim(),
           moTa: modalInputs.value.moTa?.trim(),
@@ -392,7 +482,11 @@ async function saveModal() {
         break
       case 'pin':
         endpoint = '/api/pin'
+<<<<<<< HEAD
         payload = {
+=======
+        payload = { 
+>>>>>>> origin/Huan
           maPin: modalInputs.value.maPin?.trim(),
           dungLuongPin: modalInputs.value.dungLuongPin?.trim(),
           congNgheSac: modalInputs.value.congNgheSac?.trim(),
@@ -402,7 +496,11 @@ async function saveModal() {
         break
       case 'chip':
         endpoint = '/api/chip'
+<<<<<<< HEAD
         payload = {
+=======
+        payload = { 
+>>>>>>> origin/Huan
           maChip: modalInputs.value.maChip?.trim(),
           tenChip: modalInputs.value.tenChip?.trim(),
           moTa: modalInputs.value.moTa?.trim(),
@@ -411,7 +509,11 @@ async function saveModal() {
         break
       case 'cpu':
         endpoint = '/api/cpu'
+<<<<<<< HEAD
         payload = {
+=======
+        payload = { 
+>>>>>>> origin/Huan
           maCpu: modalInputs.value.maCpu?.trim(),
           tenCpu: modalInputs.value.tenCpu?.trim(),
           moTa: modalInputs.value.moTa?.trim(),
@@ -420,7 +522,11 @@ async function saveModal() {
         break
       case 'gpu':
         endpoint = '/api/gpu'
+<<<<<<< HEAD
         payload = {
+=======
+        payload = { 
+>>>>>>> origin/Huan
           maGpu: modalInputs.value.maGpu?.trim(),
           tenGpu: modalInputs.value.tenGpu?.trim(),
           moTa: modalInputs.value.moTa?.trim(),
@@ -429,7 +535,11 @@ async function saveModal() {
         break
       case 'ram':
         endpoint = '/api/ram'
+<<<<<<< HEAD
         payload = {
+=======
+        payload = { 
+>>>>>>> origin/Huan
           maRam: modalInputs.value.maRam?.trim(),
           tenRam: modalInputs.value.tenRam?.trim(),
           moTa: modalInputs.value.moTa?.trim(),
@@ -438,7 +548,11 @@ async function saveModal() {
         break
       case 'rom':
         endpoint = '/api/rom'
+<<<<<<< HEAD
         payload = {
+=======
+        payload = { 
+>>>>>>> origin/Huan
           maRom: modalInputs.value.maRom?.trim(),
           dungLuong: modalInputs.value.dungLuong?.trim(),
           moTa: modalInputs.value.moTa?.trim(),
@@ -447,7 +561,11 @@ async function saveModal() {
         break
       case 'mau-sac':
         endpoint = '/api/mau-sac'
+<<<<<<< HEAD
         payload = {
+=======
+        payload = { 
+>>>>>>> origin/Huan
           maMau: modalInputs.value.maMau?.trim(),
           tenMau: modalInputs.value.tenMau?.trim(),
           moTa: modalInputs.value.moTa?.trim(),
@@ -456,13 +574,18 @@ async function saveModal() {
         break
       case 'sim':
         endpoint = '/api/sim'
+<<<<<<< HEAD
         payload = {
+=======
+        payload = { 
+>>>>>>> origin/Huan
           loaiSim: modalInputs.value.loaiSim?.trim(),
           moTa: modalInputs.value.moTa?.trim(),
           trangThai: 1
         }
         break
     }
+<<<<<<< HEAD
 
     const response = await api.post(endpoint, payload)
 
@@ -478,6 +601,23 @@ async function saveModal() {
   } catch (error: any) {
     console.error('Lỗi khi thêm:', error)
 
+=======
+    
+    const response = await api.post(endpoint, payload)
+    
+    // Reload data to update dropdowns
+    await loadLookups()
+    
+    showModal.value = false
+    modalInputs.value = {}
+    
+    // Show success message
+    toastRef.value?.success('Thành công', 'Thêm mới thành công!')
+    
+  } catch (error: any) {
+    console.error('Lỗi khi thêm:', error)
+    
+>>>>>>> origin/Huan
     // Show user-friendly error message
     let errorMessage = 'Có lỗi xảy ra khi thêm mới'
     if (error.response?.status === 500) {
@@ -487,7 +627,11 @@ async function saveModal() {
     } else if (error.code === 'ERR_CONNECTION_REFUSED') {
       errorMessage = 'Không thể kết nối đến server. Vui lòng kiểm tra kết nối.'
     }
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
     toastRef.value?.error('Lỗi', errorMessage)
   } finally {
     modalLoading.value = false
@@ -584,7 +728,11 @@ function getModalLabel() {
   const labels: Record<string, string> = {
     'danh-muc': 'Tên danh mục',
     'he-dieu-hanh': 'Tên hệ điều hành',
+<<<<<<< HEAD
     'man-hinh': 'Kích thước màn hình',
+=======
+    'man-hinh': 'Kích thước màn hình', 
+>>>>>>> origin/Huan
     'hang': 'Tên hãng',
     'camera-truoc': 'Thông số camera trước',
     'camera-sau': 'Thông số camera sau',
@@ -594,19 +742,31 @@ function getModalLabel() {
     'rom': 'Dung lượng ROM',
     'mau-sac': 'Tên màu sắc'
   }
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/Huan
   return labels[modalType.value] || 'Tên'
 }
 
 // Group variants by RAM/ROM combination
 const groupedVariants = computed(() => {
   const groups: Record<string, any> = {}
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/Huan
   variants.value.forEach((variant, index) => {
     const ramName = getAttributeName(variant.idRam, rams.value, 'tenRam')
     const romName = getAttributeName(variant.idRom, roms.value, 'dungLuong')
     const key = `${variant.idRam}-${variant.idRom}`
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
     if (!groups[key]) {
       groups[key] = {
         key,
@@ -617,21 +777,36 @@ const groupedVariants = computed(() => {
         priceInput: ''
       }
     }
+<<<<<<< HEAD
 
     groups[key].variants.push({ ...variant, originalIndex: index })
   })
 
+=======
+    
+    groups[key].variants.push({ ...variant, originalIndex: index })
+  })
+  
+>>>>>>> origin/Huan
   return Object.values(groups)
 })
 
 // Group variants by color for image management
 const colorImageGroups = computed(() => {
   const groups: {[key: number]: any} = {}
+<<<<<<< HEAD
 
   variants.value.forEach((variant) => {
     if (variant.idMauSac) {
       const colorName = getAttributeName(variant.idMauSac, mauSacs.value, 'tenMau')
 
+=======
+  
+  variants.value.forEach((variant) => {
+    if (variant.idMauSac) {
+      const colorName = getAttributeName(variant.idMauSac, mauSacs.value, 'tenMau')
+      
+>>>>>>> origin/Huan
       if (!groups[variant.idMauSac]) {
         groups[variant.idMauSac] = {
           colorId: variant.idMauSac,
@@ -640,6 +815,7 @@ const colorImageGroups = computed(() => {
           images: colorImages.value[variant.idMauSac] || []
         }
       }
+<<<<<<< HEAD
 
       groups[variant.idMauSac].variants.push(variant)
     }
@@ -674,6 +850,28 @@ function getColorCode(idMauSac: number | null) {
 
   // Fallback cuối cùng
   return '#cccccc'
+=======
+      
+      groups[variant.idMauSac].variants.push(variant)
+    }
+  })
+  
+  return Object.values(groups)
+})
+
+function getColorCode(idMauSac: number | null) {
+  if (!idMauSac) return '#ccc'
+  
+  // Tìm màu sắc trong danh sách đã load từ database
+  const mauSac = mauSacs.value.find(m => m.id === idMauSac)
+  if (mauSac && mauSac.maMau) {
+    // Sử dụng mã màu từ database
+    return mauSac.maMau.startsWith('#') ? mauSac.maMau : `#${mauSac.maMau}`
+  }
+  
+  // Fallback về màu mặc định nếu không tìm thấy
+  return '#ccc'
+>>>>>>> origin/Huan
 }
 
 // Function to check if attribute is active
@@ -682,28 +880,47 @@ function isAttributeActive(attributeId: number | null, attributeList: any[]): bo
   return attributeList.some(attr => attr.id === attributeId)
 }
 
+<<<<<<< HEAD
 
 // Function to get attribute name or "Chưa cập nhật"
 function getAttributeName(attributeId: number | null, attributeList: any[], nameField: string = 'ten'): string {
   if (!attributeId) return 'Chưa cập nhật'
 
+=======
+// Function to get attribute name or "Chưa cập nhật"
+function getAttributeName(attributeId: number | null, attributeList: any[], nameField: string = 'ten'): string {
+  if (!attributeId) return 'Chưa cập nhật'
+  
+>>>>>>> origin/Huan
   const attribute = attributeList.find(attr => attr.id === attributeId)
   if (attribute) {
     return attribute[nameField] || 'Chưa cập nhật'
   }
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/Huan
   return 'Chưa cập nhật'
 }
 
 async function performDeleteVariant(variantIndex: number, variant: Variant, originalIndex: number) {
   // Chỉ xóa khỏi frontend array (UI) - KHÔNG xóa database ngay lập tức
   variants.value.splice(originalIndex, 1)
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/Huan
   // Hiển thị toast thông báo
   const ramName = getAttributeName(variant.idRam, rams.value, 'tenRam')
   const romName = getAttributeName(variant.idRom, roms.value, 'dungLuong')
   const mauName = getAttributeName(variant.idMauSac, mauSacs.value, 'tenMau')
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/Huan
   toastRef.value?.success(
     'Đã xóa khỏi danh sách',
     `Phiên bản ${ramName}/${romName} - ${mauName} sẽ được xóa dữ liệu khi bạn lưu cập nhật.`
@@ -715,12 +932,21 @@ async function removeVariantFromGroup(groupKey: string, variantIndex: number) {
   if (group) {
     const variant = group.variants[variantIndex]
     const originalIndex = variant.originalIndex
+<<<<<<< HEAD
 
     // Xác nhận trước khi xóa
     const deleteMessage = variant.id ?
       'Bạn có chắc chắn muốn xóa phiên bản này? Hành động này không thể hoàn tác.' :
       'Bạn có chắc chắn muốn xóa phiên bản này?'
 
+=======
+    
+    // Xác nhận trước khi xóa
+    const deleteMessage = variant.id ? 
+      'Bạn có chắc chắn muốn xóa phiên bản này? Hành động này không thể hoàn tác.' :
+      'Bạn có chắc chắn muốn xóa phiên bản này?'
+    
+>>>>>>> origin/Huan
     confirmTitle.value = 'Xác nhận xóa phiên bản'
     confirmMessage.value = deleteMessage
     pendingAction.value = () => performDeleteVariant(variantIndex, variant, originalIndex)
@@ -746,21 +972,36 @@ function refreshForm() {
     idGpu: null,
     idCpu: null,
   }
+<<<<<<< HEAD
 
   // Reset variants and images
   variants.value = []
   variantImages.value = {}
 
+=======
+  
+  // Reset variants and images
+  variants.value = []
+  variantImages.value = {}
+  
+>>>>>>> origin/Huan
   // Reset variant form selections
   variantForm.value = {
     selectedRams: [],
     selectedRoms: [],
     selectedMauSacs: []
   }
+<<<<<<< HEAD
 
   // Clear all localStorage data
   clearAllProductLocalStorage()
 
+=======
+  
+  // Clear all localStorage data
+  clearAllProductLocalStorage()
+  
+>>>>>>> origin/Huan
   // Reset route to create mode
   if (router.currentRoute.value.name === 'san-pham-edit') {
     router.replace({ name: 'san-pham-create' })
@@ -773,14 +1014,23 @@ function clearAllProductLocalStorage() {
   localStorage.removeItem('sanpham-draft')
   localStorage.removeItem('product-draft')
   localStorage.removeItem('variant-draft')
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/Huan
   // Remove all keys that contain product-related terms
   const keysToRemove = []
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i)
     if (key && (
+<<<<<<< HEAD
       key.includes('sanpham') ||
       key.includes('product') ||
+=======
+      key.includes('sanpham') || 
+      key.includes('product') || 
+>>>>>>> origin/Huan
       key.includes('variant') ||
       key.includes('form') ||
       key.includes('draft')
@@ -789,7 +1039,11 @@ function clearAllProductLocalStorage() {
     }
   }
   keysToRemove.forEach(key => localStorage.removeItem(key))
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/Huan
   console.log('Cleared localStorage keys:', keysToRemove)
 }
 
@@ -798,15 +1052,26 @@ async function handleImageUpload(variantIndex: number, event: Event) {
   const input = event.target as HTMLInputElement
   if (input.files && input.files.length > 0) {
     const file = input.files[0] // Chỉ lấy file đầu tiên
+<<<<<<< HEAD
 
     // Validate file size (max 10MB per file)
     const maxSize = 10 * 1024 * 1024 // 10MB in bytes
 
+=======
+    
+    // Validate file size (max 10MB per file)
+    const maxSize = 10 * 1024 * 1024 // 10MB in bytes
+    
+>>>>>>> origin/Huan
     if (file.size > maxSize) {
       toastRef.value?.error('Lỗi', `File "${file.name}" vượt quá giới hạn 10MB`)
       return
     }
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
     // Initialize arrays if not exist
     if (!variantImages.value[variantIndex]) {
       variantImages.value[variantIndex] = []
@@ -814,6 +1079,7 @@ async function handleImageUpload(variantIndex: number, event: Event) {
     if (!variants.value[variantIndex].imageUrls) {
       variants.value[variantIndex].imageUrls = []
     }
+<<<<<<< HEAD
 
     // Clear existing images (chỉ cho phép 1 ảnh)
     variantImages.value[variantIndex] = []
@@ -823,12 +1089,27 @@ async function handleImageUpload(variantIndex: number, event: Event) {
       const formData = new FormData()
       formData.append('file', file)
 
+=======
+    
+    // Clear existing images (chỉ cho phép 1 ảnh)
+    variantImages.value[variantIndex] = []
+    variants.value[variantIndex].imageUrls = []
+    
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      
+>>>>>>> origin/Huan
       const response = await api.post('/api/upload/image', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       })
+<<<<<<< HEAD
 
+=======
+      
+>>>>>>> origin/Huan
       if (response.data.url) {
         // Add to variantImages for display
         variantImages.value[variantIndex].push(file)
@@ -843,12 +1124,20 @@ async function handleImageUpload(variantIndex: number, event: Event) {
         toastRef.value?.error('Lỗi', 'Lỗi upload ảnh: ' + (error.response?.data?.error || error.message))
       }
     }
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
     // Update variant with images
     if (variants.value[variantIndex]) {
       variants.value[variantIndex].images = variantImages.value[variantIndex]
     }
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
     // Clear input để có thể chọn lại file cùng tên
     input.value = ''
   }
@@ -876,12 +1165,20 @@ function removeSavedImage(variantIndex: number, imageIndex: number) {
 async function updateVariantImeis(variant: Variant, variantIndex: number) {
   try {
     const chiTietId = variant.id
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
     if (!chiTietId) {
       console.warn('Phiên bản chưa có ID chi tiết sản phẩm, bỏ qua cập nhật IMEI:', variantIndex)
       return
     }
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
     // Thêm IMEI mới (sử dụng bulk upload)
     if (variant.imeis && variant.imeis.length > 0) {
       const imeiText = variant.imeis.join('\n')
@@ -899,15 +1196,26 @@ async function updateVariantImages(variant: Variant, variantIndex: number) {
   try {
     // Lấy ID của chi tiết sản phẩm từ variant
     const chiTietId = variant.id
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
     if (!chiTietId) {
       console.warn('Variant chưa có ID chi tiết sản phẩm, bỏ qua cập nhật hình ảnh:', variantIndex)
       return
     }
+<<<<<<< HEAD
 
     // Xóa hình ảnh cũ
     await api.delete(`/api/san-pham/chi-tiet/${chiTietId}/images`)
 
+=======
+    
+    // Xóa hình ảnh cũ
+    await api.delete(`/api/san-pham/chi-tiet/${chiTietId}/images`)
+    
+>>>>>>> origin/Huan
     // Thêm hình ảnh mới
     for (const imageUrl of variant.imageUrls) {
       await api.post(`/api/san-pham/chi-tiet/${chiTietId}/images`, {
@@ -963,25 +1271,43 @@ async function searchExistingProducts(query: string) {
 
   try {
     const { data } = await api.get(`/api/san-pham?search=${encodeURIComponent(query)}`)
+<<<<<<< HEAD
 
     // Lọc và sắp xếp kết quả theo độ tương đồng
     const filteredResults = data
       .filter((product: any) =>
+=======
+    
+    // Lọc và sắp xếp kết quả theo độ tương đồng
+    const filteredResults = data
+      .filter((product: any) => 
+>>>>>>> origin/Huan
         product.tenSanPham.toLowerCase().includes(query.toLowerCase())
       )
       .sort((a: any, b: any) => {
         // Sắp xếp theo độ tương đồng: bắt đầu với query trước
         const aStartsWith = a.tenSanPham.toLowerCase().startsWith(query.toLowerCase())
         const bStartsWith = b.tenSanPham.toLowerCase().startsWith(query.toLowerCase())
+<<<<<<< HEAD
 
         if (aStartsWith && !bStartsWith) return -1
         if (!aStartsWith && bStartsWith) return 1
 
+=======
+        
+        if (aStartsWith && !bStartsWith) return -1
+        if (!aStartsWith && bStartsWith) return 1
+        
+>>>>>>> origin/Huan
         // Nếu cùng loại, sắp xếp theo tên
         return a.tenSanPham.localeCompare(b.tenSanPham)
       })
       .slice(0, 8) // Tăng lên 8 kết quả để có nhiều lựa chọn hơn
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
     searchResults.value = filteredResults
     showSearchResults.value = filteredResults.length > 0
   } catch (error) {
@@ -1023,7 +1349,11 @@ function hideSearchResults() {
 
 function highlightText(text: string, query: string): string {
   if (!query || !text) return text
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/Huan
   const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')
   return text.replace(regex, '<mark>$1</mark>')
 }
@@ -1041,12 +1371,20 @@ function clearDraftAndRefresh() {
   pendingAction.value = () => {
     // Use the centralized refresh function
     refreshForm()
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
     // Reset dropdown states
     showRamDropdown.value = false
     showRomDropdown.value = false
     showMauSacDropdown.value = false
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
     toastRef.value?.success('Thành công', 'Đã làm mới form thành công!')
   }
   showConfirmModal.value = true
@@ -1068,17 +1406,28 @@ async function save() {
 
 async function performSave() {
   try {
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
     // Validate required fields for create
     if (isCreate.value) {
       if (variants.value.length === 0) {
         toastRef.value?.warning('Thiếu thông tin', 'Vui lòng thêm ít nhất một phiên bản sản phẩm')
         return
       }
+<<<<<<< HEAD
 
       // Lấy thông tin từ phiên bản đầu tiên để tạo sản phẩm chính
       const firstVariant = variants.value[0]
 
+=======
+      
+      // Lấy thông tin từ phiên bản đầu tiên để tạo sản phẩm chính
+      const firstVariant = variants.value[0]
+      
+>>>>>>> origin/Huan
       // Tạo payload cho sản phẩm chính
       const payload = {
         maSanPham: form.value.maSanPham || slugify(firstVariant.tenSanPham),
@@ -1105,10 +1454,17 @@ async function performSave() {
           giaNhap: Number(v.giaNhap) || 0,
           ghiChu: v.ghiChu || '',
           imeis: v.imeis || [],
+<<<<<<< HEAD
           imageUrls: v.imageUrls || []
         }))
       }
 
+=======
+          imageUrls: v.imageUrls || [] 
+        }))
+      }
+      
+>>>>>>> origin/Huan
       // Validate payload trước khi gửi
       if (!payload.tenSanPham) {
         toastRef.value?.warning('Thiếu thông tin', 'Tên sản phẩm không được để trống')
@@ -1126,7 +1482,11 @@ async function performSave() {
         toastRef.value?.warning('Thiếu thông tin', 'Phải có ít nhất một phiên bản')
         return
       }
+<<<<<<< HEAD
 
+=======
+      
+>>>>>>> origin/Huan
       // Kiểm tra từng variant
       for (let i = 0; i < payload.variants.length; i++) {
         const variant = payload.variants[i]
@@ -1135,10 +1495,17 @@ async function performSave() {
           return
         }
       }
+<<<<<<< HEAD
 
 
       const response = await api.post('/api/san-pham/full', payload)
 
+=======
+      
+      
+      const response = await api.post('/api/san-pham/full', payload)
+      
+>>>>>>> origin/Huan
       // Cập nhật ID của các variant từ response
       if (response.data && response.data.variants) {
         response.data.variants.forEach((createdVariant: any, index: number) => {
@@ -1172,6 +1539,7 @@ async function performSave() {
           giaNhap: Number(v.giaNhap) || 0,
           ghiChu: v.ghiChu || '',
           imeis: v.imeis || [],
+<<<<<<< HEAD
           imageUrls: v.imageUrls || []
         }))
       }
@@ -1186,6 +1554,22 @@ async function performSave() {
 
     toastRef.value?.success('Thành công', 'Lưu sản phẩm thành công!')
 
+=======
+          imageUrls: v.imageUrls || [] 
+        }))
+      }
+      
+      console.log('DEBUG - Frontend payload:', payload)
+      
+      const response = await api.put(`/api/san-pham/${id.value}/full`, payload)
+    }
+    
+    // Clear all localStorage data after successful save
+    clearAllProductLocalStorage()
+    
+    toastRef.value?.success('Thành công', 'Lưu sản phẩm thành công!')
+    
+>>>>>>> origin/Huan
     // Sau khi lưu thành công, redirect về trang danh sách sản phẩm
     router.push({ name: 'san-pham' })
   } catch (error) {
@@ -1213,7 +1597,11 @@ async function loadLookups() {
       api.get<Gpu[]>('/api/gpu/active'),
       api.get<Sim[]>('/api/sim/active'),
     ])
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
     // Handle successful responses
     if (dmRes.status === 'fulfilled') {
       danhMucs.value = dmRes.value.data
@@ -1226,10 +1614,14 @@ async function loadLookups() {
     }
     if (ramRes.status === 'fulfilled') rams.value = ramRes.value.data
     if (romRes.status === 'fulfilled') roms.value = romRes.value.data
+<<<<<<< HEAD
     if (mauRes.status === 'fulfilled') {
       mauSacs.value = mauRes.value.data
       console.log('Loaded mauSacs:', mauSacs.value)
     }
+=======
+    if (mauRes.status === 'fulfilled') mauSacs.value = mauRes.value.data
+>>>>>>> origin/Huan
     if (hdhRes.status === 'fulfilled') heDieuHanhs.value = hdhRes.value.data
     if (mhRes.status === 'fulfilled') manHinhs.value = mhRes.value.data
     if (ctRes.status === 'fulfilled') {
@@ -1250,7 +1642,11 @@ async function loadLookups() {
     if (cpuRes.status === 'fulfilled') cpus.value = cpuRes.value.data
     if (gpuRes.status === 'fulfilled') gpus.value = gpuRes.value.data
     if (simRes.status === 'fulfilled') sims.value = simRes.value.data
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
     // Log any failed requests
     const failed = [dmRes, hRes, ramRes, romRes, mauRes, hdhRes, mhRes, ctRes, csRes, pinRes, chipRes, cpuRes, gpuRes, simRes]
       .filter(result => result.status === 'rejected')
@@ -1258,7 +1654,11 @@ async function loadLookups() {
       console.warn('Một số API không khả dụng:', failed.map(f => f.reason?.message))
       alert('Không thể tải một số dữ liệu cần thiết. Vui lòng kiểm tra kết nối và thử lại.')
     }
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
   } catch (error) {
     console.error('Lỗi khi tải dữ liệu:', error)
   }
@@ -1268,10 +1668,17 @@ async function loadLookups() {
 async function loadProductData() {
   try {
     if (!id.value) return
+<<<<<<< HEAD
 
     const response = await api.get(`/api/san-pham/${id.value}/edit`)
     const productData = response.data
 
+=======
+    
+    const response = await api.get(`/api/san-pham/${id.value}/edit`)
+    const productData = response.data
+    
+>>>>>>> origin/Huan
     // Load product basic info
     form.value = {
       maSanPham: productData.maSanPham || '',
@@ -1289,7 +1696,11 @@ async function loadProductData() {
       idGpu: productData.idGpu || null,
       idCpu: productData.idCpu || null
     }
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
     // Load variants
     if (productData.variants && productData.variants.length > 0) {
       variants.value = productData.variants.map((variant: any, index: number) => ({
@@ -1314,10 +1725,33 @@ async function loadProductData() {
         idSim: productData.idSim || null,
         imeis: variant.imeis || [],
         images: [],
+<<<<<<< HEAD
         imageUrls: variant.imageUrls || [],
         originalIndex: index
       }))
 
+=======
+        imageUrls: variant.imageUrls || [], 
+        originalIndex: index
+      }))
+      
+      // QUAN TRỌNG: Load ảnh theo màu sắc từ variants
+      variants.value.forEach(variant => {
+        if (variant.idMauSac && variant.imageUrls && variant.imageUrls.length > 0) {
+          // Initialize color images if not exists
+          if (!colorImages.value[variant.idMauSac]) {
+            colorImages.value[variant.idMauSac] = []
+          }
+          // Add images to color group (avoid duplicates)
+          variant.imageUrls.forEach(imageUrl => {
+            if (!colorImages.value[variant.idMauSac].includes(imageUrl)) {
+              colorImages.value[variant.idMauSac].push(imageUrl)
+            }
+          })
+        }
+      })
+      
+>>>>>>> origin/Huan
       // Load selected values for the first variant into variantForm
       if (variants.value.length > 0) {
         const firstVariant = variants.value[0]
@@ -1326,7 +1760,11 @@ async function loadProductData() {
         variantForm.value.selectedMauSacs = firstVariant.idMauSac ? [firstVariant.idMauSac] : []
       }
     }
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
   } catch (error) {
     console.error('Error loading product data:', error)
     alert('Có lỗi khi tải dữ liệu sản phẩm. Vui lòng thử lại.')
@@ -1362,6 +1800,7 @@ function openMauSacDropdown() {
   showRamDropdown.value = false
   showRomDropdown.value = false
   showMauSacDropdown.value = !showMauSacDropdown.value
+<<<<<<< HEAD
   
   // Force apply colors when dropdown opens
   if (showMauSacDropdown.value) {
@@ -1369,6 +1808,8 @@ function openMauSacDropdown() {
       forceApplyColors()
     }, 100)
   }
+=======
+>>>>>>> origin/Huan
 }
 
 // Price handling functions
@@ -1409,7 +1850,11 @@ function deleteVariantGroup(groupKey: string) {
     indicesToRemove.forEach(index => {
       variants.value.splice(index, 1)
     })
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
     toastRef.value?.success(
       'Xóa nhóm thành công',
       `Đã xóa ${group.variants.length} phiên bản trong nhóm ${group.ramName}/${group.romName}`
@@ -1422,34 +1867,72 @@ async function handleColorImageUpload(colorId: number, event: Event) {
   const input = event.target as HTMLInputElement
   if (input.files && input.files.length > 0) {
     const file = input.files[0]
+<<<<<<< HEAD
 
     // Validate file size (max 10MB per file)
     const maxSize = 10 * 1024 * 1024 // 10MB in bytes
 
+=======
+    
+    // Validate file size (max 10MB per file)
+    const maxSize = 10 * 1024 * 1024 // 10MB in bytes
+    
+>>>>>>> origin/Huan
     if (file.size > maxSize) {
       toastRef.value?.error('Lỗi', `File "${file.name}" vượt quá giới hạn 10MB`)
       return
     }
+<<<<<<< HEAD
 
     try {
       const formData = new FormData()
       formData.append('file', file)
 
+=======
+    
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      
+>>>>>>> origin/Huan
       const response = await api.post('/api/upload/image', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       })
+<<<<<<< HEAD
 
+=======
+      
+>>>>>>> origin/Huan
       if (response.data.url) {
         // Initialize color images array if not exists
         if (!colorImages.value[colorId]) {
           colorImages.value[colorId] = []
         }
+<<<<<<< HEAD
 
         // Add URL to color images
         colorImages.value[colorId].push(response.data.url)
 
+=======
+        
+        // Add URL to color images
+        colorImages.value[colorId].push(response.data.url)
+        
+        // QUAN TRỌNG: Gán ảnh vào tất cả variants có cùng màu sắc
+        variants.value.forEach((variant, index) => {
+          if (variant.idMauSac === colorId) {
+            // Initialize imageUrls if not exists
+            if (!variant.imageUrls) {
+              variant.imageUrls = []
+            }
+            // Add the new image URL to this variant
+            variant.imageUrls.push(response.data.url)
+          }
+        })
+        
+>>>>>>> origin/Huan
         toastRef.value?.success('Upload thành công', `Đã thêm ảnh cho màu sắc`)
       }
     } catch (error) {
@@ -1460,7 +1943,11 @@ async function handleColorImageUpload(colorId: number, event: Event) {
         toastRef.value?.error('Lỗi', 'Lỗi upload ảnh: ' + (error.response?.data?.error || error.message))
       }
     }
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
     // Clear input để có thể chọn lại file cùng tên
     input.value = ''
   }
@@ -1468,7 +1955,26 @@ async function handleColorImageUpload(colorId: number, event: Event) {
 
 function removeColorImage(colorId: number, imageIndex: number) {
   if (colorImages.value[colorId] && colorImages.value[colorId].length > imageIndex) {
+<<<<<<< HEAD
     colorImages.value[colorId].splice(imageIndex, 1)
+=======
+    // Get the image URL to remove
+    const imageUrlToRemove = colorImages.value[colorId][imageIndex]
+    
+    // Remove from color images
+    colorImages.value[colorId].splice(imageIndex, 1)
+    
+    // QUAN TRỌNG: Cũng xóa ảnh khỏi tất cả variants có cùng màu sắc
+    variants.value.forEach(variant => {
+      if (variant.idMauSac === colorId && variant.imageUrls) {
+        const variantImageIndex = variant.imageUrls.indexOf(imageUrlToRemove)
+        if (variantImageIndex !== -1) {
+          variant.imageUrls.splice(variantImageIndex, 1)
+        }
+      }
+    })
+    
+>>>>>>> origin/Huan
     toastRef.value?.success('Xóa ảnh thành công', 'Đã xóa ảnh khỏi màu sắc')
   }
 }
@@ -1503,20 +2009,34 @@ async function handleExcelUpload(variantIndex: number, event: Event) {
         const sheetName = workbook.SheetNames[0]
         const worksheet = workbook.Sheets[sheetName]
         const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
+<<<<<<< HEAD
 
         // Extract IMEI from Excel data
         let imeiList: string[] = []
 
+=======
+        
+        // Extract IMEI from Excel data
+        let imeiList: string[] = []
+        
+>>>>>>> origin/Huan
         // Look for IMEI in different possible columns
         jsonData.forEach((row: any) => {
           if (Array.isArray(row)) {
             row.forEach((cell: any) => {
               if (cell !== null && cell !== undefined && cell !== '') {
                 let imei = cell.toString().trim()
+<<<<<<< HEAD
 
                 // Remove any non-numeric characters except digits
                 imei = imei.replace(/[^\d]/g, '')
 
+=======
+                
+                // Remove any non-numeric characters except digits
+                imei = imei.replace(/[^\d]/g, '')
+                
+>>>>>>> origin/Huan
                 // Check if it's a valid IMEI (15 digits)
                 if (/^\d{15}$/.test(imei)) {
                   imeiList.push(imei)
@@ -1525,13 +2045,21 @@ async function handleExcelUpload(variantIndex: number, event: Event) {
             })
           }
         })
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> origin/Huan
         if (imeiList.length > 0) {
           // Check for duplicates in database
           checkDuplicateImeis(imeiList).then(dbDuplicates => {
             if (dbDuplicates.length > 0) {
               const message = `Có ${dbDuplicates.length} IMEI đã tồn tại trong database:\n${dbDuplicates.slice(0, 5).join('\n')}${dbDuplicates.length > 5 ? '\n...' : ''}\n\nBạn có muốn tiếp tục nhập các IMEI còn lại không?`
+<<<<<<< HEAD
 
+=======
+              
+>>>>>>> origin/Huan
               // Show confirm modal instead of browser alert
               showConfirmModal.value = true
               confirmTitle.value = 'Xác nhận IMEI trùng lặp từ Excel'
@@ -1543,7 +2071,11 @@ async function handleExcelUpload(variantIndex: number, event: Event) {
               }
               return
             }
+<<<<<<< HEAD
 
+=======
+            
+>>>>>>> origin/Huan
             // Continue with normal import if no duplicates
             continueWithExcelImport(imeiList, [], variantIndex, target)
           }).catch(error => {
@@ -1569,7 +2101,11 @@ async function importFromExcel(variantIndex: number) {
   currentVariantIndex.value = variantIndex
   imeiInput.value = ''
   showImeiModal.value = true
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/Huan
   // Kiểm tra trùng lặp DB cho IMEI hiện có
   const variant = variants.value[variantIndex]
   if (variant && variant.imeis && variant.imeis.length > 0) {
@@ -1593,11 +2129,19 @@ function downloadExcelTemplate() {
     ['123456789012346'],
     ['123456789012347']
   ]
+<<<<<<< HEAD
 
   const ws = XLSX.utils.aoa_to_sheet(templateData)
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, 'IMEI Template')
 
+=======
+  
+  const ws = XLSX.utils.aoa_to_sheet(templateData)
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, 'IMEI Template')
+  
+>>>>>>> origin/Huan
   XLSX.writeFile(wb, 'imei_template.xlsx')
 }
 
@@ -1617,22 +2161,35 @@ async function saveImei() {
     toastRef.value?.warning('Thiếu thông tin', 'Vui lòng nhập IMEI')
     return
   }
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/Huan
   if (currentVariantIndex.value !== null) {
     // Parse IMEI from textarea (one per line)
     let imeiList = imeiInput.value
       .split('\n')
       .map(line => line.trim())
       .filter(line => line.length > 0)
+<<<<<<< HEAD
 
     // Validate IMEI format (15 digits)
     const validImeis = imeiList.filter(imei => /^\d{15}$/.test(imei))
     const invalidImeis = imeiList.filter(imei => !/^\d{15}$/.test(imei))
 
+=======
+    
+    // Validate IMEI format (15 digits)
+    const validImeis = imeiList.filter(imei => /^\d{15}$/.test(imei))
+    const invalidImeis = imeiList.filter(imei => !/^\d{15}$/.test(imei))
+    
+>>>>>>> origin/Huan
     if (validImeis.length === 0) {
       toastRef.value?.error('Lỗi', 'Không có IMEI hợp lệ nào để lưu. IMEI phải có đúng 15 chữ số')
       return
     }
+<<<<<<< HEAD
 
     // Kiểm tra trùng lặp trong danh sách đang nhập
     const duplicateImeis = validImeis.filter((imei, index) => validImeis.indexOf(imei) !== index)
@@ -1655,6 +2212,30 @@ async function saveImei() {
     if (dbDuplicates.length > 0) {
       const message = `Có ${dbDuplicates.length} IMEI đã tồn tại trong database:\n${dbDuplicates.slice(0, 5).join('\n')}${dbDuplicates.length > 5 ? '\n...' : ''}\n\nBạn có muốn tiếp tục nhập các IMEI còn lại không?`
 
+=======
+    
+    // Kiểm tra trùng lặp trong danh sách đang nhập
+    const duplicateImeis = validImeis.filter((imei, index) => validImeis.indexOf(imei) !== index)
+    const uniqueValidImeis = Array.from(new Set(validImeis))
+    
+    if (duplicateImeis.length > 0) {
+      toastRef.value?.warning('Cảnh báo', `Có ${duplicateImeis.length} IMEI trùng lặp trong danh sách đã được loại bỏ`)
+    }
+    
+    if (invalidImeis.length > 0) {
+      toastRef.value?.warning('Cảnh báo', `Có ${invalidImeis.length} IMEI không hợp lệ đã được bỏ qua`)
+    }
+    
+    // Chỉ lưu IMEI hợp lệ và không trùng lặp
+    imeiList = uniqueValidImeis
+    
+    // Check for duplicates in database
+    const dbDuplicates = await checkDuplicateImeis(imeiList)
+    
+    if (dbDuplicates.length > 0) {
+      const message = `Có ${dbDuplicates.length} IMEI đã tồn tại trong database:\n${dbDuplicates.slice(0, 5).join('\n')}${dbDuplicates.length > 5 ? '\n...' : ''}\n\nBạn có muốn tiếp tục nhập các IMEI còn lại không?`
+      
+>>>>>>> origin/Huan
       // Show confirm modal instead of browser alert
       showConfirmModal.value = true
       confirmTitle.value = 'Xác nhận IMEI trùng lặp'
@@ -1666,7 +2247,11 @@ async function saveImei() {
       }
       return
     }
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
     // Continue with normal save if no duplicates
     continueWithImeiSave(imeiList, [])
   }
@@ -1677,34 +2262,60 @@ function continueWithExcelImport(imeiList: string[], dbDuplicates: string[], var
   if (imeiList.length > 0) {
     // Set current variant index and open IMEI modal for validation
     currentVariantIndex.value = variantIndex
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
     // Filter out IMEIs that already exist in this variant
     const existingImeis = variants.value[variantIndex].imeis || []
     const newImeis = imeiList.filter(imei => !existingImeis.includes(imei))
     const duplicateInVariant = imeiList.length - newImeis.length
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
     if (newImeis.length === 0) {
       toastRef.value?.warning('Cảnh báo', 'Tất cả IMEI trong file đã tồn tại trong phiên bản này')
       target.value = ''
       return
     }
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
     // Add IMEIs to input area for validation
     const currentInput = imeiInput.value.trim()
     const newInput = newImeis.join('\n')
     imeiInput.value = currentInput ? `${currentInput}\n${newInput}` : newInput
+<<<<<<< HEAD
 
     // Open IMEI modal for user to review and save
     showImeiModal.value = true
 
+=======
+    
+    // Open IMEI modal for user to review and save
+    showImeiModal.value = true
+    
+>>>>>>> origin/Huan
     // Clear validation states for new IMEIs
     newImeis.forEach(imei => {
       imeiValidationStates.value.delete(imei)
     })
+<<<<<<< HEAD
 
     // Start validation for new IMEIs
     validateAllInputImeis()
 
+=======
+    
+    // Start validation for new IMEIs
+    validateAllInputImeis()
+    
+>>>>>>> origin/Huan
     let message = `Đã nhập ${newImeis.length} IMEI từ file Excel vào modal xem xét`
     if (duplicateInVariant > 0) {
       message += ` (${duplicateInVariant} IMEI đã tồn tại trong phiên bản này đã bỏ qua)`
@@ -1712,12 +2323,20 @@ function continueWithExcelImport(imeiList: string[], dbDuplicates: string[], var
     if (dbDuplicates.length > 0) {
       message += ` (${dbDuplicates.length} IMEI đã tồn tại trong database đã được bỏ qua)`
     }
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
     toastRef.value?.success('Thành công', message)
   } else {
     toastRef.value?.warning('Thông báo', 'Tất cả IMEI trong file đã tồn tại trong database.')
   }
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/Huan
   // Clear the file input
   target.value = ''
 }
@@ -1730,6 +2349,7 @@ function continueWithImeiSave(imeiList: string[], dbDuplicates: string[]) {
     if (variant) {
       const existingImeis = variant.imeis || []
       const newImeis = [...existingImeis, ...imeiList]
+<<<<<<< HEAD
 
       // Remove duplicates within the new list
       const uniqueImeis = Array.from(new Set(newImeis))
@@ -1741,6 +2361,19 @@ function continueWithImeiSave(imeiList: string[], dbDuplicates: string[]) {
       // Clear input after successful save
       imeiInput.value = ''
 
+=======
+      
+      // Remove duplicates within the new list
+      const uniqueImeis = Array.from(new Set(newImeis))
+      const duplicateCount = newImeis.length - uniqueImeis.length
+      
+      variant.imeis = uniqueImeis
+      variant.soLuong = uniqueImeis.length
+      
+      // Clear input after successful save
+      imeiInput.value = ''
+      
+>>>>>>> origin/Huan
       // Show success message
       let message = `Đã thêm ${imeiList.length} IMEI hợp lệ`
       if (duplicateCount > 0) {
@@ -1749,7 +2382,11 @@ function continueWithImeiSave(imeiList: string[], dbDuplicates: string[]) {
       if (dbDuplicates.length > 0) {
         message += `\n${dbDuplicates.length} IMEI đã tồn tại trong database đã được bỏ qua`
       }
+<<<<<<< HEAD
 
+=======
+      
+>>>>>>> origin/Huan
       toastRef.value?.success('Thành công', message)
     }
   } else {
@@ -1788,10 +2425,17 @@ function removeImeiFromInput(index: number) {
     const removedImei = inputImeis[index]
     const newImeiList = inputImeis.filter((_, i) => i !== index)
     imeiInput.value = newImeiList.join('\n')
+<<<<<<< HEAD
 
     // Remove from selected set if it was selected
     selectedImeis.value.delete(removedImei)
 
+=======
+    
+    // Remove from selected set if it was selected
+    selectedImeis.value.delete(removedImei)
+    
+>>>>>>> origin/Huan
     toastRef.value?.success('Thành công', `Đã xóa IMEI: ${removedImei}`)
   }
 }
@@ -1801,6 +2445,7 @@ function deleteSelectedImeis() {
     toastRef.value?.warning('Cảnh báo', 'Chưa chọn IMEI nào để xóa')
     return
   }
+<<<<<<< HEAD
 
   const inputImeis = getInputImeis()
   const remainingImeis = inputImeis.filter(imei => !selectedImeis.value.has(imei))
@@ -1809,15 +2454,31 @@ function deleteSelectedImeis() {
   const deletedCount = selectedImeis.value.size
   selectedImeis.value.clear()
 
+=======
+  
+  const inputImeis = getInputImeis()
+  const remainingImeis = inputImeis.filter(imei => !selectedImeis.value.has(imei))
+  
+  imeiInput.value = remainingImeis.join('\n')
+  const deletedCount = selectedImeis.value.size
+  selectedImeis.value.clear()
+  
+>>>>>>> origin/Huan
   toastRef.value?.success('Thành công', `Đã xóa ${deletedCount} IMEI đã chọn`)
 }
 
 // Hàm kiểm tra DB cho tất cả IMEI đang nhập
 async function validateAllInputImeis() {
   const inputImeis = getInputImeis()
+<<<<<<< HEAD
 
   console.log('Validating IMEIs:', inputImeis)
 
+=======
+  
+  console.log('Validating IMEIs:', inputImeis)
+  
+>>>>>>> origin/Huan
   // Set initial states for all IMEIs
   inputImeis.forEach(imei => {
     if (!imeiValidationStates.value.has(imei)) {
@@ -1830,6 +2491,7 @@ async function validateAllInputImeis() {
       }
     }
   })
+<<<<<<< HEAD
 
   // Check database for valid IMEIs
   const validImeis = inputImeis.filter(imei => isValidImei(imei) && !isDuplicateImei(imei))
@@ -1838,6 +2500,16 @@ async function validateAllInputImeis() {
     if (imeiValidationStates.value.get(imei) === 'checking') {
       console.log(`Checking IMEI: ${imei}`)
 
+=======
+  
+  // Check database for valid IMEIs
+  const validImeis = inputImeis.filter(imei => isValidImei(imei) && !isDuplicateImei(imei))
+  
+  for (const imei of validImeis) {
+    if (imeiValidationStates.value.get(imei) === 'checking') {
+      console.log(`Checking IMEI: ${imei}`)
+      
+>>>>>>> origin/Huan
       try {
         const isDuplicate = await checkImeiInDb(imei)
         console.log(`IMEI ${imei} result:`, isDuplicate ? 'DUPLICATE' : 'UNIQUE')
@@ -1852,10 +2524,17 @@ async function validateAllInputImeis() {
 
 function hasValidImeiToSave(): boolean {
   if (!imeiInput.value.trim()) return false
+<<<<<<< HEAD
 
   const inputImeis = getInputImeis()
   const validImeis = inputImeis.filter(imei => isValidImei(imei) && !isDuplicateImei(imei))
 
+=======
+  
+  const inputImeis = getInputImeis()
+  const validImeis = inputImeis.filter(imei => isValidImei(imei) && !isDuplicateImei(imei))
+  
+>>>>>>> origin/Huan
   // Kiểm tra xem có IMEI nào đã được validate và không trùng lặp DB
   return validImeis.some(imei => {
     const state = imeiValidationStates.value.get(imei)
@@ -1868,11 +2547,19 @@ function getCurrentVariantName() {
   if (currentVariantIndex.value === null) return ''
   const variant = variants.value[currentVariantIndex.value]
   if (!variant) return ''
+<<<<<<< HEAD
 
   const ramName = getAttributeName(variant.idRam, rams.value, 'tenRam')
   const romName = getAttributeName(variant.idRom, roms.value, 'dungLuong')
   const mauName = getAttributeName(variant.idMauSac, mauSacs.value, 'tenMau')
 
+=======
+  
+  const ramName = getAttributeName(variant.idRam, rams.value, 'tenRam')
+  const romName = getAttributeName(variant.idRom, roms.value, 'dungLuong')
+  const mauName = getAttributeName(variant.idMauSac, mauSacs.value, 'tenMau')
+  
+>>>>>>> origin/Huan
   return `${ramName}/${romName} - ${mauName}`
 }
 
@@ -1908,11 +2595,19 @@ function isDuplicateImei(imei: string): boolean {
   if (currentVariantIndex.value === null) return false
   const variant = variants.value[currentVariantIndex.value]
   if (!variant || !variant.imeis) return false
+<<<<<<< HEAD
 
   // Kiểm tra trùng lặp với IMEI đã lưu
   const savedImeis = variant.imeis || []
   if (savedImeis.includes(imei)) return true
 
+=======
+  
+  // Kiểm tra trùng lặp với IMEI đã lưu
+  const savedImeis = variant.imeis || []
+  if (savedImeis.includes(imei)) return true
+  
+>>>>>>> origin/Huan
   // Kiểm tra trùng lặp với IMEI đang nhập khác
   const inputImeis = getInputImeis()
   const duplicateCount = inputImeis.filter(inputImei => inputImei === imei).length
@@ -1932,7 +2627,11 @@ async function checkImeiInDb(imei: string): Promise<boolean> {
   if (dbCheckCache.value.has(imei)) {
     return dbCheckCache.value.get(imei)!
   }
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/Huan
   try {
     const response = await fetch('/api/imei/check-duplicates', {
       method: 'POST',
@@ -1941,7 +2640,11 @@ async function checkImeiInDb(imei: string): Promise<boolean> {
       },
       body: JSON.stringify([imei]) // API expect List<String>, not object
     })
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
     if (response.ok) {
       const duplicates = await response.json() // API returns List<String> directly
       const isDuplicate = duplicates && duplicates.length > 0
@@ -1954,7 +2657,11 @@ async function checkImeiInDb(imei: string): Promise<boolean> {
   } catch (error) {
     console.error('Lỗi kiểm tra IMEI trong DB:', error)
   }
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/Huan
   return false
 }
 
@@ -2090,28 +2797,48 @@ function loadDraftData() {
   if (!isCreate.value) {
     return
   }
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/Huan
   try {
     const saved = localStorage.getItem('sanpham-draft')
     if (saved) {
       const draftData = JSON.parse(saved)
+<<<<<<< HEAD
 
+=======
+      
+>>>>>>> origin/Huan
       // Check if draft is not too old (24 hours)
       const isOld = Date.now() - draftData.timestamp > 24 * 60 * 60 * 1000
       if (isOld) {
         localStorage.removeItem('sanpham-draft')
         return
       }
+<<<<<<< HEAD
 
+=======
+      
+>>>>>>> origin/Huan
       // Chỉ restore variants và variantForm, không restore form data
       if (draftData.variants && Array.isArray(draftData.variants)) {
         variants.value = draftData.variants
       }
+<<<<<<< HEAD
 
       if (draftData.variantForm) {
         variantForm.value = { ...variantForm.value, ...draftData.variantForm }
       }
 
+=======
+      
+      if (draftData.variantForm) {
+        variantForm.value = { ...variantForm.value, ...draftData.variantForm }
+      }
+      
+>>>>>>> origin/Huan
       // Update quantities based on IMEI count
       updateAllVariantQuantities()
     }
@@ -2127,7 +2854,11 @@ function clearDraftData() {
   pendingAction.value = () => {
     // Clear all product-related data from localStorage
     clearAllProductLocalStorage()
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin/Huan
     // Chỉ reset variants, không reset form data
     variants.value = []
     variantForm.value = {
@@ -2186,7 +2917,11 @@ watch(() => route.path, (newPath, oldPath) => {
 watch(imeiInput, async () => {
   // Clear validation states when input changes
   imeiValidationStates.value.clear()
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/Huan
   // Debounce validation to avoid too many API calls
   setTimeout(async () => {
     await validateAllInputImeis()
@@ -2195,7 +2930,11 @@ watch(imeiInput, async () => {
 
 onMounted(async () => {
   await loadLookups()
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/Huan
   // Load product data if editing
   if (id.value) {
     await loadProductData()
@@ -2203,7 +2942,11 @@ onMounted(async () => {
     // Chỉ load draft data khi ở chế độ tạo mới
     loadDraftData()
   }
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/Huan
   document.addEventListener('click', handleClickOutside)
 })
 
@@ -2214,6 +2957,7 @@ onUnmounted(() => {
 
 <template>
   <div class="page">
+<<<<<<< HEAD
     <div class="page-header">
       <h1 class="page-title">{{ isCreate ? 'THÊM SẢN PHẨM' : 'SỬA SẢN PHẨM' }}</h1>
       <button class="btn-refresh" @click="clearDraftAndRefresh">
@@ -2233,6 +2977,27 @@ onUnmounted(() => {
 
     <!-- Toast -->
     <Toast ref="toastRef" />
+=======
+  <div class="page-header">
+    <h1 class="page-title">{{ isCreate ? 'THÊM SẢN PHẨM' : 'SỬA SẢN PHẨM' }}</h1>
+    <button class="btn-refresh" @click="clearDraftAndRefresh">
+      <img src="@/assets/002-notification-1.png" alt="Refresh" class="btn-icon" />
+      Làm mới
+    </button>
+  </div>
+
+  <!-- Confirm Modal -->
+  <ConfirmModal
+    :show="showConfirmModal"
+    :title="confirmTitle"
+    :message="confirmMessage"
+    @confirm="handleConfirm"
+    @cancel="handleCancel"
+  />
+
+  <!-- Toast -->
+  <Toast ref="toastRef" />
+>>>>>>> origin/Huan
 
     <div class="form-card">
       <div class="form-columns">
@@ -2240,17 +3005,28 @@ onUnmounted(() => {
           <div class="form-group">
             <label>Tên sản phẩm</label>
             <div class="search-container">
+<<<<<<< HEAD
               <input
                 v-model="form.tenSanPham"
+=======
+              <input 
+                v-model="form.tenSanPham" 
+>>>>>>> origin/Huan
                 @input="onProductNameInput"
                 @blur="hideSearchResults"
                 placeholder="Nhập tên sản phẩm..."
               />
               <div v-if="showSearchResults && searchResults.length > 0" class="search-dropdown">
                 <div class="search-header">Sản phẩm tương tự:</div>
+<<<<<<< HEAD
                 <div
                   v-for="product in searchResults"
                   :key="product.id"
+=======
+                <div 
+                  v-for="product in searchResults" 
+                  :key="product.id" 
+>>>>>>> origin/Huan
                   class="search-item"
                   @mousedown="selectExistingProduct(product)"
                 >
@@ -2273,7 +3049,11 @@ onUnmounted(() => {
                 <option v-for="hdh in heDieuHanhs" :key="hdh.id" :value="hdh.id">{{ hdh.tenHeDieuHanh }}</option>
               </select>
               <button type="button" class="btn-add" @click="openAddModal('he-dieu-hanh')">
+<<<<<<< HEAD
                 <FontAwesomeIcon icon="plus" class="btn-icon" />
+=======
+                <img src="@/assets/edit.png" alt="Add" class="btn-icon" />
+>>>>>>> origin/Huan
               </button>
             </div>
           </div>
@@ -2285,7 +3065,11 @@ onUnmounted(() => {
                 <option v-for="ct in cameraTruocs" :key="ct.id" :value="ct.id">{{ ct.thongSo }}</option>
               </select>
               <button type="button" class="btn-add" @click="openAddModal('camera-truoc')">
+<<<<<<< HEAD
                 <FontAwesomeIcon icon="plus" class="btn-icon" />
+=======
+                <img src="@/assets/edit.png" alt="Add" class="btn-icon" />
+>>>>>>> origin/Huan
               </button>
             </div>
           </div>
@@ -2297,6 +3081,7 @@ onUnmounted(() => {
                 <option v-for="p in pins" :key="p.id" :value="p.id">{{ p.dungLuongPin }}</option>
               </select>
               <button type="button" class="btn-add" @click="openAddModal('pin')">
+<<<<<<< HEAD
                 <FontAwesomeIcon icon="plus" class="btn-icon" />
               </button>
             </div>
@@ -2304,6 +3089,15 @@ onUnmounted(() => {
 
         </div>
 
+=======
+                <img src="@/assets/edit.png" alt="Add" class="btn-icon" />
+              </button>
+            </div>
+          </div>
+          
+        </div>
+        
+>>>>>>> origin/Huan
         <div class="form-column">
           <div class="form-group">
             <label>Danh mục</label>
@@ -2313,7 +3107,11 @@ onUnmounted(() => {
                 <option v-for="dm in danhMucs" :key="dm.id" :value="dm.id">{{ dm.tenDanhMuc }}</option>
               </select>
               <button type="button" class="btn-add" @click="openAddModal('danh-muc')">
+<<<<<<< HEAD
                 <FontAwesomeIcon icon="plus" class="btn-icon" />
+=======
+                <img src="@/assets/edit.png" alt="Add" class="btn-icon" />
+>>>>>>> origin/Huan
               </button>
             </div>
           </div>
@@ -2325,7 +3123,11 @@ onUnmounted(() => {
                 <option v-for="mh in manHinhs" :key="mh.id" :value="mh.id">{{ mh.kichThuoc }} {{ mh.doPhanGiai ? ('- ' + mh.doPhanGiai) : '' }}</option>
               </select>
               <button type="button" class="btn-add" @click="openAddModal('man-hinh')">
+<<<<<<< HEAD
                 <FontAwesomeIcon icon="plus" class="btn-icon" />
+=======
+                <img src="@/assets/edit.png" alt="Add" class="btn-icon" />
+>>>>>>> origin/Huan
               </button>
             </div>
           </div>
@@ -2337,7 +3139,11 @@ onUnmounted(() => {
                 <option v-for="cs in cameraSaus" :key="cs.id" :value="cs.id">{{ cs.thongSo }}</option>
               </select>
               <button type="button" class="btn-add" @click="openAddModal('camera-sau')">
+<<<<<<< HEAD
                 <FontAwesomeIcon icon="plus" class="btn-icon" />
+=======
+                <img src="@/assets/edit.png" alt="Add" class="btn-icon" />
+>>>>>>> origin/Huan
               </button>
             </div>
           </div>
@@ -2349,6 +3155,7 @@ onUnmounted(() => {
                 <option v-for="c in chips" :key="c.id" :value="c.id">{{ c.tenChip }}</option>
               </select>
               <button type="button" class="btn-add" @click="openAddModal('chip')">
+<<<<<<< HEAD
                 <FontAwesomeIcon icon="plus" class="btn-icon" />
               </button>
             </div>
@@ -2356,6 +3163,15 @@ onUnmounted(() => {
 
         </div>
 
+=======
+                <img src="@/assets/edit.png" alt="Add" class="btn-icon" />
+              </button>
+            </div>
+          </div>
+          
+        </div>
+        
+>>>>>>> origin/Huan
         <div class="form-column">
           <div class="form-group">
             <label>Hãng</label>
@@ -2365,7 +3181,11 @@ onUnmounted(() => {
                 <option v-for="h in hangs" :key="h.id" :value="h.id">{{ h.ten }}</option>
               </select>
               <button type="button" class="btn-add" @click="openAddModal('hang')">
+<<<<<<< HEAD
                 <FontAwesomeIcon icon="plus" class="btn-icon" />
+=======
+                <img src="@/assets/edit.png" alt="Add" class="btn-icon" />
+>>>>>>> origin/Huan
               </button>
             </div>
           </div>
@@ -2379,7 +3199,11 @@ onUnmounted(() => {
                 </option>
               </select>
               <button type="button" class="btn-add" @click="openAddModal('sim')">
+<<<<<<< HEAD
                 <FontAwesomeIcon icon="plus" class="btn-icon" />
+=======
+                <img src="@/assets/edit.png" alt="Add" class="btn-icon" />
+>>>>>>> origin/Huan
               </button>
             </div>
           </div>
@@ -2391,7 +3215,11 @@ onUnmounted(() => {
                 <option v-for="cpu in cpus" :key="cpu.id" :value="cpu.id">{{ cpu.tenCpu }}</option>
               </select>
               <button type="button" class="btn-add" @click="openAddModal('cpu')">
+<<<<<<< HEAD
                 <FontAwesomeIcon icon="plus" class="btn-icon" />
+=======
+                <img src="@/assets/edit.png" alt="Add" class="btn-icon" />
+>>>>>>> origin/Huan
               </button>
             </div>
           </div>
@@ -2403,7 +3231,11 @@ onUnmounted(() => {
                 <option v-for="gpu in gpus" :key="gpu.id" :value="gpu.id">{{ gpu.tenGpu }}</option>
               </select>
               <button type="button" class="btn-add" @click="openAddModal('gpu')">
+<<<<<<< HEAD
                 <FontAwesomeIcon icon="plus" class="btn-icon" />
+=======
+                <img src="@/assets/edit.png" alt="Add" class="btn-icon" />
+>>>>>>> origin/Huan
               </button>
             </div>
           </div>
@@ -2415,8 +3247,13 @@ onUnmounted(() => {
     <div class="form-card">
       <div class="form-group">
         <label>Mô tả sản phẩm</label>
+<<<<<<< HEAD
         <textarea
           v-model="form.moTa"
+=======
+        <textarea 
+          v-model="form.moTa" 
+>>>>>>> origin/Huan
           placeholder="Nhập mô tả chi tiết về sản phẩm..."
           rows="4"
           class="description-textarea"
@@ -2435,7 +3272,11 @@ onUnmounted(() => {
               <span class="multi-select-arrow">▼</span>
             </div>
             <button type="button" class="btn-add" @click="openAddModal('ram')">
+<<<<<<< HEAD
               <FontAwesomeIcon icon="plus" class="btn-icon" />
+=======
+              <img src="@/assets/edit.png" alt="Add" class="btn-icon" />
+>>>>>>> origin/Huan
             </button>
             <div v-if="showRamDropdown" class="multi-select-dropdown">
               <div v-for="r in rams" :key="r.id" class="multi-select-option" @click="toggleRam(r.id)">
@@ -2453,7 +3294,11 @@ onUnmounted(() => {
               <span class="multi-select-arrow">▼</span>
             </div>
             <button type="button" class="btn-add" @click="openAddModal('rom')">
+<<<<<<< HEAD
               <FontAwesomeIcon icon="plus" class="btn-icon" />
+=======
+              <img src="@/assets/edit.png" alt="Add" class="btn-icon" />
+>>>>>>> origin/Huan
             </button>
             <div v-if="showRomDropdown" class="multi-select-dropdown">
               <div v-for="r in roms" :key="r.id" class="multi-select-option" @click="toggleRom(r.id)">
@@ -2467,6 +3312,7 @@ onUnmounted(() => {
           <label>Màu sắc</label>
           <div class="select-with-add">
             <div class="multi-select" @click="openMauSacDropdown()">
+<<<<<<< HEAD
               <div class="multi-select-content">
                 <div v-if="variantForm.selectedMauSacs.length > 0" class="selected-colors">
                   <div v-for="mauSacId in variantForm.selectedMauSacs" :key="mauSacId" class="selected-color-item">
@@ -2480,14 +3326,25 @@ onUnmounted(() => {
             </div>
             <button type="button" class="btn-add" @click="openAddModal('mau-sac')">
               <FontAwesomeIcon icon="plus" class="btn-icon" />
+=======
+              <span class="multi-select-text">{{ getSelectedMauSacsText() }}</span>
+              <span class="multi-select-arrow">▼</span>
+            </div>
+            <button type="button" class="btn-add" @click="openAddModal('mau-sac')">
+              <img src="@/assets/edit.png" alt="Add" class="btn-icon" />
+>>>>>>> origin/Huan
             </button>
             <div v-if="showMauSacDropdown" class="multi-select-dropdown">
               <div v-for="m in mauSacs" :key="m.id" class="multi-select-option" @click="toggleMauSac(m.id)">
                 <input type="checkbox" :checked="isMauSacSelected(m.id)" @change="toggleMauSac(m.id)" />
+<<<<<<< HEAD
                   <div class="color-option">
                     <div class="color-indicator" :class="`color-${m.id}`" :style="{ backgroundColor: getColorCode(m.id) }"></div>
                     <span>{{ m.tenMau }}</span>
                   </div>
+=======
+                <span>{{ m.tenMau }}</span>
+>>>>>>> origin/Huan
               </div>
             </div>
           </div>
@@ -2499,6 +3356,7 @@ onUnmounted(() => {
           <button class="btn-clear" @click="clearVariantSelections">Xóa lựa chọn</button>
         </div>
       </div>
+<<<<<<< HEAD
 
       <div v-if="variants.length" class="variants-display">
         <div v-for="group in groupedVariants" :key="group.key" class="variant-group">
@@ -2594,6 +3452,101 @@ onUnmounted(() => {
                   </div>
                 </td>
               </tr>
+=======
+      
+      <div v-if="variants.length" class="variants-display">
+        <div v-for="group in groupedVariants" :key="group.key" class="variant-group">
+        <div class="variant-group-header">
+          <h3>PHIÊN BẢN {{ group.ramName }}/{{ group.romName }}</h3>
+          <div class="price-input-section">
+            <input 
+              v-model="group.priceInput" 
+              placeholder="Nhập giá trị" 
+              class="price-input"
+              type="number"
+            />
+            <button class="btn-apply-price" @click="applyPriceToAll(group.key)">Áp dụng</button>
+            <button class="btn-delete-group" @click="deleteVariantGroup(group.key)">
+              <img src="@/assets/delete.png" alt="Delete" class="btn-icon" />
+              Xóa nhóm
+            </button>
+          </div>
+        </div>
+          <div class="variants-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>STT</th>
+                  <th>TÊN SẢN PHẨM</th>
+                  <th>MÀU SẮC</th>
+                  <th>SỐ LƯỢNG</th>
+                  <th>ĐƠN GIÁ</th>
+                  <th>GIÁ NHẬP</th>
+                  <th>GHI CHÚ</th>
+                  <th>THAO TÁC</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(v, i) in group.variants" :key="i" class="variant-row">
+                  <td>{{ i + 1 }}</td>
+                  <td>{{ form.tenSanPham || `Sản phẩm ${group.ramName}/${group.romName}` }}</td>
+                  <td>
+                    <div class="color-indicator" :style="{ backgroundColor: getColorCode(v.idMauSac) }"></div>
+                    {{ getAttributeName(v.idMauSac, mauSacs, 'tenMau') }}
+                  </td>
+                  <td>
+                    <div class="quantity-display">
+                      <span class="imei-count">
+                        {{ (v.imeis && v.imeis.length > 0) ? v.imeis.length : 0 }} IMEI
+                      </span>
+                    </div>
+                  </td>
+                  <td>
+                    <input 
+                      v-model="variants[v.originalIndex].donGia" 
+                      type="number" 
+                      min="0" 
+                      step="1000" 
+                      class="price-input"
+                      placeholder="Nhập đơn giá"
+                    />
+                  </td>
+                  <td>
+                    <input 
+                      v-model="variants[v.originalIndex].giaNhap" 
+                      type="number" 
+                      min="0" 
+                      step="1000" 
+                      class="price-input"
+                      placeholder="Nhập giá nhập"
+                    />
+                  </td>
+                  <td>
+                    <input 
+                      v-model="variants[v.originalIndex].ghiChu" 
+                      type="text" 
+                      class="note-input"
+                      placeholder="Nhập ghi chú"
+                    />
+                  </td>
+                  <td>
+                    <div class="variant-actions">
+                      <button class="btn-delete" @click="removeVariantFromGroup(group.key, i)">
+                        <img src="@/assets/delete.png" alt="Delete" class="btn-icon" />
+                      </button>
+                      <input 
+                        type="file" 
+                        :id="`excelFile-${v.originalIndex}`"
+                        @change="handleExcelUpload(v.originalIndex, $event)"
+                        accept=".xlsx,.xls"
+                        class="excel-file-input"
+                        style="display: none"
+                      />
+                      <button class="btn-import-excel" @click="importFromExcel(v.originalIndex)">Nhập</button>
+                    </div>
+                  </td>
+                </tr>
+>>>>>>> origin/Huan
               </tbody>
             </table>
           </div>
@@ -2608,10 +3561,15 @@ onUnmounted(() => {
         <div v-for="colorGroup in colorImageGroups" :key="colorGroup.colorId" class="color-image-card">
           <div class="card-header">
             <h3 class="color-title">
+<<<<<<< HEAD
               <div class="color-title-content">
                 <span class="color-indicator" :class="`color-${colorGroup.colorId}`" :style="{ backgroundColor: getColorCode(colorGroup.colorId) }"></span>
                 <span>{{ colorGroup.colorName }}</span>
               </div>
+=======
+              <span class="color-indicator" :style="{ backgroundColor: getColorCode(colorGroup.colorId) }"></span>
+              {{ colorGroup.colorName }}
+>>>>>>> origin/Huan
             </h3>
             <span class="variant-count">{{ colorGroup.variants.length }} phiên bản</span>
           </div>
@@ -2623,23 +3581,40 @@ onUnmounted(() => {
                 <button class="remove-image-btn" @click="removeColorImage(colorGroup.colorId, imageIndex)">×</button>
               </div>
             </div>
+<<<<<<< HEAD
 
+=======
+            
+>>>>>>> origin/Huan
             <!-- Empty state placeholder -->
             <div v-else class="empty-image-placeholder">
               Chưa có ảnh cho màu {{ colorGroup.colorName }}
             </div>
+<<<<<<< HEAD
 
             <!-- Upload button -->
             <div class="upload-section">
               <input
                 type="file"
+=======
+            
+            <!-- Upload button -->
+            <div class="upload-section">
+              <input 
+                type="file" 
+>>>>>>> origin/Huan
                 :id="`colorImageUpload-${colorGroup.colorId}`"
                 @change="handleColorImageUpload(colorGroup.colorId, $event)"
                 accept="image/*"
                 style="display: none"
               />
+<<<<<<< HEAD
               <button
                 class="upload-btn"
+=======
+              <button 
+                class="upload-btn" 
+>>>>>>> origin/Huan
                 @click="triggerColorFileInput(colorGroup.colorId)"
               >
                 📷 Thêm ảnh cho {{ colorGroup.colorName }}
@@ -2670,8 +3645,13 @@ onUnmounted(() => {
       <div class="modal-body">
         <div v-for="(value, field) in modalInputs" :key="field" class="form-group">
           <label>{{ getFieldLabel(field as string) }}</label>
+<<<<<<< HEAD
           <input
             v-model="modalInputs[field]"
+=======
+          <input 
+            v-model="modalInputs[field]" 
+>>>>>>> origin/Huan
             :placeholder="`Nhập ${getFieldLabel(field as string).toLowerCase()}`"
             @keyup.enter="saveModal"
             :ref="(field as string) === 'ten' || (field as string) === 'tenDanhMuc' || (field as string) === 'tenHeDieuHanh' || (field as string) === 'tenChip' || (field as string) === 'tenCpu' || (field as string) === 'tenGpu' || (field as string) === 'tenRam' || (field as string) === 'tenMau' ? 'modalInputRef' : null"
@@ -2680,9 +3660,15 @@ onUnmounted(() => {
       </div>
       <div class="modal-footer">
         <button class="btn-secondary" @click="closeModal">Đóng</button>
+<<<<<<< HEAD
         <button
           class="btn-primary"
           @click="saveModal"
+=======
+        <button 
+          class="btn-primary" 
+          @click="saveModal" 
+>>>>>>> origin/Huan
           :disabled="!isModalValid() || modalLoading"
         >
           {{ modalLoading ? 'Đang thêm...' : 'Xác nhận' }}
@@ -2702,8 +3688,13 @@ onUnmounted(() => {
         <!-- Nhập IMEI Section -->
         <div class="imei-input-section">
           <h4>Nhập IMEI</h4>
+<<<<<<< HEAD
           <textarea
             v-model="imeiInput"
+=======
+          <textarea 
+            v-model="imeiInput" 
+>>>>>>> origin/Huan
             placeholder="Nhập IMEI, mỗi IMEI trên một dòng, đúng 15 chữ số..."
             rows="4"
             class="imei-textarea"
@@ -2716,7 +3707,11 @@ onUnmounted(() => {
             <h4>Danh sách IMEI: {{ getTotalImeiCount() }} IMEI</h4>
             <div v-if="selectedImeis.size > 0" class="imei-bulk-actions">
               <button class="btn-delete-selected" @click="deleteSelectedImeis">
+<<<<<<< HEAD
                         <FontAwesomeIcon icon="trash" class="btn-icon" />
+=======
+                <img src="@/assets/delete.png" alt="Delete" class="btn-icon" />
+>>>>>>> origin/Huan
                 Xóa đã chọn ({{ selectedImeis.size }})
               </button>
             </div>
@@ -2728,8 +3723,13 @@ onUnmounted(() => {
             <!-- Hiển thị IMEI đang nhập (chưa lưu) -->
             <div v-for="(imei, index) in getInputImeis()" :key="`input-${index}`" class="imei-item" :class="getImeiValidationClass(imei)">
               <div class="imei-checkbox">
+<<<<<<< HEAD
                 <input
                   type="checkbox"
+=======
+                <input 
+                  type="checkbox" 
+>>>>>>> origin/Huan
                   :id="`imei-checkbox-${index}`"
                   :value="imei"
                   v-model="selectedImeisArray"
@@ -2766,8 +3766,13 @@ onUnmounted(() => {
             </h4>
           </div>
           <div class="file-input-container">
+<<<<<<< HEAD
             <input
               type="file"
+=======
+            <input 
+              type="file" 
+>>>>>>> origin/Huan
               ref="excelFileInput"
               @change="handleExcelFileUpload"
               accept=".xlsx,.xls"
@@ -2786,6 +3791,7 @@ onUnmounted(() => {
       <div class="modal-footer">
         <button class="btn-secondary" @click="clearImeiInput">Xóa tất cả</button>
         <button class="btn-secondary" @click="closeImeiModal">Đóng</button>
+<<<<<<< HEAD
         <button
           class="btn-primary"
           @click="saveImei"
@@ -2793,6 +3799,15 @@ onUnmounted(() => {
         >
           Lưu
         </button>
+=======
+            <button 
+              class="btn-primary" 
+              @click="saveImei" 
+              :disabled="!hasValidImeiToSave()"
+            >
+              Lưu
+            </button>
+>>>>>>> origin/Huan
       </div>
     </div>
   </div>
@@ -2807,6 +3822,7 @@ onUnmounted(() => {
   />
 </template>
 
+<<<<<<< HEAD
 
 <style scoped>
 /* Basic color indicator styles */
@@ -2818,6 +3834,9 @@ onUnmounted(() => {
   border: 1px solid #ddd;
 }
 
+=======
+<style scoped>
+>>>>>>> origin/Huan
 .page { padding: 20px; }
 .page-header {
   display: flex;
@@ -2829,10 +3848,17 @@ onUnmounted(() => {
 .breadcrumb { color: #6c757d; margin-bottom: 10px; }
 .form-card { background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
 .section-title { margin: 12px 0; text-transform: uppercase; letter-spacing: .5px; }
+<<<<<<< HEAD
 .form-row {
   display: flex;
   gap: 12px;
   margin: 8px 0;
+=======
+.form-row { 
+  display: flex; 
+  gap: 12px; 
+  margin: 8px 0; 
+>>>>>>> origin/Huan
   align-items: flex-start;
   position: relative;
   overflow: visible;
@@ -2859,8 +3885,13 @@ onUnmounted(() => {
   overflow: visible;
 }
 
+<<<<<<< HEAD
 .form-group {
   flex: 1;
+=======
+.form-group { 
+  flex: 1; 
+>>>>>>> origin/Huan
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -2869,11 +3900,19 @@ onUnmounted(() => {
   position: relative;
   overflow: visible;
 }
+<<<<<<< HEAD
 .form-group input, .form-group select, .form-group textarea {
   width: 100%;
   padding: 8px 12px;
   border: 1px solid #ddd;
   border-radius: 4px;
+=======
+.form-group input, .form-group select, .form-group textarea { 
+  width: 100%; 
+  padding: 8px 12px; 
+  border: 1px solid #ddd; 
+  border-radius: 4px; 
+>>>>>>> origin/Huan
   font-size: 14px;
 }
 .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
@@ -2976,7 +4015,11 @@ onUnmounted(() => {
   border-radius: 2px;
   font-weight: 600;
 }
+<<<<<<< HEAD
 .btn-primary {
+=======
+.btn-primary { 
+>>>>>>> origin/Huan
   background: linear-gradient(135deg, #ff6b35 0%, #fd7e14 100%);
   color: white;
   border: none;
@@ -3011,12 +4054,19 @@ onUnmounted(() => {
 .btn-icon {
   width: 16px;
   height: 16px;
+<<<<<<< HEAD
   font-size: 14px;
   margin-right: 4px;
   vertical-align: middle;
   color: inherit;
 }
 .btn-secondary {
+=======
+  margin-right: 4px;
+  vertical-align: middle;
+}
+.btn-secondary { 
+>>>>>>> origin/Huan
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
   border: none;
@@ -3034,6 +4084,7 @@ onUnmounted(() => {
   box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4);
 }
 
+<<<<<<< HEAD
 .btn-clear {
   background: linear-gradient(135deg, #2c2c2c, #1a1a1a);
   color: #fff;
@@ -3041,6 +4092,15 @@ onUnmounted(() => {
   border-radius: 8px;
   padding: 12px 20px;
   cursor: pointer;
+=======
+.btn-clear { 
+  background: linear-gradient(135deg, #2c2c2c, #1a1a1a);
+  color: #fff; 
+  border: none; 
+  border-radius: 8px; 
+  padding: 12px 20px; 
+  cursor: pointer; 
+>>>>>>> origin/Huan
   margin-left: 12px;
   font-weight: 500;
   font-size: 14px;
@@ -3053,6 +4113,7 @@ onUnmounted(() => {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
 
+<<<<<<< HEAD
 .btn-cancel {
   background: linear-gradient(135deg, #2c2c2c, #1a1a1a);
   color: #fff;
@@ -3060,6 +4121,15 @@ onUnmounted(() => {
   border-radius: 8px;
   padding: 12px 20px;
   cursor: pointer;
+=======
+.btn-cancel { 
+  background: linear-gradient(135deg, #2c2c2c, #1a1a1a);
+  color: #fff; 
+  border: none; 
+  border-radius: 8px; 
+  padding: 12px 20px; 
+  cursor: pointer; 
+>>>>>>> origin/Huan
   margin-right: 12px;
   font-weight: 500;
   font-size: 14px;
@@ -3071,6 +4141,7 @@ onUnmounted(() => {
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
+<<<<<<< HEAD
 .btn-delete {
   background:#e74c3c;
   color:#fff;
@@ -3078,6 +4149,15 @@ onUnmounted(() => {
   border-radius:6px;
   padding:4px 8px;
   cursor:pointer;
+=======
+.btn-delete { 
+  background:#e74c3c; 
+  color:#fff; 
+  border:none; 
+  border-radius:6px; 
+  padding:4px 8px; 
+  cursor:pointer; 
+>>>>>>> origin/Huan
   transition: all 0.2s ease;
 }
 
@@ -3085,6 +4165,7 @@ onUnmounted(() => {
   background:#c0392b;
   transform: scale(1.05);
 }
+<<<<<<< HEAD
 .btn-add {
   background: linear-gradient(135deg, #fb923c, #f97316);
   color:#fff;
@@ -3093,6 +4174,16 @@ onUnmounted(() => {
   padding:4px 8px;
   cursor:pointer;
   margin-left:4px;
+=======
+.btn-add { 
+  background: linear-gradient(135deg, #fb923c, #f97316);
+  color:#fff; 
+  border:none; 
+  border-radius:4px; 
+  padding:4px 8px; 
+  cursor:pointer; 
+  margin-left:4px; 
+>>>>>>> origin/Huan
   transition: all 0.2s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -3102,9 +4193,15 @@ onUnmounted(() => {
   transform: scale(1.05);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
+<<<<<<< HEAD
 .select-with-add {
   display: flex;
   align-items: center;
+=======
+.select-with-add { 
+  display: flex; 
+  align-items: center; 
+>>>>>>> origin/Huan
   width: 100%;
   gap: 8px;
   min-width: 0;
@@ -3162,6 +4259,7 @@ onUnmounted(() => {
   color: #1e293b;
 }
 
+<<<<<<< HEAD
 .color-title-content {
   display: flex;
   align-items: center;
@@ -3189,6 +4287,8 @@ onUnmounted(() => {
   font-weight: 600;
 }
 
+=======
+>>>>>>> origin/Huan
 .variant-count {
   background: #3b82f6;
   color: white;
@@ -3204,6 +4304,7 @@ onUnmounted(() => {
   gap: 8px;
   padding: 16px;
 }
+<<<<<<< HEAD
 .variant-group-header {
   display: flex;
   justify-content: space-between;
@@ -3225,6 +4326,29 @@ onUnmounted(() => {
 .variants-table th, .variants-table td {
   padding: 12px 8px;
   text-align: left;
+=======
+.variant-group-header { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  padding: 12px 16px; 
+  background: #f8f9fa; 
+  border-bottom: 1px solid #eee; 
+}
+.variant-group-header h3 { margin: 0; font-size: 16px; font-weight: 600; }
+.search-input { 
+  padding: 6px 12px; 
+  border: 1px solid #ddd; 
+  border-radius: 4px; 
+  width: 200px; 
+  font-size: 14px; 
+}
+.variants-table { overflow-x: auto; }
+.variants-table table { width: 100%; border-collapse: collapse; }
+.variants-table th, .variants-table td { 
+  padding: 12px 8px; 
+  text-align: left; 
+>>>>>>> origin/Huan
   white-space: nowrap;
 }
 .variants-table th { background: #f8f9fa; font-weight: 600; }
@@ -3232,9 +4356,15 @@ onUnmounted(() => {
 /* Column widths */
 .variants-table th:nth-child(1), .variants-table td:nth-child(1) { width: 40px; text-align: center;} /* STT */
 .variants-table th:nth-child(2), .variants-table td:nth-child(2) { width: 50px; min-width: 80px; text-align: center;} /* TÊN SẢN PHẨM */
+<<<<<<< HEAD
 .variants-table th:nth-child(3), .variants-table td:nth-child(3) {
   width: 50px;
   min-width:100px;
+=======
+.variants-table th:nth-child(3), .variants-table td:nth-child(3) { 
+  width: 50px; 
+  min-width:100px; 
+>>>>>>> origin/Huan
 } /* MÀU SẮC */
 .variants-table th:nth-child(4), .variants-table td:nth-child(4) { width: 80px; min-width: 70px; text-align: center;} /* SỐ LƯỢNG */
 .variants-table th:nth-child(5), .variants-table td:nth-child(5) { width: 80px; min-width: 70px; text-align: center;} /* ĐƠN GIÁ */
@@ -3242,6 +4372,7 @@ onUnmounted(() => {
 .variants-table th:nth-child(7), .variants-table td:nth-child(7) { width: 100px; min-width: 80px; text-align: center;} /* GHI CHÚ */
 .variants-table th:nth-child(8), .variants-table td:nth-child(8) { width: 80px; min-width: 70px; text-align: center;} /* THAO TÁC */
 .variant-row td { vertical-align: middle; }
+<<<<<<< HEAD
 .variants-table .color-indicator {
   display: inline-block;
   width: 20px;
@@ -3250,6 +4381,16 @@ onUnmounted(() => {
   margin-right: 8px;
   border: 2px solid #e0e0e0;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+=======
+.variants-table .color-indicator { 
+  display: inline-block; 
+  width: 20px; 
+  height: 20px; 
+  border-radius: 50%; 
+  margin-right: 8px;
+  border: 2px solid #e0e0e0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2); 
+>>>>>>> origin/Huan
   vertical-align: middle;
 }
 
@@ -3258,6 +4399,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
 }
+<<<<<<< HEAD
 .quantity-input, .price-input {
   width: 80px;
   padding: 4px 8px;
@@ -3290,6 +4432,40 @@ onUnmounted(() => {
   border-radius: 8px;
   padding: 12px 20px;
   cursor: pointer;
+=======
+.quantity-input, .price-input { 
+  width: 80px; 
+  padding: 4px 8px; 
+  border: 1px solid #ddd; 
+  border-radius: 4px; 
+  font-size: 14px; 
+}
+.variant-actions { 
+  display: flex; 
+  gap: 4px; 
+  align-items: center; 
+  flex-wrap: wrap;
+}
+.file-input { 
+  display: none; 
+}
+.btn-upload, .btn-import { 
+  background: #dc3545; 
+  color: white; 
+  border: none; 
+  border-radius: 4px; 
+  padding: 4px 8px; 
+  font-size: 12px; 
+  cursor: pointer; 
+}
+.btn-refresh { 
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  color: white; 
+  border: none; 
+  border-radius: 8px; 
+  padding: 12px 20px; 
+  cursor: pointer; 
+>>>>>>> origin/Huan
   font-size: 14px;
   font-weight: 500;
   transition: all 0.3s ease;
@@ -3438,6 +4614,7 @@ onUnmounted(() => {
   user-select: none;
 }
 
+<<<<<<< HEAD
 .color-option {
   display: flex;
   align-items: center;
@@ -3508,6 +4685,8 @@ onUnmounted(() => {
   font-weight: 500;
 }
 
+=======
+>>>>>>> origin/Huan
 
 /* Dropdown animation */
 @keyframes slideDown {
@@ -4205,6 +5384,7 @@ onUnmounted(() => {
   color: #555;
 }
 
+<<<<<<< HEAD
 .variant-color {
   display: flex;
   align-items: center;
@@ -4230,6 +5410,14 @@ onUnmounted(() => {
   color: #333;
   font-size: 14px;
   font-weight: 500;
+=======
+.variant-color .color-indicator {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #ddd;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+>>>>>>> origin/Huan
 }
 
 .card-content {
@@ -4377,7 +5565,11 @@ onUnmounted(() => {
   .form-column {
     max-width: calc(50% - 10px);
   }
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/Huan
   .form-columns {
     flex-wrap: wrap;
   }
@@ -4387,11 +5579,19 @@ onUnmounted(() => {
   .form-column {
     max-width: 100%;
   }
+<<<<<<< HEAD
 
   .form-columns {
     flex-direction: column;
   }
 
+=======
+  
+  .form-columns {
+    flex-direction: column;
+  }
+  
+>>>>>>> origin/Huan
   .form-row {
     flex-direction: column;
   }

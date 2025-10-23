@@ -1,6 +1,9 @@
 package com.example.datn_sd28_2025.dto;
 
+<<<<<<< HEAD
 import jakarta.validation.constraints.*;
+=======
+>>>>>>> origin/Huan
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,6 +19,7 @@ import java.time.LocalDateTime;
 public class KhachHangDTO {
     private Integer id;
     private String maKhachHang;
+<<<<<<< HEAD
     @NotBlank(message = "Họ tên không được để trống")
     @Size(min = 2, max = 255, message = "Họ tên phải có từ 2 đến 255 ký tự")
     @Pattern(regexp = "^[\\p{L}\\s]+$", 
@@ -47,6 +51,15 @@ public class KhachHangDTO {
     @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[a-zA-Z\\d@$!%*?&]{6,}$", 
              message = "Mật khẩu phải có ít nhất 6 ký tự, bao gồm chữ hoa, chữ thường và số")
     private String matKhau;
+=======
+    private String hoTen;
+    private String soDienThoai;
+    private String taiKhoan;
+    private String matKhau;
+    private LocalDate ngaySinh;
+    private String gioiTinh;
+    private String email;
+>>>>>>> origin/Huan
     private LocalDateTime ngayTao;
     private LocalDateTime ngayCapNhat;
     private Integer trangThai;

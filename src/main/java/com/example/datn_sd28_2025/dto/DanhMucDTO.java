@@ -6,6 +6,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+<<<<<<< HEAD
+=======
+import java.util.List;
+>>>>>>> origin/Huan
 
 @Data
 @NoArgsConstructor
@@ -18,4 +22,8 @@ public class DanhMucDTO {
     private LocalDateTime ngayTao;
     private LocalDateTime ngayCapNhat;
     private Integer trangThai;
+<<<<<<< HEAD
+=======
+    private List<HinhAnhDTO> hinhAnhs;
+>>>>>>> origin/Huan
 }

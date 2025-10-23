@@ -26,8 +26,12 @@ public class ImeiServiceImpl implements ImeiService {
 
     @Override
     public Imei create(Imei imei) {
+<<<<<<< HEAD
         // Note: ngay_tao column doesn't exist in the actual database
         // imei.setNgayTao(LocalDateTime.now());
+=======
+        imei.setNgayTao(LocalDateTime.now());
+>>>>>>> origin/Huan
         if (imei.getTrangThai() == null) imei.setTrangThai(1);
         return imeiRepository.save(imei);
     }
@@ -46,8 +50,12 @@ public class ImeiServiceImpl implements ImeiService {
             i.setImei(code);
             i.setChiTietSanPham(ct);
             i.setTrangThai(1);
+<<<<<<< HEAD
             // Note: ngay_tao column doesn't exist in the actual database
             // i.setNgayTao(LocalDateTime.now());
+=======
+            i.setNgayTao(LocalDateTime.now());
+>>>>>>> origin/Huan
             saved.add(imeiRepository.save(i));
         }
         return saved;
@@ -79,8 +87,12 @@ public class ImeiServiceImpl implements ImeiService {
     @Override
     public ImeiDTO save(ImeiDTO imeiDTO) {
         Imei imei = convertToEntity(imeiDTO);
+<<<<<<< HEAD
         // Note: ngay_tao column doesn't exist in the actual database
         // imei.setNgayTao(LocalDateTime.now());
+=======
+        imei.setNgayTao(LocalDateTime.now());
+>>>>>>> origin/Huan
         imei.setTrangThai(1);
         return convertToDto(imeiRepository.save(imei));
     }
@@ -90,8 +102,12 @@ public class ImeiServiceImpl implements ImeiService {
         return imeiRepository.findById(id).map(existingImei -> {
             existingImei.setImei(imeiDTO.getImei());
             existingImei.setTrangThai(imeiDTO.getTrangThai());
+<<<<<<< HEAD
             // Note: ngay_cap_nhat column doesn't exist in the actual database
             // existingImei.setNgayCapNhat(LocalDateTime.now());
+=======
+            existingImei.setNgayCapNhat(LocalDateTime.now());
+>>>>>>> origin/Huan
             return convertToDto(imeiRepository.save(existingImei));
         }).orElseThrow(() -> new RuntimeException("Imei not found with id " + id));
     }
@@ -105,17 +121,25 @@ public class ImeiServiceImpl implements ImeiService {
     public List<String> findDuplicateImeis(List<String> imeis) {
         return imeiRepository.findExistingImeis(imeis);
     }
+<<<<<<< HEAD
     
     @Override
     public List<ImeiDTO> getByChiTietSanPham(Integer chiTietSanPhamId) {
         List<Imei> imeis = imeiRepository.findByChiTietSanPhamId(chiTietSanPhamId);
         return imeis.stream().map(this::convertToDto).toList();
     }
+=======
+>>>>>>> origin/Huan
 
     private ImeiDTO convertToDto(Imei imei) {
         return ImeiDTO.builder()
                 .id(imei.getId())
                 .imei(imei.getImei())
+<<<<<<< HEAD
+=======
+                .ngayTao(imei.getNgayTao())
+                .ngayCapNhat(imei.getNgayCapNhat())
+>>>>>>> origin/Huan
                 .trangThai(imei.getTrangThai())
                 .idCtsp(imei.getChiTietSanPham() != null ? imei.getChiTietSanPham().getId() : null)
                 .build();
@@ -125,6 +149,11 @@ public class ImeiServiceImpl implements ImeiService {
         Imei imei = Imei.builder()
                 .id(imeiDTO.getId())
                 .imei(imeiDTO.getImei())
+<<<<<<< HEAD
+=======
+                .ngayTao(imeiDTO.getNgayTao())
+                .ngayCapNhat(imeiDTO.getNgayCapNhat())
+>>>>>>> origin/Huan
                 .trangThai(imeiDTO.getTrangThai())
                 .build();
 

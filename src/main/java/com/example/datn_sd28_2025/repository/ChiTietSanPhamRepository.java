@@ -18,7 +18,11 @@ public interface ChiTietSanPhamRepository extends JpaRepository<ChiTietSanPham, 
     
     List<ChiTietSanPham> findBySanPham(SanPham sanPham);
     
+<<<<<<< HEAD
     @Query("SELECT c FROM ChiTietSanPham c LEFT JOIN FETCH c.ram LEFT JOIN FETCH c.rom LEFT JOIN FETCH c.mauSac WHERE c.sanPham.id = :sanPhamId AND c.trangThai = 1")
+=======
+    @Query("SELECT c FROM ChiTietSanPham c WHERE c.sanPham.id = :sanPhamId AND c.trangThai = 1")
+>>>>>>> origin/Huan
     List<ChiTietSanPham> findBySanPhamIdAndTrangThaiTrue(@Param("sanPhamId") Integer sanPhamId);
     
     @Query("SELECT c FROM ChiTietSanPham c WHERE c.trangThai = 1")
@@ -27,6 +31,7 @@ public interface ChiTietSanPhamRepository extends JpaRepository<ChiTietSanPham, 
     @Modifying
     @Query("DELETE FROM ChiTietSanPham c WHERE c.maCtsp IS NULL")
     int deleteByMaCtspIsNull();
+<<<<<<< HEAD
     
     // Methods for POS
     List<ChiTietSanPham> findByTrangThaiAndSoLuongGreaterThan(Integer trangThai, Integer soLuong);
@@ -43,4 +48,6 @@ public interface ChiTietSanPhamRepository extends JpaRepository<ChiTietSanPham, 
     
     // Statistics methods
     long countBySoLuongGreaterThan(Integer soLuong);
+=======
+>>>>>>> origin/Huan
 }

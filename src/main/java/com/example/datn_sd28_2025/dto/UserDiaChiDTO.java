@@ -14,10 +14,15 @@ import java.time.LocalDateTime;
 public class UserDiaChiDTO {
     private Integer id;
     private Integer idDiaChi;
+<<<<<<< HEAD
     
     // Related entities
     private KhachHangDTO khachHang;
     private DiaChiDTO diaChi;
+=======
+    // Related entities
+    private KhachHangDTO khachHang;
+>>>>>>> origin/Huan
 
     // Transient field for JSON mapping
     private Integer idUser;

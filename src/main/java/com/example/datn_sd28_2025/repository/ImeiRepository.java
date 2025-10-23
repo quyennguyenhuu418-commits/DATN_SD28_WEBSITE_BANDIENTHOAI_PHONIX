@@ -23,6 +23,12 @@ public interface ImeiRepository extends JpaRepository<Imei, Integer> {
 
     @Query("SELECT i.imei FROM Imei i WHERE i.imei IN :imeis")
     List<String> findExistingImeis(@Param("imeis") List<String> imeis);
+<<<<<<< HEAD
+=======
+    
+    @Query("SELECT COUNT(i) FROM Imei i WHERE i.chiTietSanPham = :chiTietSanPham AND i.trangThai = :trangThai")
+    int countByChiTietSanPhamAndTrangThai(@Param("chiTietSanPham") com.example.datn_sd28_2025.entity.ChiTietSanPham chiTietSanPham, @Param("trangThai") Integer trangThai);
+>>>>>>> origin/Huan
 }
 
 

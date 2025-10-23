@@ -1,6 +1,10 @@
 package com.example.datn_sd28_2025.config;
 
+<<<<<<< HEAD
 // import com.cloudinary.Cloudinary;
+=======
+import com.cloudinary.Cloudinary;
+>>>>>>> origin/Huan
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,6 +24,7 @@ public class CloudinaryConfig {
     @Value("${cloudinary.api-secret}")
     private String apiSecret;
 
+<<<<<<< HEAD
     // @Bean
     // public Cloudinary cloudinary() {
     //     Map<String, String> config = new HashMap<>();
@@ -28,4 +33,19 @@ public class CloudinaryConfig {
     //     config.put("api_secret", apiSecret);
     //     return new Cloudinary(config);
     // }
+=======
+    @Value("${cloudinary.secure:true}")
+    private boolean secure;
+
+    @Bean
+    public Cloudinary cloudinary() {
+        Map<String, Object> config = new HashMap<>();
+        config.put("cloud_name", cloudName);
+        config.put("api_key", apiKey);
+        config.put("api_secret", apiSecret);
+        config.put("secure", secure);
+        
+        return new Cloudinary(config);
+    }
+>>>>>>> origin/Huan
 }

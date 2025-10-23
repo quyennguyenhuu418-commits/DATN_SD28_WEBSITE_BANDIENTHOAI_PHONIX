@@ -1,4 +1,5 @@
 <template>
+<<<<<<< HEAD
   <div class="page dark-mode-transition">
     <PosHeader />
     
@@ -2049,3 +2050,8 @@ input:checked + .toggle-slider:before {
   }
 }
 </style
+=======
+  <h1>Voucher</h1>
+  <p>Danh sách voucher.</p>
+</template>
+>>>>>>> origin/Huan

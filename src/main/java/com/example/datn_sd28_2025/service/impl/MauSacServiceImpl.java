@@ -5,8 +5,12 @@ import com.example.datn_sd28_2025.entity.MauSac;
 import com.example.datn_sd28_2025.repository.MauSacRepository;
 import com.example.datn_sd28_2025.service.MauSacService;
 import org.springframework.beans.factory.annotation.Autowired;
+<<<<<<< HEAD
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+=======
+
+>>>>>>> origin/Huan
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -47,7 +51,10 @@ public class MauSacServiceImpl implements MauSacService {
         return mauSacRepository.findById(id).map(existingMauSac -> {
             existingMauSac.setMaMau(mauSacDTO.getMaMau());
             existingMauSac.setTenMau(mauSacDTO.getTenMau());
+<<<<<<< HEAD
             existingMauSac.setMaHex(mauSacDTO.getMaHex());
+=======
+>>>>>>> origin/Huan
             existingMauSac.setMoTa(mauSacDTO.getMoTa());
             existingMauSac.setTrangThai(mauSacDTO.getTrangThai());
             existingMauSac.setNgayCapNhat(LocalDateTime.now());
@@ -68,6 +75,7 @@ public class MauSacServiceImpl implements MauSacService {
         mauSacRepository.deleteById(id);
     }
 
+<<<<<<< HEAD
     @Override
     public void updateStatus(Integer id, Integer trangThai) {
         MauSac mauSac = mauSacRepository.findById(id)
@@ -77,12 +85,17 @@ public class MauSacServiceImpl implements MauSacService {
         mauSacRepository.save(mauSac);
     }
 
+=======
+>>>>>>> origin/Huan
     private MauSacDTO convertToDto(MauSac mauSac) {
         return MauSacDTO.builder()
                 .id(mauSac.getId())
                 .maMau(mauSac.getMaMau())
                 .tenMau(mauSac.getTenMau())
+<<<<<<< HEAD
                 .maHex(mauSac.getMaHex())
+=======
+>>>>>>> origin/Huan
                 .moTa(mauSac.getMoTa())
                 .ngayTao(mauSac.getNgayTao())
                 .ngayCapNhat(mauSac.getNgayCapNhat())
@@ -95,11 +108,26 @@ public class MauSacServiceImpl implements MauSacService {
                 .id(mauSacDTO.getId())
                 .maMau(mauSacDTO.getMaMau())
                 .tenMau(mauSacDTO.getTenMau())
+<<<<<<< HEAD
                 .maHex(mauSacDTO.getMaHex())
+=======
+>>>>>>> origin/Huan
                 .moTa(mauSacDTO.getMoTa())
                 .ngayTao(mauSacDTO.getNgayTao())
                 .ngayCapNhat(mauSacDTO.getNgayCapNhat())
                 .trangThai(mauSacDTO.getTrangThai())
                 .build();
     }
+<<<<<<< HEAD
+=======
+
+    @Override
+    public void updateStatus(Integer id, Integer trangThai) {
+        MauSac mauSac = mauSacRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy màu sắc với ID: " + id));
+        mauSac.setTrangThai(trangThai);
+        mauSac.setNgayCapNhat(LocalDateTime.now());
+        mauSacRepository.save(mauSac);
+    }
+>>>>>>> origin/Huan
 }

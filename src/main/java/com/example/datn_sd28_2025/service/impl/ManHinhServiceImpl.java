@@ -72,6 +72,7 @@ public class ManHinhServiceImpl implements ManHinhService {
         manHinhRepository.deleteById(id);
     }
 
+<<<<<<< HEAD
     @Override
     public void updateStatus(Integer id, Integer trangThai) {
         ManHinh manHinh = manHinhRepository.findById(id)
@@ -81,6 +82,8 @@ public class ManHinhServiceImpl implements ManHinhService {
         manHinhRepository.save(manHinh);
     }
 
+=======
+>>>>>>> origin/Huan
     private ManHinhDTO convertToDto(ManHinh manHinh) {
         return ManHinhDTO.builder()
                 .id(manHinh.getId())
@@ -112,4 +115,16 @@ public class ManHinhServiceImpl implements ManHinhService {
                 .trangThai(manHinhDTO.getTrangThai())
                 .build();
     }
+<<<<<<< HEAD
+=======
+
+    @Override
+    public void updateStatus(Integer id, Integer trangThai) {
+        ManHinh manHinh = manHinhRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy màn hình với ID: " + id));
+        manHinh.setTrangThai(trangThai);
+        manHinh.setNgayCapNhat(LocalDateTime.now());
+        manHinhRepository.save(manHinh);
+    }
+>>>>>>> origin/Huan
 }

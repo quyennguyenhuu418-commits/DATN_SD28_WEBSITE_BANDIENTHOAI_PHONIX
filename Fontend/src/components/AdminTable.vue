@@ -3,7 +3,11 @@
     <!-- Filter Section -->
     <div class="filter-card">
       <div class="filter-header">
+<<<<<<< HEAD
         <FontAwesomeIcon icon="search" class="filter-icon" />
+=======
+        <img src="/src/assets/loupe.png" alt="Tìm kiếm" class="filter-icon" />
+>>>>>>> origin/Huan
         <h3>Bộ Lọc Tìm Kiếm</h3>
       </div>
 
@@ -11,9 +15,15 @@
         <div class="filter-row">
           <div class="filter-group">
             <label>Tìm kiếm</label>
+<<<<<<< HEAD
             <input
               type="text"
               class="search-input"
+=======
+            <input 
+              type="text" 
+              class="search-input" 
+>>>>>>> origin/Huan
               :placeholder="searchPlaceholder"
               v-model="searchQuery"
               @input="handleSearch"
@@ -22,14 +32,26 @@
           <div class="filter-group">
             <label>Trạng thái</label>
             <div class="radio-group">
+<<<<<<< HEAD
               <label class="radio-label">
                 <input
                   type="radio"
                   value="all"
+=======
+              <label 
+                v-for="option in statusOptions" 
+                :key="option.value"
+                class="radio-label"
+              >
+                <input 
+                  type="radio" 
+                  :value="option.value" 
+>>>>>>> origin/Huan
                   v-model="statusFilter"
                   @change="handleStatusFilter"
                 />
                 <span class="radio-custom"></span>
+<<<<<<< HEAD
                 Tất cả
               </label>
               <label class="radio-label">
@@ -51,6 +73,9 @@
                 />
                 <span class="radio-custom"></span>
                 Ngừng hoạt động
+=======
+                {{ option.label }}
+>>>>>>> origin/Huan
               </label>
             </div>
           </div>
@@ -84,6 +109,7 @@
       <div class="table-container">
         <table class="data-table">
           <thead>
+<<<<<<< HEAD
           <tr>
             <th class="checkbox-col">
               <input
@@ -143,6 +169,71 @@
               </div>
             </td>
           </tr>
+=======
+            <tr>
+              <th class="checkbox-col">
+                <input
+                  type="checkbox"
+                  v-model="selectAll"
+                  :indeterminate="hasSelectedItems && !allCurrentPageSelected"
+                />
+              </th>
+              <th class="stt-col">STT</th>
+              <template v-for="column in columns" :key="column.key">
+                <th v-if="column.type !== 'status'" :class="column.class">
+                  {{ column.label }}
+                </th>
+              </template>
+              <th class="status-col">Trạng Thái</th>
+              <th class="action-col">Thao Tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(item, index) in paginatedData" :key="item.id" class="table-row">
+              <td class="checkbox-col">
+                <input
+                  type="checkbox"
+                  :checked="isItemSelected(item.id)"
+                  @change="toggleItemSelection(item.id)"
+                />
+              </td>
+              <td class="stt-col">{{ (currentPage - 1) * itemsPerPage + index + 1 }}</td>
+              <template v-for="column in columns" :key="column.key">
+                <td v-if="column.type !== 'status'" :class="column.class">
+                  <slot :name="`cell-${column.key}`" :item="item" :value="getColumnValue(item, column.key)">
+                    <span>{{ formatColumnValue(item, column) }}</span>
+                  </slot>
+                </td>
+              </template>
+              <td class="status-col">
+                <slot :name="`cell-${getStatusColumnKey()}`" :item="item" :value="item.trangThai">
+                  <span :class="getStatusClass(item)" class="status-text">
+                    {{ getStatusText(item) }}
+                  </span>
+                </slot>
+              </td>
+              <td class="action-col">
+                <slot name="action-buttons" :item="item">
+                  <div class="action-buttons">
+                    <button class="edit-btn" @click="openForm(item)">
+                      <img src="/src/assets/edit.png" alt="Sửa" class="action-icon" />
+                    </button>
+                    <div class="status-toggle">
+                      <label class="toggle-switch" :title="getToggleTooltip(item)">
+                        <input 
+                          type="checkbox" 
+                          :checked="getToggleChecked(item)"
+                          @change="toggleItemStatus(item)"
+                          :disabled="isUpdatingStatus"
+                        />
+                        <span class="toggle-slider"></span>
+                      </label>
+                    </div>
+                  </div>
+                </slot>
+              </td>
+            </tr>
+>>>>>>> origin/Huan
           </tbody>
         </table>
       </div>
@@ -204,7 +295,10 @@ import { computed, watch, ref } from 'vue'
 import { useAdminTable } from '@/composables/useAdminTable'
 import Toast from '@/components/Toast.vue'
 import ConfirmModal from '@/components/ConfirmModal.vue'
+<<<<<<< HEAD
 import { FontAwesomeIcon } from '@/plugins/fontawesome'
+=======
+>>>>>>> origin/Huan
 
 interface Column {
   key: string
@@ -213,6 +307,15 @@ interface Column {
   type?: 'text' | 'date' | 'status' | 'code'
 }
 
+<<<<<<< HEAD
+=======
+interface StatusOption {
+  value: string
+  label: string
+  statusValue: number
+}
+
+>>>>>>> origin/Huan
 interface Props {
   data: any[]
   columns: Column[]
@@ -220,6 +323,11 @@ interface Props {
   titleIcon: string
   entityName: string
   searchPlaceholder: string
+<<<<<<< HEAD
+=======
+  customStatusOptions?: StatusOption[]
+  hideDefaultStatusOptions?: string[]
+>>>>>>> origin/Huan
 }
 
 const props = defineProps<Props>()
@@ -244,6 +352,33 @@ const isUpdatingStatus = ref(false)
 // Status filter state
 const statusFilter = ref<string>('all')
 
+<<<<<<< HEAD
+=======
+// Default status options
+const defaultStatusOptions = [
+  { value: 'all', label: 'Tất cả', statusValue: -1 },
+  { value: 'active', label: 'Hoạt động', statusValue: 1 },
+  { value: 'inactive', label: 'Ngừng hoạt động', statusValue: 0 }
+]
+
+// Computed status options (merge default with custom)
+const statusOptions = computed(() => {
+  let options = [...defaultStatusOptions]
+  
+  // Hide default options if specified
+  if (props.hideDefaultStatusOptions && props.hideDefaultStatusOptions.length > 0) {
+    options = options.filter(opt => !props.hideDefaultStatusOptions!.includes(opt.value))
+  }
+  
+  // Add custom options
+  if (props.customStatusOptions && props.customStatusOptions.length > 0) {
+    options = [...options, ...props.customStatusOptions]
+  }
+  
+  return options
+})
+
+>>>>>>> origin/Huan
 // Use common admin table functionality
 const {
   searchQuery,
@@ -269,17 +404,32 @@ watch(() => props.data, (newData) => {
 // Computed properties for status filtering
 const filteredData = computed(() => {
   let data = baseFilteredData.value
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/Huan
   // Apply status filter
   if (statusFilter.value !== 'all') {
     data = data.filter(item => {
       const status = item.trangThai
+<<<<<<< HEAD
       if (statusFilter.value === 'active' && status === 1) return true
       if (statusFilter.value === 'inactive' && status === 0) return true
       return false
     })
   }
 
+=======
+        const selectedOption = statusOptions.value.find(opt => opt.value === statusFilter.value)
+      if (selectedOption && selectedOption.statusValue !== -1) {
+        return status === selectedOption.statusValue
+      }
+      return false
+    })
+  }
+  
+>>>>>>> origin/Huan
   return data
 })
 
@@ -293,8 +443,13 @@ const paginatedData = computed(() => {
 const selectedCount = computed(() => selectedItems.value.size)
 const hasSelectedItems = computed(() => selectedItems.value.size > 0)
 const allCurrentPageSelected = computed(() => {
+<<<<<<< HEAD
   return paginatedData.value.length > 0 &&
     paginatedData.value.every(item => selectedItems.value.has(item.id))
+=======
+  if (paginatedData.value.length === 0) return false
+  return paginatedData.value.every(item => selectedItems.value.has(item.id))
+>>>>>>> origin/Huan
 })
 
 // Methods
@@ -315,11 +470,19 @@ const resetFilter = () => {
   searchQuery.value = ''
   statusFilter.value = 'all'
   currentPage.value = 1
+<<<<<<< HEAD
 
   // Reset checkbox selection
   selectedItems.value.clear()
   selectAll.value = false
 
+=======
+  
+  // Reset checkbox selection
+  selectedItems.value.clear()
+  selectAll.value = false
+  
+>>>>>>> origin/Huan
   showToastMessage('Đã đặt lại bộ lọc thành công!', 'success')
 }
 
@@ -351,16 +514,23 @@ watch(selectAll, (newValue) => {
   }
 })
 
+<<<<<<< HEAD
 // Watch for individual item selection to update select all checkbox
 watch(selectedItems, () => {
   selectAll.value = allCurrentPageSelected.value
 }, { deep: true })
 
+=======
+>>>>>>> origin/Huan
 // Watch for page changes to update select all checkbox
 watch([currentPage, paginatedData], () => {
   // Update select all checkbox based on current page selection
   selectAll.value = allCurrentPageSelected.value
+<<<<<<< HEAD
 }, { immediate: true })
+=======
+})
+>>>>>>> origin/Huan
 
 // Watch for data changes to reset selection
 watch(() => props.data, () => {
@@ -391,7 +561,11 @@ const exportToExcel = (data: any[]) => {
       // Create Excel data
       const excelData = data.map((item, index) => {
         const row: any = { 'STT': index + 1 }
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> origin/Huan
         // Add all columns dynamically
         props.columns.forEach(column => {
           if (column.key !== 'actions') {
@@ -405,7 +579,11 @@ const exportToExcel = (data: any[]) => {
             }
           }
         })
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> origin/Huan
         return row
       })
 
@@ -425,9 +603,15 @@ const exportToExcel = (data: any[]) => {
 
       // Save file
       XLSX.writeFile(wb, filename)
+<<<<<<< HEAD
 
       showToastMessage(`Đã tải Excel thành công! (${data.length} ${props.entityName})`, 'success')
 
+=======
+      
+      showToastMessage(`Đã tải Excel thành công! (${data.length} ${props.entityName})`, 'success')
+      
+>>>>>>> origin/Huan
       // Clear selection after export
       selectedItems.value.clear()
       selectAll.value = false
@@ -440,6 +624,7 @@ const exportToExcel = (data: any[]) => {
 
 const formatColumnValue = (item: any, column: Column) => {
   const value = item[column.key]
+<<<<<<< HEAD
 
   if (column.type === 'date') {
     return formatDate(value)
@@ -450,11 +635,28 @@ const formatColumnValue = (item: any, column: Column) => {
   }
 
   if (column.type === 'status') {
+=======
+  
+  if (column.type === 'date') {
+    return formatDate(value)
+  }
+  
+  if (column.type === 'code') {
+    return value || `${column.key.toUpperCase()}${String(item.id).padStart(5, '0')}`
+  }
+  
+  if (column.type === 'status') {
+    // Handle numeric status (0/1) for all entities
+>>>>>>> origin/Huan
     const statusClass = value === 1 ? 'status-active' : 'status-inactive'
     const statusText = value === 1 ? 'Hoạt động' : 'Không hoạt động'
     return `<span class="${statusClass}">${statusText}</span>`
   }
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/Huan
   return value || '-'
 }
 
@@ -479,6 +681,7 @@ const exportExcel = () => {
 // Status toggle methods
 const toggleItemStatus = (item: any) => {
   if (isUpdatingStatus.value) return
+<<<<<<< HEAD
 
   isUpdatingStatus.value = true
 
@@ -500,10 +703,16 @@ const toggleItemStatus = (item: any) => {
   } finally {
     isUpdatingStatus.value = false
   }
+=======
+  
+  // Emit event to parent component to handle status toggle
+  emit('toggleStatus', item)
+>>>>>>> origin/Huan
 }
 
 const getItemName = (item: any) => {
   // Try to get name from common fields
+<<<<<<< HEAD
   return item.ten || item.tenMau || item.tenHeDieuHanh || item.tenCpu || item.tenGpu ||
     item.dungLuongPin || item.thongSo || item.kichThuoc || item.tenHang ||
     item.tenChip || item.tenRam || item.dungLuong || item.ten || 'mục này'
@@ -511,6 +720,23 @@ const getItemName = (item: any) => {
 
 const getStatusClass = (item: any) => {
   const status = item.trangThai || 0
+=======
+  return item.ten || item.tenMau || item.tenHeDieuHanh || item.tenCpu || item.tenGpu || 
+         item.dungLuongPin || item.thongSo || item.kichThuoc || item.tenHang || 
+         item.tenChip || item.tenRam || item.dungLuong || item.ten || 'mục này'
+}
+
+const getStatusColumnKey = () => {
+  // Find status column from props.columns
+  const statusColumn = props.columns.find(col => col.type === 'status')
+  return statusColumn ? statusColumn.key : 'trangThai'
+}
+
+const getStatusClass = (item: any) => {
+  const status = item.trangThai
+  
+  // Handle numeric status (0/1) for all entities
+>>>>>>> origin/Huan
   if (status === 1) {
     return 'status-active'
   } else {
@@ -518,6 +744,7 @@ const getStatusClass = (item: any) => {
   }
 }
 
+<<<<<<< HEAD
 const getStatusText = (item: any) => {
   const status = item.trangThai || 0
   return status === 1 ? 'Hoạt động' : 'Ngừng hoạt động'
@@ -527,6 +754,35 @@ const getToggleTooltip = (item: any) => {
   const quantity = item.tongImei || item.soLuong || 0
   const status = item.trangThai || 0
 
+=======
+  const getStatusText = (item: any) => {
+    const status = item.trangThai
+
+    // Debug log
+    console.log('AdminTable getStatusText:', {
+      itemId: item.reviewId || item.id,
+      status,
+      statusType: typeof status
+    })
+
+    // Handle numeric status (0/1) for all entities
+    return status === 1 ? 'Hoạt động' : 'Ngừng hoạt động'
+  }
+
+const getToggleChecked = (item: any) => {
+  const status = item.trangThai
+  
+  // Handle numeric status (0/1) for all entities
+  return status === 1
+}
+
+const getToggleTooltip = (item: any) => {
+  const status = item.trangThai
+  
+  // Handle numeric status (0/1) for all entities
+  const quantity = item.tongImei || item.soLuong || 0
+  
+>>>>>>> origin/Huan
   if (status === 0 && quantity === 0) {
     return 'Không thể chuyển sang hoạt động vì số lượng = 0'
   }
@@ -564,8 +820,12 @@ const getToggleTooltip = (item: any) => {
 .filter-icon {
   width: 16px;
   height: 16px;
+<<<<<<< HEAD
   font-size: 16px;
   color: #6b7280;
+=======
+  object-fit: contain;
+>>>>>>> origin/Huan
   opacity: 0.6;
 }
 
@@ -819,6 +1079,10 @@ input:disabled + .toggle-slider:before {
   font-weight: 500;
 }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/Huan
 /* Action buttons with icons */
 .action-col {
   text-align: center;
@@ -848,12 +1112,20 @@ input:disabled + .toggle-slider:before {
 .action-icon {
   width: 18px;
   height: 18px;
+<<<<<<< HEAD
   font-size: 16px;
   color: #6b7280;
 }
 
 .edit-btn .action-icon {
   color: #ff6b35;
+=======
+  object-fit: contain;
+}
+
+.edit-btn .action-icon {
+  filter: brightness(0) saturate(100%) invert(27%) sepia(51%) saturate(2878%) hue-rotate(346deg) brightness(104%) contrast(97%);
+>>>>>>> origin/Huan
 }
 
 /* Button disabled state */

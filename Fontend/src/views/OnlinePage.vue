@@ -1,4 +1,5 @@
 <template>
+<<<<<<< HEAD
   <div class="page">
     <PosHeader />
     
@@ -12,3 +13,8 @@
 <script setup>
 import PosHeader from '@/components/PosHeader.vue'
 </script>
+=======
+  <h1>Online</h1>
+  <p>Tạo đơn bán online.</p>
+</template>
+>>>>>>> origin/Huan

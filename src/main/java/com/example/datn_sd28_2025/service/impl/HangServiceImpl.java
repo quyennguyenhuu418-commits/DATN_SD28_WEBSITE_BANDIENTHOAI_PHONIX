@@ -68,6 +68,7 @@ public class HangServiceImpl implements HangService {
         hangRepository.deleteById(id);
     }
 
+<<<<<<< HEAD
     @Override
     public void updateStatus(Integer id, Integer trangThai) {
         Hang hang = hangRepository.findById(id)
@@ -77,6 +78,8 @@ public class HangServiceImpl implements HangService {
         hangRepository.save(hang);
     }
 
+=======
+>>>>>>> origin/Huan
     private HangDTO convertToDto(Hang hang) {
         return HangDTO.builder()
                 .id(hang.getId())
@@ -100,4 +103,16 @@ public class HangServiceImpl implements HangService {
                 .trangThai(hangDTO.getTrangThai())
                 .build();
     }
+<<<<<<< HEAD
+=======
+
+    @Override
+    public void updateStatus(Integer id, Integer trangThai) {
+        Hang hang = hangRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hãng với ID: " + id));
+        hang.setTrangThai(trangThai);
+        hang.setNgayCapNhat(LocalDateTime.now());
+        hangRepository.save(hang);
+    }
+>>>>>>> origin/Huan
 }

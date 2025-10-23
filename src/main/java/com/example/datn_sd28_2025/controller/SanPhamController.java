@@ -18,7 +18,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+<<<<<<< HEAD
 import java.util.ArrayList;
+=======
+>>>>>>> origin/Huan
 
 @RestController
 @RequestMapping("/api/san-pham")
@@ -39,6 +42,7 @@ public class SanPhamController {
         return ResponseEntity.ok(sanPhams);
     }
 
+<<<<<<< HEAD
     // Strict price filter using variant min price from database
     @GetMapping("/price-strict")
     public ResponseEntity<?> getByStrictPrice(
@@ -337,6 +341,8 @@ public class SanPhamController {
     // Expose view DTO including variants (prices, images)
     // Note: keep only one mapping for /{id}/view to avoid ambiguity
 
+=======
+>>>>>>> origin/Huan
     @GetMapping("/active")
     public ResponseEntity<List<SanPhamDTO>> getActiveSanPham() {
         List<SanPhamDTO> sanPhams = sanPhamService.getActiveSanPham();
@@ -425,6 +431,7 @@ public class SanPhamController {
         }
     }
 
+<<<<<<< HEAD
     @PutMapping("/{id}/status")
     public ResponseEntity<?> updateStatus(@PathVariable Integer id, @RequestBody Map<String, Integer> request) {
         try {
@@ -439,6 +446,8 @@ public class SanPhamController {
         }
     }
 
+=======
+>>>>>>> origin/Huan
     @GetMapping("/danh-muc/{danhMucId}")
     public ResponseEntity<List<SanPhamDTO>> getSanPhamByDanhMuc(@PathVariable Integer danhMucId) {
         List<SanPhamDTO> sanPhams = sanPhamService.getSanPhamByDanhMuc(danhMucId);
@@ -607,4 +616,93 @@ public class SanPhamController {
             ));
         }
     }
+<<<<<<< HEAD
+=======
+
+    @PutMapping("/{id}/status")
+    public ResponseEntity<Map<String, Object>> updateSanPhamStatus(@PathVariable Integer id, @RequestBody Map<String, Integer> request) {
+        try {
+            Integer trangThai = request.get("trangThai");
+            if (trangThai == null) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Trạng thái không được để trống",
+                    "message", "Vui lòng cung cấp trạng thái hợp lệ"
+                ));
+            }
+
+            SanPhamDTO updatedSanPham = sanPhamService.updateSanPhamStatus(id, trangThai);
+            
+            return ResponseEntity.ok(Map.of(
+                "message", "Cập nhật trạng thái sản phẩm thành công",
+                "sanPham", updatedSanPham,
+                "trangThai", updatedSanPham.getTrangThai()
+            ));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "Cập nhật trạng thái thất bại",
+                "message", e.getMessage()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of(
+                "error", "Lỗi hệ thống",
+                "message", e.getMessage()
+            ));
+        }
+    }
+
+    // API cho trang sản phẩm khách hàng
+    @GetMapping("/related")
+    public ResponseEntity<List<SanPhamViewDTO>> getRelatedProducts() {
+        try {
+            List<SanPhamDTO> activeProducts = sanPhamService.getActiveSanPham();
+            // Giới hạn số lượng sản phẩm liên quan
+            if (activeProducts.size() > 8) {
+                activeProducts = activeProducts.subList(0, 8);
+            }
+            
+            // Convert SanPhamDTO to SanPhamViewDTO để có đầy đủ thông tin variants và images
+            List<SanPhamViewDTO> relatedProducts = activeProducts.stream()
+                .map(sanPham -> sanPhamService.getSanPhamForView(sanPham.getId()).orElse(null))
+                .filter(viewDTO -> viewDTO != null)
+                .toList();
+            
+            return ResponseEntity.ok(relatedProducts);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(List.of());
+        }
+    }
+
+    @GetMapping("/{id}/reviews")
+    public ResponseEntity<List<Map<String, Object>>> getProductReviews(@PathVariable Integer id) {
+        try {
+            // Tạo dữ liệu đánh giá mẫu (có thể thay thế bằng logic thực tế)
+            List<Map<String, Object>> reviews = List.of(
+                Map.of(
+                    "id", 1,
+                    "tenKhachHang", "Nguyễn Văn A",
+                    "diem", 5,
+                    "noiDung", "Sản phẩm rất tốt, chất lượng cao, giao hàng nhanh. Rất hài lòng với sản phẩm này!",
+                    "ngayTao", "2024-01-15T10:30:00"
+                ),
+                Map.of(
+                    "id", 2,
+                    "tenKhachHang", "Trần Thị B",
+                    "diem", 4,
+                    "noiDung", "Điện thoại đẹp, pin trâu, camera chụp ảnh rất đẹp. Chỉ có điều giá hơi cao một chút.",
+                    "ngayTao", "2024-01-10T14:20:00"
+                ),
+                Map.of(
+                    "id", 3,
+                    "tenKhachHang", "Lê Văn C",
+                    "diem", 5,
+                    "noiDung", "Tuyệt vời! Màn hình sắc nét, hiệu năng mượt mà. Khuyến nghị mua!",
+                    "ngayTao", "2024-01-08T09:15:00"
+                )
+            );
+            return ResponseEntity.ok(reviews);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(List.of());
+        }
+    }
+>>>>>>> origin/Huan
 }

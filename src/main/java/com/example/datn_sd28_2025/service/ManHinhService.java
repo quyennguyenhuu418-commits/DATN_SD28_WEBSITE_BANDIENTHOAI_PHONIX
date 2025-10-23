@@ -11,6 +11,11 @@ public interface ManHinhService {
     Optional<ManHinhDTO> getById(Integer id);
     ManHinhDTO save(ManHinhDTO manHinhDTO);
     void delete(Integer id);
+<<<<<<< HEAD
     ManHinhDTO update(Integer id, ManHinhDTO manHinhDTO);
     void updateStatus(Integer id, Integer trangThai);
+=======
+    void updateStatus(Integer id, Integer trangThai);
+    ManHinhDTO update(Integer id, ManHinhDTO manHinhDTO);
+>>>>>>> origin/Huan
 }

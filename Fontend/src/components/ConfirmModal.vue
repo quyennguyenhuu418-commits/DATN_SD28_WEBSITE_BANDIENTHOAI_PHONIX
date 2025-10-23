@@ -1,4 +1,5 @@
 <template>
+<<<<<<< HEAD
   <Teleport to="body">
     <div v-if="show" class="modal-overlay" @click="handleOverlayClick">
       <div class="modal-content" @click.stop>
@@ -16,6 +17,23 @@
       </div>
     </div>
   </Teleport>
+=======
+  <div v-if="show" class="modal-overlay" @click="handleOverlayClick">
+    <div class="modal-content" @click.stop>
+      <div class="modal-header">
+        <h3>{{ title }}</h3>
+        <button class="close-btn" @click="cancel">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>{{ message }}</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-cancel" @click="cancel">Hủy</button>
+        <button class="btn btn-confirm" @click="confirm">Xác nhận</button>
+      </div>
+    </div>
+  </div>
+>>>>>>> origin/Huan
 </template>
 
 <script setup lang="ts">
@@ -54,6 +72,7 @@ function handleOverlayClick() {
 
 <style scoped>
 .modal-overlay {
+<<<<<<< HEAD
   position: fixed !important;
   top: 0 !important;
   left: 0 !important;
@@ -81,16 +100,45 @@ function handleOverlayClick() {
   overflow: hidden !important;
   position: relative !important;
   z-index: 1000000 !important;
+=======
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 90vw;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  animation: modalSlideIn 0.3s ease-out;
+>>>>>>> origin/Huan
 }
 
 @keyframes modalSlideIn {
   from {
     opacity: 0;
+<<<<<<< HEAD
     transform: translateY(-50px) scale(0.95);
   }
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+=======
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+>>>>>>> origin/Huan
   }
 }
 
@@ -98,14 +146,21 @@ function handleOverlayClick() {
   display: flex;
   justify-content: space-between;
   align-items: center;
+<<<<<<< HEAD
   padding: 24px 32px;
   background: linear-gradient(135deg, #f97316, #ea580c);
   color: white;
   position: relative;
+=======
+  padding: 20px 20px 0 20px;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 20px;
+>>>>>>> origin/Huan
 }
 
 .modal-header h3 {
   margin: 0;
+<<<<<<< HEAD
   color: white;
   font-size: 20px;
   font-weight: 700;
@@ -120,11 +175,28 @@ function handleOverlayClick() {
   padding: 0;
   width: 40px;
   height: 40px;
+=======
+  color: #333;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+>>>>>>> origin/Huan
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
   transition: all 0.2s;
+<<<<<<< HEAD
   backdrop-filter: blur(10px);
 }
 
@@ -135,19 +207,38 @@ function handleOverlayClick() {
 
 .modal-body {
   padding: 32px;
+=======
+}
+
+.close-btn:hover {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.modal-body {
+  padding: 0 20px;
+  margin-bottom: 20px;
+>>>>>>> origin/Huan
 }
 
 .modal-body p {
   margin: 0;
+<<<<<<< HEAD
   color: #374151;
   line-height: 1.6;
   font-size: 16px;
   font-weight: 500;
+=======
+  color: #666;
+  line-height: 1.5;
+  font-size: 14px;
+>>>>>>> origin/Huan
 }
 
 .modal-footer {
   display: flex;
   justify-content: flex-end;
+<<<<<<< HEAD
   gap: 12px;
   padding: 24px 32px;
   background: #f8fafc;
@@ -241,5 +332,44 @@ body:has(.modal-overlay) {
 
 :global(.modal-overlay *) {
   z-index: 1000000 !important;
+=======
+  gap: 10px;
+  padding: 0 20px 20px 20px;
+}
+
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+  min-width: 80px;
+}
+
+.btn-cancel {
+  background: #f8f9fa;
+  color: #6c757d;
+  border: 1px solid #dee2e6;
+}
+
+.btn-cancel:hover {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.btn-confirm {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-confirm:hover {
+  background: #c82333;
+}
+
+.btn-confirm:active {
+  transform: translateY(1px);
+>>>>>>> origin/Huan
 }
 </style>

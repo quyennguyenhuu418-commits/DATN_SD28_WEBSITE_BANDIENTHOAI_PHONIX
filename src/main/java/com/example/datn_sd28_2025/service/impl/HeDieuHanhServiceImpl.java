@@ -68,6 +68,7 @@ public class HeDieuHanhServiceImpl implements HeDieuHanhService {
         heDieuHanhRepository.deleteById(id);
     }
 
+<<<<<<< HEAD
     @Override
     public void updateStatus(Integer id, Integer trangThai) {
         HeDieuHanh heDieuHanh = heDieuHanhRepository.findById(id)
@@ -77,6 +78,8 @@ public class HeDieuHanhServiceImpl implements HeDieuHanhService {
         heDieuHanhRepository.save(heDieuHanh);
     }
 
+=======
+>>>>>>> origin/Huan
     private HeDieuHanhDTO convertToDto(HeDieuHanh heDieuHanh) {
         return HeDieuHanhDTO.builder()
                 .id(heDieuHanh.getId())
@@ -100,4 +103,16 @@ public class HeDieuHanhServiceImpl implements HeDieuHanhService {
                 .trangThai(heDieuHanhDTO.getTrangThai())
                 .build();
     }
+<<<<<<< HEAD
+=======
+
+    @Override
+    public void updateStatus(Integer id, Integer trangThai) {
+        HeDieuHanh heDieuHanh = heDieuHanhRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hệ điều hành với ID: " + id));
+        heDieuHanh.setTrangThai(trangThai);
+        heDieuHanh.setNgayCapNhat(LocalDateTime.now());
+        heDieuHanhRepository.save(heDieuHanh);
+    }
+>>>>>>> origin/Huan
 }

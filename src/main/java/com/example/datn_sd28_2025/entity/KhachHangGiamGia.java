@@ -1,6 +1,10 @@
 package com.example.datn_sd28_2025.entity;
 
+<<<<<<< HEAD
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+=======
+import com.fasterxml.jackson.annotation.JsonIgnore;
+>>>>>>> origin/Huan
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -23,12 +27,20 @@ public class KhachHangGiamGia {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_khach_hang")
+<<<<<<< HEAD
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+=======
+    @JsonIgnore
+>>>>>>> origin/Huan
     private KhachHang khachHang;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_phieu_giam_gia")
+<<<<<<< HEAD
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+=======
+    @JsonIgnore
+>>>>>>> origin/Huan
     private PhieuGiamGia phieuGiamGia;
 
     @Column(name = "nguoi_su_dung", length = 255)
@@ -40,6 +52,7 @@ public class KhachHangGiamGia {
     @Column(name = "trang_thai")
     private Integer trangThai;
 
+<<<<<<< HEAD
     // Tạm thời comment để không lỗi database
     // @Column(name = "da_su_dung")
     // private Boolean daSuDung = false; // Đánh dấu khách hàng đã sử dụng voucher này chưa
@@ -50,6 +63,8 @@ public class KhachHangGiamGia {
     // @Column(name = "so_tien_giam")
     // private Double soTienGiam; // Số tiền đã giảm khi sử dụng
 
+=======
+>>>>>>> origin/Huan
     // Transient fields for JSON mapping
     @Transient
     @JsonProperty("idKhachHang")
@@ -58,6 +73,7 @@ public class KhachHangGiamGia {
     @Transient
     @JsonProperty("idPhieuGiamGia")
     private Integer idPhieuGiamGia;
+<<<<<<< HEAD
 
     // Getter/setter cho các field tạm thời comment
     public Boolean getDaSuDung() {
@@ -83,4 +99,6 @@ public class KhachHangGiamGia {
     public void setSoTienGiam(Double soTienGiam) {
         // Không làm gì vì field đã comment
     }
+=======
+>>>>>>> origin/Huan
 }

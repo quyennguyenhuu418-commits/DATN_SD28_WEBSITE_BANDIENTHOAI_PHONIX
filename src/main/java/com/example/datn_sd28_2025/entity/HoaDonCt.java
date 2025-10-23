@@ -39,12 +39,20 @@ public class HoaDonCt {
     @Column(name = "thanh_tien", precision = 18, scale = 2)
     private BigDecimal thanhTien;
 
+<<<<<<< HEAD
     // Note: ngay_tao and ngay_cap_nhat columns don't exist in the actual database
     // @Column(name = "ngay_tao")
     // private LocalDateTime ngayTao;
 
     // @Column(name = "ngay_cap_nhat")
     // private LocalDateTime ngayCapNhat;
+=======
+    @Column(name = "ngay_tao")
+    private LocalDateTime ngayTao;
+
+    @Column(name = "ngay_cap_nhat")
+    private LocalDateTime ngayCapNhat;
+>>>>>>> origin/Huan
 
     @Column(name = "trang_thai")
     private Integer trangThai;

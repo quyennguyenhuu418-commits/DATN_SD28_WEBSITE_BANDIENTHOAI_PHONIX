@@ -1,4 +1,5 @@
 <template>
+<<<<<<< HEAD
   <div class="page dark-mode-transition">
     <PosHeader />
 
@@ -334,11 +335,78 @@ const totalItems = ref(0)
 // Modal states
 const showForm = ref(false)
 const editingRam = ref<Ram | null>(null)
+=======
+  <AdminTable
+    :data="rams"
+    :columns="ramColumns"
+    title="Danh Sách RAM"
+    titleIcon="🧠"
+    entityName="RAM"
+    searchPlaceholder="Tìm kiếm theo tên RAM..."
+    @openForm="openForm"
+    @exportExcel="exportExcel"
+    @toggleStatus="toggleRAMStatus"
+  />
+
+  <!-- Confirm Modal -->
+  <ConfirmModal
+    :show="showConfirmModal"
+    :title="confirmTitle"
+    :message="confirmMessage"
+    @confirm="handleConfirm"
+    @cancel="handleCancel"
+  />
+
+  <FormModal
+    :show="showForm"
+    :title="editingRam ? 'Sửa RAM' : 'Thêm RAM'"
+    :fields="ramFields"
+    :initial-data="editingRam ? {
+      maRam: editingRam.maRam || '',
+      tenRam: editingRam.tenRam,
+      moTa: editingRam.moTa || '',
+      trangThai: editingRam.trangThai
+    } : undefined"
+    @submit="handleFormSubmit"
+    @cancel="showForm = false"
+  />
+
+  <Toast ref="toastRef" />
+</template>
+
+<script setup lang="ts">
+import { onMounted, ref } from 'vue'
+import api from '@/services/api'
+import AdminTable from '@/components/AdminTable.vue'
+import ConfirmModal from '@/components/ConfirmModal.vue'
+import FormModal from '@/components/FormModal.vue'
+import Toast from '@/components/Toast.vue'
+import '@/styles/admin-layout.css'
+
+interface Ram {
+  id: number
+  maRam?: string
+  tenRam: string
+  moTa?: string
+  ngayTao?: string
+  ngayCapNhat?: string
+  trangThai: number
+}
+
+const rams = ref<Ram[]>([])
+const loading = ref(false)
+const showForm = ref(false)
+const editingRam = ref<Ram | null>(null)
+const toastRef = ref<InstanceType<typeof Toast> | null>(null)
+
+// Confirm modal state
+>>>>>>> origin/Huan
 const showConfirmModal = ref(false)
 const confirmTitle = ref('')
 const confirmMessage = ref('')
 const pendingAction = ref<(() => void) | null>(null)
 
+<<<<<<< HEAD
 // Form data for enhanced modal
 const formData = ref({
   maRam: '',
@@ -346,6 +414,14 @@ const formData = ref({
   moTa: '',
   trangThai: 1
 })
+=======
+const ramColumns = [
+  { key: 'maRam', label: 'Mã', class: 'code-col', type: 'code' as const },
+  { key: 'tenRam', label: 'Tên RAM', class: 'name-col' },
+  { key: 'moTa', label: 'Mô tả', class: 'desc-col' },
+  { key: 'trangThai', label: 'Trạng thái', class: 'status-col', type: 'status' as const }
+]
+>>>>>>> origin/Huan
 
 const ramFields = [
   { key: 'maRam', label: 'Mã RAM', type: 'text' as const, required: true },
@@ -354,6 +430,7 @@ const ramFields = [
   { key: 'trangThai', label: 'Hoạt động', type: 'checkbox' as const }
 ]
 
+<<<<<<< HEAD
 // Computed property for filtered rams (without pagination)
 const allFilteredRams = computed(() => {
   let filtered = rams.value
@@ -450,11 +527,19 @@ async function loadRams() {
   } catch (error) {
     console.error('Lỗi khi tải danh sách RAM:', error)
     toastRef.value?.error('Lỗi', 'Không thể tải danh sách RAM')
+=======
+async function loadRams() {
+  loading.value = true
+  try {
+    const { data } = await api.get<Ram[]>('/api/ram')
+    rams.value = data
+>>>>>>> origin/Huan
   } finally {
     loading.value = false
   }
 }
 
+<<<<<<< HEAD
 function applyFilters() {
   currentPage.value = 1
 }
@@ -773,12 +858,61 @@ async function updateRam(id: number, formData: any) {
   } catch (error) {
     console.error('Error updating ram:', error)
     toastRef.value?.error('Lỗi cập nhật', 'Không thể cập nhật RAM')
+=======
+function openForm(ram?: Ram) {
+  editingRam.value = ram || null
+  showForm.value = true
+}
+
+async function handleFormSubmit(data: any) {
+  try {
+    if (editingRam.value) {
+      await api.put(`/api/ram/${editingRam.value.id}`, data)
+      toastRef.value?.success('Thành công', 'Cập nhật RAM thành công!')
+    } else {
+      await api.post('/api/ram', data)
+      toastRef.value?.success('Thành công', 'Thêm RAM thành công!')
+    }
+    showForm.value = false
+    await loadRams()
+  } catch (error: any) {
+    console.error('Lỗi khi lưu:', error)
+    if (error.response?.data) {
+      toastRef.value?.error('Lỗi lưu RAM', error.response.data)
+    } else {
+      toastRef.value?.error('Lỗi lưu RAM', 'Có lỗi xảy ra khi lưu RAM')
+    }
+  }
+}
+
+function deleteRam(id: number) {
+  const ram = rams.value.find(r => r.id === id)
+  confirmTitle.value = 'Xác nhận xóa RAM'
+  confirmMessage.value = `Bạn có chắc chắn muốn xóa RAM "${ram?.tenRam || 'này'}"? Hành động này không thể hoàn tác.`
+  pendingAction.value = () => performDelete(id)
+  showConfirmModal.value = true
+}
+
+async function performDelete(id: number) {
+  try {
+    await api.delete(`/api/ram/${id}`)
+    toastRef.value?.success('Thành công', 'Xóa RAM thành công!')
+    await loadRams()
+  } catch (error: any) {
+    console.error('Lỗi khi xóa:', error)
+    if (error.response?.data) {
+      toastRef.value?.error('Không thể xóa', error.response.data)
+    } else {
+      toastRef.value?.error('Lỗi xóa RAM', 'Có lỗi xảy ra khi xóa RAM')
+    }
+>>>>>>> origin/Huan
   }
 }
 
 function handleConfirm() {
   if (pendingAction.value) {
     pendingAction.value()
+<<<<<<< HEAD
     pendingAction.value = null
   }
   showConfirmModal.value = false
@@ -790,12 +924,65 @@ function handleCancel() {
 }
 
 // Lifecycle
+=======
+  }
+  showConfirmModal.value = false
+  pendingAction.value = null
+}
+
+function handleCancel() {
+  showConfirmModal.value = false
+  pendingAction.value = null
+}
+
+async function toggleRAMStatus(ram: Ram) {
+  try {
+    const newStatus = (ram.trangThai || 0) === 1 ? 0 : 1
+    await api.put(`/api/ram/${ram.id}/status`, { trangThai: newStatus })
+    
+    // Update local data
+    const index = rams.value.findIndex(r => r.id === ram.id)
+    if (index !== -1) {
+      rams.value[index].trangThai = newStatus
+    }
+    
+    const statusText = newStatus === 1 ? 'Hoạt động' : 'Ngừng hoạt động'
+    const message = newStatus === 1 
+      ? `Đã chuyển RAM "${ram.tenRam}" sang trạng thái <span style="color: #28a745; font-weight: bold;">${statusText}</span>`
+      : `Đã chuyển RAM "${ram.tenRam}" sang trạng thái <span style="color: #dc3545; font-weight: bold;">${statusText}</span>`
+    toastRef.value?.success('Thành công', message)
+  } catch (error: any) {
+    console.error('Lỗi khi cập nhật trạng thái:', error)
+    toastRef.value?.error('Lỗi cập nhật', 'Không thể cập nhật trạng thái RAM')
+  }
+}
+
+async function exportExcel() {
+  try {
+    const response = await api.get('/api/ram/export', { responseType: 'blob' })
+    const url = window.URL.createObjectURL(new Blob([response.data]))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', 'danh_sach_ram.xlsx')
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
+    toastRef.value?.success('Thành công', 'Xuất Excel thành công!')
+  } catch (error: any) {
+    console.error('Lỗi khi xuất Excel:', error)
+    toastRef.value?.error('Lỗi xuất Excel', 'Có lỗi xảy ra khi xuất file Excel')
+  }
+}
+
+>>>>>>> origin/Huan
 onMounted(() => {
   loadRams()
 })
 </script>
 
 <style scoped>
+<<<<<<< HEAD
 /* Orange and Black POS Theme */
 .page {
   background: #f8fafc;
@@ -2267,3 +2454,40 @@ input:checked + .toggle-slider:before {
 }
 </style>
 w
+=======
+/* Custom column widths for RAM page */
+:deep(.data-table .code-col) {
+  width: 120px;
+  min-width: 120px;
+}
+
+:deep(.data-table .name-col) {
+  min-width: 150px;
+}
+
+:deep(.data-table .desc-col) {
+  min-width: 200px;
+  max-width: 300px;
+  word-wrap: break-word;
+}
+
+:deep(.data-table .status-col) {
+  width: 120px;
+  min-width: 120px;
+  text-align: center;
+}
+
+:deep(.data-table .date-col) {
+  width: 120px;
+  min-width: 120px;
+  text-align: center;
+  font-size: 13px;
+}
+
+:deep(.data-table .action-col) {
+  width: 100px;
+  min-width: 100px;
+  text-align: center;
+}
+</style>
+>>>>>>> origin/Huan

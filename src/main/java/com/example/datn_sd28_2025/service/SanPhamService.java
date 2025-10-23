@@ -53,5 +53,9 @@ public interface SanPhamService {
     void deleteAllImagesFromChiTiet(Integer chiTietId);
     
     // Update product status
+<<<<<<< HEAD
     void updateStatus(Integer id, Integer trangThai);
+=======
+    SanPhamDTO updateSanPhamStatus(Integer id, Integer trangThai);
+>>>>>>> origin/Huan
 }

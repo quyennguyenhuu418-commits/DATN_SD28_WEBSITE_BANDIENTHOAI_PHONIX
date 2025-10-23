@@ -22,7 +22,11 @@ public class ChiTietThanhToan {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_don_hang")
+<<<<<<< HEAD
     private HoaDon hoaDon;
+=======
+    private HoaDon donHang;
+>>>>>>> origin/Huan
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_phuong_thuc_thanh_toan")

@@ -1,9 +1,21 @@
 <template>
   <div id="app" class="h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+<<<<<<< HEAD
     <div class="flex h-full">
       <!-- Modern Sidebar - Hide on login page -->
       <aside
         v-if="!isLoginPage"
+=======
+    <!-- Customer Layout (no sidebar) -->
+    <div v-if="isCustomerRoute" class="customer-layout">
+      <router-view />
+    </div>
+    
+    <!-- Admin Layout (with sidebar) -->
+    <div v-else class="flex h-full">
+      <!-- Modern Sidebar -->
+      <aside
+>>>>>>> origin/Huan
         class="sidebar-container transition-all duration-300 ease-in-out"
         :class="{ 'sidebar-collapsed': sidebarCollapsed }"
       >
@@ -13,7 +25,11 @@
             <!-- Logo -->
             <img 
               v-if="!sidebarCollapsed"
+<<<<<<< HEAD
               src="/logo.png" 
+=======
+              src="@/assets/ChatGPT Image 16_53_01 28 thg 9, 2025 1.png" 
+>>>>>>> origin/Huan
               alt="Logo" 
               class="logo-image"
             />
@@ -37,15 +53,35 @@
 
         <!-- Navigation Menu -->
         <nav class="navigation-menu">
+<<<<<<< HEAD
           <!-- Trang chủ -->
           <router-link to="/trang-chu" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
+=======
+          <!-- Dashboard -->
+          <router-link to="/dashboard" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
+>>>>>>> origin/Huan
             <div class="nav-icon">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                       d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
               </svg>
             </div>
+<<<<<<< HEAD
             <span v-if="!sidebarCollapsed" class="nav-text">Trang chủ</span>
+=======
+            <span v-if="!sidebarCollapsed" class="nav-text">Dashboard</span>
+          </router-link>
+
+          <!-- Thống kê -->
+          <router-link to="/thong-ke" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
+            <div class="nav-icon">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            </div>
+            <span v-if="!sidebarCollapsed" class="nav-text">Thống kê</span>
+>>>>>>> origin/Huan
           </router-link>
 
           <!-- Divider -->
@@ -53,6 +89,7 @@
             <span class="nav-section-title">Quản lý bán hàng</span>
           </div>
 
+<<<<<<< HEAD
           <!-- Bán hàng -->
           <router-link to="/pos" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
             <div class="nav-icon">
@@ -64,6 +101,8 @@
             <span v-if="!sidebarCollapsed" class="nav-text">Bán hàng</span>
           </router-link>
 
+=======
+>>>>>>> origin/Huan
           <!-- Sản phẩm -->
           <router-link to="/san-pham" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
             <div class="nav-icon">
@@ -97,7 +136,31 @@
             <span v-if="!sidebarCollapsed" class="nav-text">Hóa đơn</span>
           </router-link>
 
+<<<<<<< HEAD
 
+=======
+          <!-- Voucher -->
+          <router-link to="/voucher" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
+            <div class="nav-icon">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+            </svg>
+            </div>
+            <span v-if="!sidebarCollapsed" class="nav-text">Voucher</span>
+          </router-link>
+
+          <!-- Voucher Khách hàng -->
+          <router-link to="/customer-vouchers" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
+            <div class="nav-icon">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            </div>
+            <span v-if="!sidebarCollapsed" class="nav-text">Voucher KH</span>
+          </router-link>
+>>>>>>> origin/Huan
 
           <!-- Thuộc Tính with Submenu -->
           <div class="nav-dropdown">
@@ -122,9 +185,21 @@
             
             <!-- Submenu -->
             <div v-if="showThuocTinh && !sidebarCollapsed" class="nav-submenu">
+<<<<<<< HEAD
               <router-link to="/hang" class="nav-submenu-item">
                 <span>Hãng</span>
               </router-link>
+=======
+              <router-link to="/danh-muc" class="nav-submenu-item">
+                <span>Danh mục</span>
+              </router-link>
+              <router-link to="/hang" class="nav-submenu-item">
+                <span>Hãng</span>
+              </router-link>
+              <router-link to="/admin-reviews" class="nav-submenu-item">
+                <span>Quản lý đánh giá</span>
+              </router-link>
+>>>>>>> origin/Huan
               <router-link to="/he-dieu-hanh" class="nav-submenu-item">
                 <span>Hệ điều hành</span>
               </router-link>
@@ -161,6 +236,7 @@
             </div>
           </div>
 
+<<<<<<< HEAD
           <!-- Divider -->
           <div v-if="!sidebarCollapsed" class="nav-divider">
             <span class="nav-section-title">Quản lý giảm giá</span>
@@ -175,6 +251,17 @@
             </svg>
             </div>
             <span v-if="!sidebarCollapsed" class="nav-text">Phiếu giảm giá</span>
+=======
+          <!-- Giảm Giá -->
+          <router-link to="/giam-gia" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
+            <div class="nav-icon">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+            </svg>
+            </div>
+            <span v-if="!sidebarCollapsed" class="nav-text">Giảm Giá</span>
+>>>>>>> origin/Huan
           </router-link>
 
           <!-- Đợt Giảm Giá -->
@@ -185,7 +272,11 @@
                       d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
               </svg>
             </div>
+<<<<<<< HEAD
             <span v-if="!sidebarCollapsed" class="nav-text">Đợt giảm giá</span>
+=======
+            <span v-if="!sidebarCollapsed" class="nav-text">Đợt Giảm Giá</span>
+>>>>>>> origin/Huan
           </router-link>
 
           <!-- Divider -->
@@ -215,6 +306,7 @@
             <span v-if="!sidebarCollapsed" class="nav-text">Cài đặt</span>
           </router-link>
 
+<<<<<<< HEAD
           <!-- Messenger Settings -->
           <router-link to="/messenger-settings" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
             <div class="nav-icon">
@@ -235,11 +327,14 @@
           </router-link>
 
 
+=======
+>>>>>>> origin/Huan
           <!-- Divider -->
           <div v-if="!sidebarCollapsed" class="nav-divider">
             <span class="nav-section-title">Báo cáo & Phân tích</span>
           </div>
 
+<<<<<<< HEAD
           <!-- Thống kê -->
           <router-link to="/thong-ke" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
             <div class="nav-icon">
@@ -350,10 +445,76 @@
       @close="closeShiftHandoverModal"
       @confirm="handleShiftHandoverConfirmed"
     />
+=======
+          <!-- Báo cáo bán hàng -->
+          <router-link to="/bao-cao-ban-hang" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
+            <div class="nav-icon">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            </div>
+            <span v-if="!sidebarCollapsed" class="nav-text">Báo cáo bán hàng</span>
+          </router-link>
+
+          <!-- Báo cáo tồn kho -->
+          <router-link to="/bao-cao-ton-kho" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
+            <div class="nav-icon">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+            </svg>
+            </div>
+            <span v-if="!sidebarCollapsed" class="nav-text">Báo cáo tồn kho</span>
+          </router-link>
+
+          <!-- Phân tích khách hàng -->
+          <router-link to="/phan-tich-khach-hang" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
+            <div class="nav-icon">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <span v-if="!sidebarCollapsed" class="nav-text">Phân tích KH</span>
+            </router-link>
+
+
+        </nav>
+
+        <!-- User Profile Section -->
+        <div class="user-profile-section">
+          <div class="user-profile" :class="{ 'user-profile-collapsed': sidebarCollapsed }">
+            <div class="user-avatar">
+              <img src="@/assets/avatar.png" alt="User Avatar" class="w-8 h-8 rounded-full">
+            </div>
+            <div v-if="!sidebarCollapsed" class="user-info">
+              <div class="user-name">Admin User</div>
+              <div class="user-role">Quản trị viên</div>
+              </div>
+            <div v-if="!sidebarCollapsed" class="user-actions">
+              <button class="user-action-btn">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="flex-1 overflow-y-auto h-full">
+          <router-view />
+      </main>
+    </div>
+>>>>>>> origin/Huan
   </div>
 </template>
 
 <script setup lang="ts">
+<<<<<<< HEAD
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
@@ -375,6 +536,12 @@ const router = useRouter()
 
 // Dark mode
 const { isDark, toggleDarkMode } = useDarkMode()
+=======
+import { ref, computed } from 'vue'
+import { useRoute } from 'vue-router'
+const sidebarCollapsed = ref(false)
+const showThuocTinh = ref(false)
+>>>>>>> origin/Huan
 
 function toggleSidebar() {
   sidebarCollapsed.value = !sidebarCollapsed.value
@@ -384,6 +551,7 @@ function toggleThuocTinh() {
   showThuocTinh.value = !showThuocTinh.value
 }
 
+<<<<<<< HEAD
 // Check for pending handovers on app load
 onMounted(async () => {
   // Remove login-active class from body on app mount
@@ -427,11 +595,23 @@ const isLoginPage = computed(() => {
   return route.path === '/login' || route.name === 'LoginPage' || 
          route.path === '/forgot-password' || route.name === 'forgot-password'
 })
+=======
+const route = useRoute()
+const currentPathName = computed(() => route.name || route.path)
+
+// Check if current route is customer route (no admin sidebar)
+const isCustomerRoute = computed(() => {
+  const customerRoutes = ['product-detail']
+  return customerRoutes.includes(route.name as string)
+})
+
+>>>>>>> origin/Huan
 const globalSearch = ref('')
 function doGlobalSearch() {
   // hook tìm kiếm toàn cục, có thể emit event hoặc điều hướng sang trang có ô filter keyword
   console.log('Global search:', globalSearch.value)
 }
+<<<<<<< HEAD
 
 // Watch for route changes to manage body class
 watch(() => route.path, (newPath) => {
@@ -441,6 +621,8 @@ watch(() => route.path, (newPath) => {
     document.body.classList.remove('login-active')
   }
 }, { immediate: true })
+=======
+>>>>>>> origin/Huan
 </script>
 
 <style scoped>
@@ -458,6 +640,7 @@ watch(() => route.path, (newPath) => {
   --topbar-bg: rgba(255, 255, 255, 0.9);
 }
 
+<<<<<<< HEAD
 :root.dark {
   /* Dark Mode Colors */
   --bg-primary: #0f172a;
@@ -470,6 +653,8 @@ watch(() => route.path, (newPath) => {
   --shadow-light: rgba(0, 0, 0, 0.3);
   --topbar-bg: rgba(30, 41, 59, 0.9);
 }
+=======
+>>>>>>> origin/Huan
 
 /* Modern App Styles */
 html, body {
@@ -499,14 +684,20 @@ html, body {
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease;
+<<<<<<< HEAD
   overflow: hidden; /* Không scroll toàn bộ sidebar */
   position: relative;
   z-index: 1000;
+=======
+>>>>>>> origin/Huan
 }
 
 .sidebar-collapsed {
   width: 80px;
+<<<<<<< HEAD
   overflow: hidden; /* Không scroll toàn bộ sidebar khi collapsed */
+=======
+>>>>>>> origin/Huan
 }
 
 /* Sidebar Header */
@@ -517,7 +708,10 @@ html, body {
   display: flex;
   align-items: center;
   min-height: 60px;
+<<<<<<< HEAD
   flex-shrink: 0; /* Prevent header from shrinking */
+=======
+>>>>>>> origin/Huan
 }
 
 /* Logo styling */
@@ -725,7 +919,16 @@ html, body {
   color: #1e40af !important;
 }
 
+<<<<<<< HEAD
 /* User Profile Section - Removed */
+=======
+/* User Profile Section */
+.user-profile-section {
+  padding: 1rem;
+  border-top: 1px solid #e2e8f0;
+  margin-top: auto;
+}
+>>>>>>> origin/Huan
 
 .user-profile {
   display: flex;
@@ -798,13 +1001,27 @@ html, body {
   color: white;
 }
 
+<<<<<<< HEAD
+=======
+/* Customer Layout */
+.customer-layout {
+  width: 100%;
+  height: 100vh;
+  background: #f8f9fa;
+  overflow-y: auto;
+}
+
+>>>>>>> origin/Huan
 /* Main Content */
 main {
   background: var(--bg-primary);
   min-height: 100vh;
   transition: all 0.3s ease;
   overflow-x: hidden; /* Ẩn thanh trượt ngang */
+<<<<<<< HEAD
   z-index: 1;
+=======
+>>>>>>> origin/Huan
 }
 
 /* Ẩn thanh trượt dọc cho main content */
@@ -831,6 +1048,7 @@ main::-webkit-scrollbar-thumb {
   color: var(--text-primary) !important;
 }
 
+<<<<<<< HEAD
 /* Dark Mode Toggle */
 .dark-mode-toggle {
   width: 40px;
@@ -860,6 +1078,8 @@ main::-webkit-scrollbar-thumb {
 :root.dark .dark-mode-toggle:hover {
   box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
 }
+=======
+>>>>>>> origin/Huan
 
 /* Topbar Icons */
 .topbar-icon {
@@ -917,6 +1137,7 @@ main::-webkit-scrollbar-thumb {
   100% { transform: scale(1); }
 }
 
+<<<<<<< HEAD
 /* Custom scrollbar cho navigation menu */
 .navigation-menu::-webkit-scrollbar {
   width: 6px;
@@ -955,6 +1176,37 @@ main::-webkit-scrollbar-thumb {
   overflow-x: visible; /* Cho phép dropdown hiển thị */
   min-height: 0; /* Cho phép flex item shrink */
   max-height: calc(100vh - 80px); /* Trừ đi chiều cao header */
+=======
+/* Ẩn scrollbar cho sidebar */
+.sidebar-container::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+
+.sidebar-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-container::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+.sidebar-container::-webkit-scrollbar-thumb:hover {
+  background: transparent;
+}
+
+/* Navigation Menu - ẩn overflow */
+.navigation-menu {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+  overflow-x: hidden; /* Ẩn thanh trượt ngang */
+}
+
+.navigation-menu::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+>>>>>>> origin/Huan
 }
 
 /* Responsive */
@@ -964,8 +1216,11 @@ main::-webkit-scrollbar-thumb {
     position: fixed;
     z-index: 50;
     height: 100vh;
+<<<<<<< HEAD
     overflow: hidden; /* Không scroll toàn bộ sidebar */
     -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+=======
+>>>>>>> origin/Huan
   }
   
   .sidebar-container.open {
@@ -975,6 +1230,7 @@ main::-webkit-scrollbar-thumb {
   main {
     width: 100%;
   }
+<<<<<<< HEAD
   
   /* Mobile scrollbar - thinner cho navigation menu */
   .navigation-menu::-webkit-scrollbar {
@@ -985,6 +1241,8 @@ main::-webkit-scrollbar-thumb {
   .navigation-menu {
     max-height: calc(100vh - 70px); /* Trừ đi chiều cao header trên mobile */
   }
+=======
+>>>>>>> origin/Huan
 }
 
 /* Animations */
@@ -1002,6 +1260,7 @@ main::-webkit-scrollbar-thumb {
 .nav-item {
   animation: slideIn 0.3s ease-out;
 }
+<<<<<<< HEAD
 
 /* Full width for login page */
 .full-width {
@@ -1164,5 +1423,7 @@ body:not(.login-active) .header-right {
   visibility: hidden !important;
   opacity: 0 !important;
 }
+=======
+>>>>>>> origin/Huan
 </style>
           

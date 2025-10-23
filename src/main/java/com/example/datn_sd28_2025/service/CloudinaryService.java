@@ -4,6 +4,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 
+<<<<<<< HEAD
 // Temporarily disabled until Cloudinary dependency is properly configured
 // public interface CloudinaryService {
 //     Map<String, Object> uploadImage(MultipartFile file);
@@ -11,3 +12,11 @@ import java.util.Map;
 //     boolean isValidImageFile(MultipartFile file);
 //     boolean isValidFileSize(MultipartFile file, long maxSizeInBytes);
 // }
+=======
+public interface CloudinaryService {
+    Map<String, Object> uploadImage(MultipartFile file);
+    Map<String, Object> deleteImage(String publicId);
+    boolean isValidImageFile(MultipartFile file);
+    boolean isValidFileSize(MultipartFile file, long maxSizeInBytes);
+}
+>>>>>>> origin/Huan

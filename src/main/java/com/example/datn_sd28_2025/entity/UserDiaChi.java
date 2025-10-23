@@ -26,9 +26,14 @@ public class UserDiaChi {
     @JsonIgnore
     private KhachHang khachHang;
 
+<<<<<<< HEAD
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_dia_chi")
     private DiaChi diaChi;
+=======
+    @Column(name = "id_dia_chi")
+    private Integer idDiaChi;
+>>>>>>> origin/Huan
 
     @Column(name = "loai_dia_chi", length = 100)
     private String loaiDiaChi;

@@ -1,8 +1,13 @@
 /* Modern Admin Layout Styles - Common styles for all admin pages */
 
+<<<<<<< HEAD
 /* CSS Variables for Light/Dark Mode */
 :root {
   /* Light Mode Colors */
+=======
+/* CSS Variables */
+:root {
+>>>>>>> origin/Huan
   --bg-primary: #f8f9fa;
   --bg-secondary: #ffffff;
   --text-primary: #1f2937;
@@ -11,6 +16,7 @@
   --shadow-light: rgba(0, 0, 0, 0.1);
 }
 
+<<<<<<< HEAD
 :root.dark {
   /* Dark Mode Colors */
   --bg-primary: #0f172a;
@@ -21,6 +27,8 @@
   --shadow-light: rgba(0, 0, 0, 0.3);
 }
 
+=======
+>>>>>>> origin/Huan
 /* Modern Page Container */
 .page {
   padding: 20px;
@@ -333,12 +341,17 @@
   .page {
     padding: 12px;
   }
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/Huan
   .search-header {
     flex-direction: column;
     align-items: stretch;
     gap: 16px;
   }
+<<<<<<< HEAD
 
   .search-input-container {
     min-width: auto;
@@ -348,17 +361,36 @@
     justify-content: center;
   }
 
+=======
+  
+  .search-input-container {
+    min-width: auto;
+  }
+  
+  .action-buttons {
+    justify-content: center;
+  }
+  
+>>>>>>> origin/Huan
   .content-header {
     flex-direction: column;
     gap: 12px;
     align-items: stretch;
   }
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/Huan
   .pagination {
     flex-direction: column;
     gap: 16px;
   }
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/Huan
   .pagination-right {
     justify-content: center;
   }

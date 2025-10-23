@@ -31,6 +31,11 @@ public class KhuyenMai {
     @Column(name = "mo_ta", length = 500)
     private String moTa;
 
+<<<<<<< HEAD
+=======
+    @Column(name = "muc_do_uu_tien")
+    private Integer mucDoUuTien;
+>>>>>>> origin/Huan
 
     @Column(name = "phan_tram_giam", precision = 5, scale = 2)
     private BigDecimal phanTramGiam;

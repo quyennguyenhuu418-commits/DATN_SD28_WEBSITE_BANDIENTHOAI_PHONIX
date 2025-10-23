@@ -1,4 +1,5 @@
 <template>
+<<<<<<< HEAD
   <div class="page dark-mode-transition">
     <PosHeader />
 
@@ -333,11 +334,79 @@ const totalItems = ref(0)
 // Modal states
 const showForm = ref(false)
 const editingRom = ref<Rom | null>(null)
+=======
+  <AdminTable
+    :data="roms"
+    :columns="romColumns"
+    title="Danh Sách ROM"
+    titleIcon="💾"
+    entityName="ROM"
+    searchPlaceholder="Tìm kiếm theo tên ROM..."
+    @openForm="openForm"
+    @deleteItem="deleteRom"
+    @exportExcel="exportExcel"
+    @toggleStatus="toggleROMStatus"
+  />
+
+  <!-- Confirm Modal -->
+  <ConfirmModal
+    :show="showConfirmModal"
+    :title="confirmTitle"
+    :message="confirmMessage"
+    @confirm="handleConfirm"
+    @cancel="handleCancel"
+  />
+
+  <FormModal
+    :show="showForm"
+    :title="editingRom ? 'Sửa ROM' : 'Thêm ROM'"
+    :fields="romFields"
+    :initial-data="editingRom ? {
+      maRom: editingRom.maRom || '',
+      dungLuong: editingRom.dungLuong,
+      moTa: editingRom.moTa || '',
+      trangThai: editingRom.trangThai
+    } : undefined"
+    @submit="handleFormSubmit"
+    @cancel="showForm = false"
+  />
+
+  <Toast ref="toastRef" />
+</template>
+
+<script setup lang="ts">
+import { onMounted, ref } from 'vue'
+import api from '@/services/api'
+import AdminTable from '@/components/AdminTable.vue'
+import ConfirmModal from '@/components/ConfirmModal.vue'
+import FormModal from '@/components/FormModal.vue'
+import Toast from '@/components/Toast.vue'
+import '@/styles/admin-layout.css'
+
+interface Rom {
+  id: number
+  maRom?: string
+  dungLuong: string
+  moTa?: string
+  ngayTao?: string
+  ngayCapNhat?: string
+  trangThai: number
+}
+
+const roms = ref<Rom[]>([])
+const loading = ref(false)
+const showForm = ref(false)
+const editingRom = ref<Rom | null>(null)
+const toastRef = ref<InstanceType<typeof Toast> | null>(null)
+
+// Confirm modal state
+>>>>>>> origin/Huan
 const showConfirmModal = ref(false)
 const confirmTitle = ref('')
 const confirmMessage = ref('')
 const pendingAction = ref<(() => void) | null>(null)
 
+<<<<<<< HEAD
 // Form data for enhanced modal
 const formData = ref({
   maRom: '',
@@ -345,6 +414,14 @@ const formData = ref({
   moTa: '',
   trangThai: 1
 })
+=======
+const romColumns = [
+  { key: 'maRom', label: 'Mã', class: 'code-col', type: 'code' as const },
+  { key: 'dungLuong', label: 'Dung lượng', class: 'name-col' },
+  { key: 'moTa', label: 'Mô tả', class: 'desc-col' },
+  { key: 'trangThai', label: 'Trạng thái', class: 'status-col', type: 'status' as const }
+]
+>>>>>>> origin/Huan
 
 const romFields = [
   { key: 'maRom', label: 'Mã ROM', type: 'text' as const, required: true },
@@ -353,6 +430,7 @@ const romFields = [
   { key: 'trangThai', label: 'Hoạt động', type: 'checkbox' as const }
 ]
 
+<<<<<<< HEAD
 // Computed property for filtered roms (without pagination)
 const allFilteredRoms = computed(() => {
   let filtered = roms.value
@@ -449,11 +527,19 @@ async function loadRoms() {
   } catch (error) {
     console.error('Lỗi khi tải danh sách ROM:', error)
     toastRef.value?.error('Lỗi', 'Không thể tải danh sách ROM')
+=======
+async function loadRoms() {
+  loading.value = true
+  try {
+    const { data } = await api.get<Rom[]>('/api/rom')
+    roms.value = data
+>>>>>>> origin/Huan
   } finally {
     loading.value = false
   }
 }
 
+<<<<<<< HEAD
 function applyFilters() {
   currentPage.value = 1
 }
@@ -772,12 +858,82 @@ async function updateRom(id: number, formData: any) {
   } catch (error) {
     console.error('Error updating rom:', error)
     toastRef.value?.error('Lỗi cập nhật', 'Không thể cập nhật ROM')
+=======
+function openForm(rom?: Rom) {
+  editingRom.value = rom || null
+  showForm.value = true
+}
+
+async function handleFormSubmit(data: any) {
+  try {
+    if (editingRom.value) {
+      await api.put(`/api/rom/${editingRom.value.id}`, data)
+      toastRef.value?.success('Thành công', 'Cập nhật ROM thành công!')
+    } else {
+      await api.post('/api/rom', data)
+      toastRef.value?.success('Thành công', 'Thêm ROM thành công!')
+    }
+    showForm.value = false
+    await loadRoms()
+  } catch (error: any) {
+    console.error('Lỗi khi lưu:', error)
+    if (error.response?.data) {
+      toastRef.value?.error('Lỗi lưu ROM', error.response.data)
+    } else {
+      toastRef.value?.error('Lỗi lưu ROM', 'Có lỗi xảy ra khi lưu ROM')
+    }
+  }
+}
+
+async function toggleROMStatus(rom: Rom) {
+  try {
+    const newStatus = (rom.trangThai || 0) === 1 ? 0 : 1
+    await api.put(`/api/rom/${rom.id}/status`, { trangThai: newStatus })
+    
+    // Update local data
+    const index = roms.value.findIndex(r => r.id === rom.id)
+    if (index !== -1) {
+      roms.value[index].trangThai = newStatus
+    }
+    
+    const statusText = newStatus === 1 ? 'Hoạt động' : 'Ngừng hoạt động'
+    const message = newStatus === 1 
+      ? `Đã chuyển ROM "${rom.dungLuong}" sang trạng thái <span style="color: #28a745; font-weight: bold;">${statusText}</span>`
+      : `Đã chuyển ROM "${rom.dungLuong}" sang trạng thái <span style="color: #dc3545; font-weight: bold;">${statusText}</span>`
+    toastRef.value?.success('Thành công', message)
+  } catch (error: any) {
+    console.error('Lỗi khi cập nhật trạng thái:', error)
+    toastRef.value?.error('Lỗi cập nhật', 'Không thể cập nhật trạng thái ROM')
+  }
+}
+function deleteRom(id: number) {
+  const rom = roms.value.find(r => r.id === id)
+  confirmTitle.value = 'Xác nhận xóa ROM'
+  confirmMessage.value = `Bạn có chắc chắn muốn xóa ROM "${rom?.dungLuong || 'này'}"? Hành động này không thể hoàn tác.`
+  pendingAction.value = () => performDelete(id)
+  showConfirmModal.value = true
+}
+
+async function performDelete(id: number) {
+  try {
+    await api.delete(`/api/rom/${id}`)
+    toastRef.value?.success('Thành công', 'Xóa ROM thành công!')
+    await loadRoms()
+  } catch (error: any) {
+    console.error('Lỗi khi xóa:', error)
+    if (error.response?.data) {
+      toastRef.value?.error('Không thể xóa', error.response.data)
+    } else {
+      toastRef.value?.error('Lỗi xóa ROM', 'Có lỗi xảy ra khi xóa ROM')
+    }
+>>>>>>> origin/Huan
   }
 }
 
 function handleConfirm() {
   if (pendingAction.value) {
     pendingAction.value()
+<<<<<<< HEAD
     pendingAction.value = null
   }
   showConfirmModal.value = false
@@ -789,12 +945,43 @@ function handleCancel() {
 }
 
 // Lifecycle
+=======
+  }
+  showConfirmModal.value = false
+  pendingAction.value = null
+}
+
+function handleCancel() {
+  showConfirmModal.value = false
+  pendingAction.value = null
+}
+
+async function exportExcel() {
+  try {
+    const response = await api.get('/api/rom/export', { responseType: 'blob' })
+    const url = window.URL.createObjectURL(new Blob([response.data]))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', 'danh_sach_rom.xlsx')
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
+    toastRef.value?.success('Thành công', 'Xuất Excel thành công!')
+  } catch (error: any) {
+    console.error('Lỗi khi xuất Excel:', error)
+    toastRef.value?.error('Lỗi xuất Excel', 'Có lỗi xảy ra khi xuất file Excel')
+  }
+}
+
+>>>>>>> origin/Huan
 onMounted(() => {
   loadRoms()
 })
 </script>
 
 <style scoped>
+<<<<<<< HEAD
 /* Orange and Black POS Theme */
 .page {
   background: #f8fafc;
@@ -2251,3 +2438,40 @@ input:checked + .toggle-slider:before {
   }
 }
 </style>
+=======
+/* Custom column widths for ROM page */
+:deep(.data-table .code-col) {
+  width: 120px;
+  min-width: 120px;
+}
+
+:deep(.data-table .name-col) {
+  min-width: 150px;
+}
+
+:deep(.data-table .desc-col) {
+  min-width: 200px;
+  max-width: 300px;
+  word-wrap: break-word;
+}
+
+:deep(.data-table .status-col) {
+  width: 120px;
+  min-width: 120px;
+  text-align: center;
+}
+
+:deep(.data-table .date-col) {
+  width: 120px;
+  min-width: 120px;
+  text-align: center;
+  font-size: 13px;
+}
+
+:deep(.data-table .action-col) {
+  width: 100px;
+  min-width: 100px;
+  text-align: center;
+}
+</style>
+>>>>>>> origin/Huan

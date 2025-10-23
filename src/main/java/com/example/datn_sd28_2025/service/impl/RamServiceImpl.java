@@ -72,6 +72,7 @@ public class RamServiceImpl implements RamService {
         ramRepository.deleteById(id);
     }
 
+<<<<<<< HEAD
     @Override
     public void updateStatus(Integer id, Integer trangThai) {
         Ram ram = ramRepository.findById(id)
@@ -81,6 +82,8 @@ public class RamServiceImpl implements RamService {
         ramRepository.save(ram);
     }
 
+=======
+>>>>>>> origin/Huan
     private RamDTO convertToDto(Ram ram) {
         return RamDTO.builder()
                 .id(ram.getId())
@@ -104,4 +107,16 @@ public class RamServiceImpl implements RamService {
                 .trangThai(ramDTO.getTrangThai())
                 .build();
     }
+<<<<<<< HEAD
+=======
+
+    @Override
+    public void updateStatus(Integer id, Integer trangThai) {
+        Ram ram = ramRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy ram với ID: " + id));
+        ram.setTrangThai(trangThai);
+        ram.setNgayCapNhat(LocalDateTime.now());
+        ramRepository.save(ram);
+    }
+>>>>>>> origin/Huan
 }

@@ -111,6 +111,13 @@ public class SanPham {
     @JsonIgnore
     private List<ChiTietSanPham> chiTietSanPhams;
 
+<<<<<<< HEAD
+=======
+    @OneToMany(mappedBy = "sanPham", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Review> reviews;
+
+>>>>>>> origin/Huan
     // Nhận idDanhMuc, idHang từ JSON để map quan hệ ở service
     @Transient
     @JsonProperty("idDanhMuc")

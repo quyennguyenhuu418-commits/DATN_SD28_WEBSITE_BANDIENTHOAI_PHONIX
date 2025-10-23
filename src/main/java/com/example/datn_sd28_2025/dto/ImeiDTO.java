@@ -14,9 +14,14 @@ import java.time.LocalDateTime;
 public class ImeiDTO {
     private Integer id;
     private String imei;
+<<<<<<< HEAD
     // Note: ngay_tao and ngay_cap_nhat columns don't exist in the actual database
     // private LocalDateTime ngayTao;
     // private LocalDateTime ngayCapNhat;
+=======
+    private LocalDateTime ngayTao;
+    private LocalDateTime ngayCapNhat;
+>>>>>>> origin/Huan
     private Integer trangThai;
 
     // Related entities
