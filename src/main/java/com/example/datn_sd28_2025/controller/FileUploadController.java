@@ -1,8 +1,10 @@
 package com.example.datn_sd28_2025.controller;
 
 import com.example.datn_sd28_2025.entity.DanhMuc;
+import com.example.datn_sd28_2025.entity.Hang;
 import com.example.datn_sd28_2025.entity.HinhAnh;
 import com.example.datn_sd28_2025.repository.DanhMucRepository;
+import com.example.datn_sd28_2025.repository.HangRepository;
 import com.example.datn_sd28_2025.repository.HinhAnhRepository;
 import com.example.datn_sd28_2025.service.CloudinaryService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,9 @@ public class FileUploadController {
     
     @Autowired
     private DanhMucRepository danhMucRepository;
+    
+    @Autowired
+    private HangRepository hangRepository;
     
     @Autowired
     private HinhAnhRepository hinhAnhRepository;
@@ -75,6 +80,43 @@ public class FileUploadController {
             "url", uploadResult.get("url"),
             "publicId", uploadResult.get("public_id"),
             "message", "Upload hình ảnh cho danh mục thành công"
+        );
+        
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/image/hang")
+    public ResponseEntity<Map<String, Object>> uploadImageForHang(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("idHang") Integer idHang) {
+        if (file.isEmpty()) {
+            Map<String, Object> error = Map.of("error", "File không được để trống");
+            return ResponseEntity.badRequest().body(error);
+        }
+
+        Hang hang = hangRepository.findById(idHang)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hãng"));
+
+        Map<String, Object> uploadResult = cloudinaryService.uploadImage(file);
+        
+        if (uploadResult.containsKey("error")) {
+            return ResponseEntity.badRequest().body(uploadResult);
+        }
+        
+        // Lưu thông tin hình ảnh vào database
+        HinhAnh hinhAnh = HinhAnh.builder()
+                .hang(hang)
+                .urlAnh((String) uploadResult.get("url"))
+                .ngayTao(LocalDateTime.now())
+                .trangThai(1)
+                .build();
+        
+        hinhAnhRepository.save(hinhAnh);
+        
+        Map<String, Object> result = Map.of(
+            "url", uploadResult.get("url"),
+            "publicId", uploadResult.get("public_id"),
+            "message", "Upload hình ảnh cho hãng thành công"
         );
         
         return ResponseEntity.ok(result);

@@ -23,4 +23,5 @@ public class HinhAnhDTO {
 
     // Transient fields for JSON mapping
     private Integer idCtsp;
+    private Integer idHang;
 }

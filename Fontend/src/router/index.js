@@ -23,6 +23,8 @@ const GpuPage = () => import('../views/GpuPage.vue')
 const DanhMucPage = () => import('../views/DanhMucPage.vue')
 const ProductDetailPage = () => import('../views/ProductDetailPage.vue')
 const AdminReviewPage = () => import('../views/AdminReviewPage.vue')
+const CustomerVoucherDemo = () => import('../views/CustomerVoucherDemo.vue')
+const PolicyPage = () => import('../views/PolicyPage.vue')
 
 
 const router = createRouter({
@@ -54,6 +56,10 @@ const router = createRouter({
     { path: '/danh-muc', name: 'danh-muc', component: DanhMucPage },
     // Customer product detail page
     { path: '/product/:id', name: 'product-detail', component: ProductDetailPage },
+    // Customer voucher demo page
+    { path: '/customer-voucher-demo', name: 'customer-voucher-demo', component: CustomerVoucherDemo },
+    // Policy page
+    { path: '/policy', name: 'policy', component: PolicyPage },
    
   ],
 })

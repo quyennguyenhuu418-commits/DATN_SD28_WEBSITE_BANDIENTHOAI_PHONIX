@@ -1,7 +1,9 @@
 package com.example.datn_sd28_2025.service.impl;
 
 import com.example.datn_sd28_2025.dto.HangDTO;
+import com.example.datn_sd28_2025.dto.HinhAnhDTO;
 import com.example.datn_sd28_2025.entity.Hang;
+import com.example.datn_sd28_2025.entity.HinhAnh;
 import com.example.datn_sd28_2025.repository.HangRepository;
 import com.example.datn_sd28_2025.service.HangService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class HangServiceImpl implements HangService {
@@ -69,6 +72,13 @@ public class HangServiceImpl implements HangService {
     }
 
     private HangDTO convertToDto(Hang hang) {
+        List<HinhAnhDTO> hinhAnhDTOs = null;
+        if (hang.getHinhAnhs() != null && !hang.getHinhAnhs().isEmpty()) {
+            hinhAnhDTOs = hang.getHinhAnhs().stream()
+                    .map(this::convertHinhAnhToDto)
+                    .collect(Collectors.toList());
+        }
+        
         return HangDTO.builder()
                 .id(hang.getId())
                 .ten(hang.getTen())
@@ -77,6 +87,7 @@ public class HangServiceImpl implements HangService {
                 .ngayTao(hang.getNgayTao())
                 .ngayCapNhat(hang.getNgayCapNhat())
                 .trangThai(hang.getTrangThai())
+                .hinhAnhs(hinhAnhDTOs)
                 .build();
     }
 
@@ -99,5 +110,16 @@ public class HangServiceImpl implements HangService {
         hang.setTrangThai(trangThai);
         hang.setNgayCapNhat(LocalDateTime.now());
         hangRepository.save(hang);
+    }
+
+    private HinhAnhDTO convertHinhAnhToDto(HinhAnh hinhAnh) {
+        return HinhAnhDTO.builder()
+                .id(hinhAnh.getId())
+                .urlAnh(hinhAnh.getUrlAnh())
+                .ngayTao(hinhAnh.getNgayTao())
+                .ngaySua(hinhAnh.getNgaySua())
+                .trangThai(hinhAnh.getTrangThai())
+                .idHang(hinhAnh.getHang() != null ? hinhAnh.getHang().getId() : null)
+                .build();
     }
 }

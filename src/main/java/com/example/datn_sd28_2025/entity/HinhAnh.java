@@ -31,6 +31,11 @@ public class HinhAnh {
     @JsonIgnore
     private DanhMuc danhMuc;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_hang")
+    @JsonIgnore
+    private Hang hang;
+
     @Column(name = "url_anh", length = 500)
     private String urlAnh;
 
@@ -51,4 +56,8 @@ public class HinhAnh {
     @Transient
     @JsonProperty("idDanhMuc")
     private Integer idDanhMuc;
+
+    @Transient
+    @JsonProperty("idHang")
+    private Integer idHang;
 }

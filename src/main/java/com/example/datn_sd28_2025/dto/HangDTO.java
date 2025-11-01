@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -19,4 +20,5 @@ public class HangDTO {
     private LocalDateTime ngayTao;
     private LocalDateTime ngayCapNhat;
     private Integer trangThai;
+    private List<HinhAnhDTO> hinhAnhs;
 }

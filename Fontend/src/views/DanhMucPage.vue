@@ -95,6 +95,29 @@
     <template #custom-fields>
       <div class="image-upload-section">
         <label class="form-label">Hình ảnh danh mục</label>
+        
+        <!-- Hiển thị ảnh cũ nếu đang chỉnh sửa -->
+        <div v-if="editingDanhMuc && editingDanhMuc.hinhAnhs && editingDanhMuc.hinhAnhs.length > 0" class="existing-images">
+          <h4 class="existing-images-title">Ảnh hiện tại:</h4>
+          <div class="existing-images-grid">
+            <div v-for="(hinh, index) in editingDanhMuc.hinhAnhs" :key="hinh.id" class="existing-image-item">
+              <img 
+                :src="hinh.urlAnh" 
+                :alt="`Ảnh ${index + 1}`"
+                class="existing-image"
+                @click="openImageModal(editingDanhMuc.hinhAnhs, index)"
+              />
+              <button 
+                @click.stop="removeExistingImage(hinh.id, index)" 
+                class="remove-existing-image"
+                title="Xóa ảnh này"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        </div>
+        
         <div class="image-upload-area">
           <div 
             class="upload-zone" 
@@ -117,6 +140,7 @@
             style="display: none"
           />
           <div v-if="selectedFiles.length > 0" class="selected-files">
+            <h4 class="new-images-title">Ảnh mới sẽ thêm:</h4>
             <div v-for="(file, index) in selectedFiles" :key="index" class="file-preview">
               <img 
                 v-if="file.preview" 
@@ -258,6 +282,9 @@ const danhMucFields = [
 const selectedFiles = ref([])
 const isUploading = ref(false)
 
+// Images to be deleted (temporary removal)
+const imagesToDelete = ref([])
+
 // Methods
 const loadDanhMucs = async () => {
   try {
@@ -271,6 +298,8 @@ const loadDanhMucs = async () => {
 
 const openForm = (danhMuc: DanhMuc | null = null) => {
   editingDanhMuc.value = danhMuc
+  selectedFiles.value = [] // Reset selected files when opening form
+  imagesToDelete.value = [] // Reset images to delete when opening form
   showForm.value = true
 }
 
@@ -288,6 +317,11 @@ const handleFormSubmit = async (formData: any) => {
       showToast('Thêm danh mục thành công!', 'success')
     }
     
+    // Xóa ảnh đã đánh dấu xóa
+    if (imagesToDelete.value.length > 0) {
+      await deleteMarkedImages()
+    }
+    
     // Upload hình ảnh nếu có
     if (selectedFiles.value.length > 0) {
       await uploadImagesForDanhMuc(danhMucId)
@@ -297,6 +331,7 @@ const handleFormSubmit = async (formData: any) => {
     showForm.value = false
     editingDanhMuc.value = null
     selectedFiles.value = []
+    imagesToDelete.value = []
   } catch (error: any) {
     console.error('Lỗi khi lưu danh mục:', error)
     showToast('Lỗi khi lưu danh mục: ' + (error.response?.data?.message || error.message), 'error')
@@ -391,6 +426,30 @@ const processFiles = (files) => {
 
 const removeFile = (index) => {
   selectedFiles.value.splice(index, 1)
+}
+
+const removeExistingImage = (imageId, index) => {
+  // Thêm ảnh vào danh sách sẽ xóa (chỉ xóa tạm thời khỏi UI)
+  imagesToDelete.value.push(imageId)
+  
+  // Xóa ảnh khỏi danh sách hiện tại (chỉ trong UI)
+  if (editingDanhMuc.value && editingDanhMuc.value.hinhAnhs) {
+    editingDanhMuc.value.hinhAnhs.splice(index, 1)
+  }
+  
+  showToast('Ảnh sẽ được xóa khi bạn xác nhận!', 'info')
+}
+
+const deleteMarkedImages = async () => {
+  try {
+    for (const imageId of imagesToDelete.value) {
+      await api.delete(`/api/hinh-anh/${imageId}`)
+    }
+    showToast(`Đã xóa ${imagesToDelete.value.length} ảnh!`, 'success')
+  } catch (error: any) {
+    console.error('Lỗi khi xóa ảnh:', error)
+    showToast('Lỗi khi xóa ảnh: ' + (error.response?.data?.message || error.message), 'error')
+  }
 }
 
 
@@ -932,6 +991,80 @@ onMounted(() => {
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   background: #f9f9f9;
+}
+
+/* Existing Images Styles */
+.existing-images {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+.existing-images-title {
+  margin: 0 0 15px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.existing-images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 10px;
+}
+
+.existing-image-item {
+  position: relative;
+  display: inline-block;
+}
+
+.existing-image {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid #ddd;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.existing-image:hover {
+  border-color: #007bff;
+  transform: scale(1.05);
+}
+
+.remove-existing-image {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.remove-existing-image:hover {
+  background: #c82333;
+  transform: scale(1.1);
+}
+
+.new-images-title {
+  margin: 15px 0 10px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #007bff;
 }
 
 .form-label {

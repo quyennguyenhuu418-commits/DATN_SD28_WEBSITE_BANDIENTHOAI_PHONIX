@@ -42,4 +42,7 @@ public class Hang {
     @OneToMany(mappedBy = "hang", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<SanPham> sanPhams;
+
+    @OneToMany(mappedBy = "hang", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<HinhAnh> hinhAnhs;
 }
