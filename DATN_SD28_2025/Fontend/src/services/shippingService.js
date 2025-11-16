@@ -261,3 +261,9 @@ class ShippingService {
 
 // Export singleton instance
 export default new ShippingService()
+
+
+
+
+
+

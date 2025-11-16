@@ -6,7 +6,8 @@
     <!-- Main Content -->
     <main class="dathang-main" style="margin-top: 80px;">
       <div class="container">
-        
+
+
         <!-- Order Success Message -->
         <div v-if="orderSuccess.show" class="order-success-overlay">
           <div class="order-success-card">
@@ -21,7 +22,7 @@
               Mã đơn hàng: <strong>{{ orderSuccess.orderId }}</strong>
             </div>
             <div class="success-actions">
-              <button @click="orderSuccess.show = false" class="btn-continue">
+              <button @click="continueShopping" class="btn-continue">
                 <i class="bi bi-arrow-left"></i>
                 Tiếp tục mua sắm
               </button>
@@ -35,50 +36,73 @@
         <div class="page-header">
           <h1>Đặt hàng</h1>
           <p>Hoàn tất thông tin để đặt hàng</p>
-          
-          <!-- User Login Status -->
-          <div v-if="isLoggedIn" class="user-status">
-            <div class="user-info">
-              <i class="bi bi-person-check-fill"></i>
-              <span>Xin chào, <strong>{{ userInfo?.fullName || userInfo?.tenKhachHang || 'Khách hàng' }}</strong></span>
-            </div>
-            <div class="login-benefits">
-              <i class="bi bi-check-circle"></i>
-              <span>Thông tin đã được tự động điền từ tài khoản</span>
+        </div>
+
+        <!-- Timeline Stepper (after header) -->
+        <div class="checkout-steps">
+          <div class="step" :class="{ active: currentStep === 1, done: currentStep > 1 }">
+            <div class="step-index">1</div>
+            <div class="step-info">
+              <div class="step-title">Thông tin đơn hàng</div>
+              <div class="step-sub">Phương thức + địa chỉ</div>
             </div>
           </div>
-          
-          <div v-else class="guest-status">
-            <div class="guest-info">
-              <i class="bi bi-person"></i>
-              <span>Bạn đang đặt hàng với tư cách khách</span>
+          <div class="step-connector"></div>
+          <div class="step" :class="{ active: currentStep === 2, done: currentStep > 2 }">
+            <div class="step-index">2</div>
+            <div class="step-info">
+              <div class="step-title">Xác nhận đơn hàng</div>
+              <div class="step-sub">Sản phẩm + mã giảm</div>
             </div>
-            <div class="login-prompt">
-              <i class="bi bi-info-circle"></i>
-              <span>Đăng nhập để tự động điền thông tin và lưu địa chỉ</span>
+          </div>
+          <div class="step-connector"></div>
+          <div class="step" :class="{ active: currentStep === 3 }">
+            <div class="step-index">3</div>
+            <div class="step-info">
+              <div class="step-title">Thanh toán</div>
+              <div class="step-sub">Phương thức thanh toán</div>
             </div>
           </div>
         </div>
 
-        <div class="dathang-layout">
+        <div v-if="currentStep === 1" class="dathang-layout">
           <!-- Order Form -->
           <div class="order-form">
+            <!-- Delivery type selector placed before customer info -->
+            <div class="form-section">
+              <h2 class="section-title">
+                <i class="bi bi-box-seam"></i>
+                Phương thức nhận hàng
+              </h2>
+              <div class="delivery-type">
+                <label :class="['dtype', { active: orderForm.deliveryType === 'delivery' }]">
+                  <input type="radio" value="delivery" v-model="orderForm.deliveryType" />
+                  <span><i class="bi bi-truck"></i> Giao hàng tận nơi</span>
+                </label>
+                <label :class="['dtype', { active: orderForm.deliveryType === 'pickup' }]">
+                  <input type="radio" value="pickup" v-model="orderForm.deliveryType" />
+                  <span><i class="bi bi-shop"></i> Lấy tại cửa hàng</span>
+                </label>
+              </div>
+            </div>
             <div class="form-section">
               <h2 class="section-title">
                 <i class="bi bi-person"></i>
                 Thông tin khách hàng
               </h2>
-              
+
+              <!-- Delivery type selector moved above -->
+
               <!-- Address Selection for Logged-in Users -->
               <div v-if="isLoggedIn && userAddresses.length > 0" class="address-selection">
                 <h3 class="subsection-title">
                   <i class="bi bi-geo-alt"></i>
                   Chọn địa chỉ giao hàng
                 </h3>
-                
+
                 <div class="address-options">
-                  <label 
-                    v-for="address in userAddresses" 
+                  <label
+                    v-for="address in userAddresses"
                     :key="address.id"
                     class="address-option"
                     :class="{ 'selected': selectedAddressId === address.id }"
@@ -108,7 +132,7 @@
                     </div>
                   </label>
                 </div>
-                
+
                 <div class="address-actions">
                   <button type="button" class="btn-add-address">
                     <i class="bi bi-plus-circle"></i>
@@ -153,14 +177,16 @@
                     placeholder="Nhập email (không bắt buộc)"
                   >
                 </div>
+              </div>
 
+              <!-- Address fields -->
+              <div v-if="orderForm.deliveryType==='delivery'" class="form-row">
                 <div class="form-group">
-                  <label for="province">Tỉnh/Thành phố *</label>
+                  <label for="province">Tỉnh/Thành phố</label>
                   <select
                     id="province"
                     v-model="orderForm.province"
                     @change="onProvinceChange"
-                    :class="{ 'error': errors.province }"
                     :disabled="isLoadingProvinces"
                   >
                     <option value="">Chọn tỉnh/thành phố</option>
@@ -172,18 +198,13 @@
                       {{ province.ProvinceName }}
                     </option>
                   </select>
-                  <span v-if="errors.province" class="error-message">{{ errors.province }}</span>
                 </div>
-              </div>
-
-              <div class="form-row">
                 <div class="form-group">
-                  <label for="district">Quận/Huyện *</label>
+                  <label for="district">Quận/Huyện</label>
                   <select
                     id="district"
                     v-model="orderForm.district"
                     @change="onDistrictChange"
-                    :class="{ 'error': errors.district }"
                     :disabled="!orderForm.province || isLoadingDistricts"
                   >
                     <option value="">Chọn quận/huyện</option>
@@ -195,10 +216,11 @@
                       {{ district.DistrictName }}
                     </option>
                   </select>
-                  <span v-if="errors.district" class="error-message">{{ errors.district }}</span>
                 </div>
+              </div>
 
-                <div class="form-group">
+              <div v-if="orderForm.deliveryType==='delivery'" class="form-row">
+                <div class="form-group full-width">
                   <label for="address">Địa chỉ cụ thể *</label>
                   <FreeMapPicker
                     v-model="orderForm.address"
@@ -206,12 +228,18 @@
                     @address-selected="onAddressSelected"
                     @location-updated="onLocationUpdated"
                   />
+                  <div v-if="isLoggedIn && userAddresses.length" class="address-actions-inline">
+                    <button type="button" class="btn-select-address" @click="openAddressModal">
+                      <i class="bi bi-geo-alt"></i>
+                      Chọn từ danh sách đã lưu
+                    </button>
+                  </div>
                   <span v-if="errors.address" class="error-message">{{ errors.address }}</span>
                 </div>
               </div>
             </div>
 
-            <div class="form-section">
+            <div v-if="orderForm.deliveryType==='delivery'" class="form-section">
               <h2 class="section-title">
                 <i class="bi bi-truck"></i>
                 Phương thức giao hàng
@@ -247,109 +275,7 @@
               </div>
             </div>
 
-            <div class="form-section">
-              <h2 class="section-title">
-                <i class="bi bi-credit-card"></i>
-                Phương thức thanh toán
-              </h2>
-
-              <div class="payment-options">
-                <label 
-                  class="payment-option" 
-                  v-for="option in paymentOptions" 
-                  :key="option.id"
-                  :class="{ 
-                    'popular': option.popular, 
-                    'unavailable': !option.available,
-                    'selected': orderForm.paymentMethod === option.id
-                  }"
-                >
-                  <input
-                    type="radio"
-                    :value="option.id"
-                    v-model="orderForm.paymentMethod"
-                    name="payment"
-                    :disabled="!option.available"
-                  >
-                  <div class="option-content">
-                    <div class="option-header">
-                      <div class="option-main">
-                    <i :class="option.icon"></i>
-                    <span class="option-name">{{ option.name }}</span>
-                        <span v-if="option.popular" class="popular-badge">Phổ biến</span>
-                      </div>
-                      <div class="option-fee">
-                        <span v-if="option.fee > 0" class="fee-amount">{{ formatPrice(option.fee) }}</span>
-                        <span v-else class="free-text">Miễn phí</span>
-                      </div>
-                    </div>
-                    
-                    <div class="option-details">
-                      <p class="option-description">{{ option.description }}</p>
-                      
-                      <div class="option-meta">
-                        <div class="meta-item">
-                          <i class="bi bi-clock"></i>
-                          <span>{{ option.processingTime }}</span>
-                        </div>
-                        <div class="meta-item">
-                          <i class="bi bi-shield-check"></i>
-                          <span>{{ option.security }}</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <!-- Bank Transfer Details -->
-                    <div v-if="option.id === 'bank-transfer' && orderForm.paymentMethod === 'bank-transfer'" class="bank-details">
-                      <h4>Thông tin chuyển khoản:</h4>
-                      <div class="bank-info">
-                        <div class="bank-row">
-                          <span class="bank-label">Ngân hàng:</span>
-                          <span class="bank-value">{{ option.bankInfo.bankName }}</span>
-                        </div>
-                        <div class="bank-row">
-                          <span class="bank-label">Số tài khoản:</span>
-                          <span class="bank-value">{{ option.bankInfo.accountNumber }}</span>
-                          <button class="copy-btn" @click="copyToClipboard(option.bankInfo.accountNumber)">
-                            <i class="bi bi-copy"></i>
-                          </button>
-                        </div>
-                        <div class="bank-row">
-                          <span class="bank-label">Chủ tài khoản:</span>
-                          <span class="bank-value">{{ option.bankInfo.accountHolder }}</span>
-                        </div>
-                        <div class="bank-row">
-                          <span class="bank-label">Chi nhánh:</span>
-                          <span class="bank-value">{{ option.bankInfo.branch }}</span>
-                        </div>
-                      </div>
-                      <div class="bank-note">
-                        <i class="bi bi-info-circle"></i>
-                        <span>Vui lòng ghi nội dung: "Đặt hàng PhoniX - [SĐT]" khi chuyển khoản</span>
-                      </div>
-                    </div>
-                    
-                    <!-- MoMo QR Code -->
-                    <div v-if="option.id === 'momo' && orderForm.paymentMethod === 'momo'" class="momo-details">
-                      <h4>Quét mã QR để thanh toán:</h4>
-                      <div class="qr-container">
-                        <img :src="option.qrCode" alt="MoMo QR Code" class="qr-code">
-                        <p class="qr-note">Quét mã QR bằng ứng dụng MoMo để thanh toán</p>
-                      </div>
-                    </div>
-                  </div>
-                </label>
-              </div>
-              
-              <!-- Payment Security Notice -->
-              <div class="payment-security">
-                <i class="bi bi-shield-check"></i>
-                <div class="security-content">
-                  <h4>Bảo mật thanh toán</h4>
-                  <p>Thông tin thanh toán của bạn được mã hóa và bảo mật tuyệt đối. Chúng tôi không lưu trữ thông tin thẻ tín dụng.</p>
-                </div>
-              </div>
-            </div>
+            <!-- Payment options moved to Step 3 -->
 
             <div class="form-section">
               <h2 class="section-title">
@@ -365,10 +291,12 @@
                 ></textarea>
               </div>
             </div>
+
+            <!-- No internal sub-step actions: whole order-form is a single screen for Step 1 -->
           </div>
 
           <!-- Order Summary -->
-          <div class="order-summary">
+          <div class="order-summary" :class="{ 'buy-now-summary': isBuyNow }">
             <h3 class="summary-title">Tóm tắt đơn hàng</h3>
 
             <div class="order-items">
@@ -377,15 +305,29 @@
                   <img :src="getProductImage(item.hinhAnh)" :alt="item.tenSanPham">
                 </div>
                 <div class="item-info">
-                  <h4 class="item-name">{{ item.tenSanPham }}</h4>
+                  <h4 class="item-name">{{ item.tenSanPham || 'Sản phẩm không tên' }}</h4>
                   <div class="item-specs">
                     <span v-if="item.tenRam">{{ item.tenRam }}</span>
                     <span v-if="item.tenRom">{{ item.tenRom }}</span>
                     <span v-if="item.tenMauSac">{{ item.tenMauSac }}</span>
                   </div>
-                  <div class="item-quantity">Số lượng: {{ item.quantity }}</div>
+                  <div class="item-quantity">
+                    <span class="qty-label">Số lượng:</span>
+                    <div class="qty-control">
+                      <button type="button" class="qty-btn" @click="decreaseItemQuantity(item)" :disabled="(item.quantity || 1) <= 1">-</button>
+                      <input
+                        class="qty-input"
+                        type="number"
+                        :min="1"
+                        :max="item.soLuongTon || 9999"
+                        :value="item.quantity || 1"
+                        @input="onQuantityInput($event, item)"
+                      />
+                      <button type="button" class="qty-btn" @click="increaseItemQuantity(item)" :disabled="item.quantity >= (item.soLuongTon || 1)">+</button>
+                    </div>
+                  </div>
                 </div>
-                <div class="item-price">{{ formatPrice(item.gia * item.quantity) }}</div>
+                <div class="item-price">{{ formatPrice((item.gia || 0) * (item.quantity || 1)) }}</div>
               </div>
             </div>
 
@@ -393,7 +335,7 @@
 
             <div class="summary-row">
               <span>Tạm tính:</span>
-              <span class="summary-value">{{ formatPrice(selectedItems.reduce((s,i)=> s + (i.gia * i.quantity), 0)) }}</span>
+              <span class="summary-value">{{ formatPrice(selectedItems.reduce((s,i)=> s + ((i.gia || 0) * (i.quantity || 1)), 0)) }}</span>
             </div>
 
             <div class="summary-row">
@@ -419,10 +361,12 @@
               <span class="summary-total">{{ formatPrice(getTotalPrice()) }}</span>
             </div>
 
-            <button class="btn-place-order" @click="placeOrder" :disabled="!isFormValid">
-              <i class="bi bi-check-circle"></i>
-              Đặt hàng ngay
-            </button>
+            <div class="step-actions">
+              <button class="btn-next" @click="onContinueFromStep1" :disabled="!isStep1Valid">
+                Tiếp tục
+                <i class="bi bi-arrow-right"></i>
+              </button>
+            </div>
 
             <div class="security-info">
               <i class="bi bi-shield-check"></i>
@@ -430,6 +374,265 @@
             </div>
           </div>
         </div>
+
+        <!-- Step 2: Confirm Order -->
+        <div v-else-if="currentStep === 2" class="step2-confirm">
+          <div class="confirm-layout">
+            <div class="confirm-left">
+              <div class="summary-header">
+                <button class="btn-inline-prev" @click="goToStep(1)"><i class="bi bi-chevron-left"></i></button>
+                <h2 class="confirm-title" style="margin:0">Xác nhận đơn hàng</h2>
+              </div>
+              <div class="confirm-products">
+                <div v-for="item in selectedItems" :key="item.chiTietSanPhamId" class="cp-row">
+                  <img class="cp-image" :src="getProductImage(item.hinhAnh)" :alt="item.tenSanPham" />
+                  <div class="cp-details">
+                    <div class="cp-name">{{ item.tenSanPham }}</div>
+                    <div class="cp-specs" v-if="item.tenRam || item.tenRom || item.tenMauSac">
+                      {{ [item.tenRam,item.tenRom,item.tenMauSac].filter(Boolean).join(' / ') }}
+                    </div>
+                  </div>
+                  <div class="cp-qty">x{{ item.quantity || 1 }}</div>
+                  <div class="cp-price">{{ formatPrice((item.gia||0) * (item.quantity||1)) }}</div>
+                </div>
+              </div>
+
+              <div class="coupon-area">
+                <label class="coupon-label">Mã giảm giá</label>
+                <div class="coupon-actions top">
+                  <input
+                    class="coupon-display"
+                    type="text"
+                    :value="selectedCoupon ? ('Đang áp dụng: ' + selectedCoupon) : 'Chưa chọn mã giảm giá'"
+                    readonly
+                  />
+                </div>
+                <div v-if="eligibleCoupons.length === 0 && coupons.length === 0" class="coupon-empty">
+                  <p>Hiện tại không có mã giảm giá nào khả dụng.</p>
+                </div>
+                <div v-else class="coupon-grid">
+                  <div
+                    v-for="c in eligibleCoupons"
+                    :key="getVoucherCode(c)"
+                    class="voucher-card"
+                    :class="[
+                      { selected: selectedCoupon === getVoucherCode(c) },
+                      isPercentVoucher(c) ? 'percent' : 'amount'
+                    ]"
+                    @click="onSelectVoucher(c)"
+                  >
+                    <div class="vc-main">
+                      <div class="vc-badge">{{ (c.badge || 'GIFT').toUpperCase() }}<span> VOUCHER</span></div>
+                      <div class="vc-title">{{ getVoucherName(c) }}</div>
+                      <div class="vc-desc">
+                        <template v-if="getVoucherMinOrder(c)">ĐH tối thiểu: {{ formatPrice(getVoucherMinOrder(c)) }}.</template>
+                        <template v-if="getVoucherMax(c)"> Giảm tối đa: {{ formatPrice(getVoucherMax(c)) }}.</template>
+                      </div>
+                      <div class="vc-code">CODE: {{ getVoucherCode(c) }}</div>
+                    </div>
+                    <div class="vc-right">
+                      <div class="vc-currency">{{ isPercentVoucher(c) ? '' : '₫' }}</div>
+                      <div class="vc-value">
+                        {{ isPercentVoucher(c)
+                            ? (getVoucherValue(c) + '%')
+                            : (formatPrice(getVoucherValue(c)) || 'FREE') }}
+                      </div>
+                      <div class="vc-value-label">{{ isPercentVoucher(c) ? 'OFF' : 'value' }}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div v-if="couponError" class="coupon-error">{{ couponError }}</div>
+
+                <!-- Ineligible vouchers -->
+                <div class="more-vouchers">
+                  <button type="button" class="btn-more" @click="showIneligible = !showIneligible">
+                    {{ showIneligible ? 'Ẩn' : 'Mua thêm để áp dụng mã giảm giá sau' }}
+                  </button>
+                  <div v-if="showIneligible" class="coupon-grid ineligible">
+                    <div
+                      v-for="c in ineligibleCoupons"
+                      :key="getVoucherCode(c)"
+                      class="voucher-card"
+                      :class="[ isPercentVoucher(c) ? 'percent' : 'amount' ]"
+                    >
+                      <div class="vc-main">
+                        <div class="vc-badge">{{ (c.badge || 'GIFT').toUpperCase() }}<span> VOUCHER</span></div>
+                        <div class="vc-title">{{ getVoucherName(c) }}</div>
+                        <div class="vc-desc">
+                          <template v-if="getVoucherMinOrder(c)">ĐH tối thiểu: {{ formatPrice(getVoucherMinOrder(c)) }}.</template>
+                          <template v-if="getVoucherMax(c)"> Giảm tối đa: {{ formatPrice(getVoucherMax(c)) }}.</template>
+                          <div class="vc-hint">Bạn cần mua thêm {{ formatPrice(Math.max(0, getVoucherMinOrder(c) - itemsSubtotal)) }} để dùng mã này.</div>
+                        </div>
+                        <div class="vc-code">CODE: {{ getVoucherCode(c) }}</div>
+                      </div>
+                      <div class="vc-right">
+                        <div class="vc-currency">{{ isPercentVoucher(c) ? '' : '₫' }}</div>
+                        <div class="vc-value">
+                          {{ isPercentVoucher(c) ? (getVoucherValue(c) + '%') : (formatPrice(getVoucherValue(c)) || 'FREE') }}
+                        </div>
+                        <div class="vc-value-label">{{ isPercentVoucher(c) ? 'OFF' : 'value' }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="confirm-right">
+              <div class="order-summary">
+                <h3 class="summary-title">Tóm tắt đơn hàng</h3>
+                <div class="order-items">
+                  <div v-for="item in selectedItems" :key="item.chiTietSanPhamId" class="order-item">
+                    <div class="item-image">
+                      <img :src="getProductImage(item.hinhAnh)" :alt="item.tenSanPham">
+                    </div>
+                    <div class="item-info">
+                      <h4 class="item-name">{{ item.tenSanPham || 'Sản phẩm không tên' }}</h4>
+                      <div class="item-specs">
+                        <span v-if="item.tenRam">{{ item.tenRam }}</span>
+                        <span v-if="item.tenRom">{{ item.tenRom }}</span>
+                        <span v-if="item.tenMauSac">{{ item.tenMauSac }}</span>
+                      </div>
+                      <div class="item-quantity"><span class="qty-label">Số lượng:</span> x{{ item.quantity || 1 }}</div>
+                    </div>
+                    <div class="item-price">{{ formatPrice((item.gia || 0) * (item.quantity || 1)) }}</div>
+                  </div>
+                </div>
+
+                <div class="summary-divider"></div>
+
+                <div class="summary-row">
+                  <span>Tạm tính:</span>
+                  <span class="summary-value">{{ formatPrice(itemsSubtotal) }}</span>
+                </div>
+
+                <div class="summary-row">
+                  <span>Phí vận chuyển:</span>
+                  <span class="summary-value">{{ formatPrice(shippingPrice) }}</span>
+                </div>
+
+                <div class="summary-row" v-if="discountAmount > 0">
+                  <span>Giảm giá:</span>
+                  <span class="summary-value">-{{ formatPrice(discountAmount) }}</span>
+                </div>
+
+                <div class="summary-divider"></div>
+
+                <div class="summary-row total">
+                  <span>Tổng cộng:</span>
+                  <span class="summary-total">{{ formatPrice(itemsSubtotal + shippingPrice - discountAmount) }}</span>
+                </div>
+
+                <div class="summary-footer">
+                  <button class="btn-inline-next" @click="goToStep(3)">Tiếp tục <i class="bi bi-arrow-right"></i></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Payment -->
+        <div v-else-if="currentStep === 3" class="step3-payment">
+          <div class="confirm-layout">
+            <div class="confirm-left">
+              <div class="payment-section">
+                <div class="summary-header">
+                  <button class="btn-inline-prev" @click="goToStep(2)"><i class="bi bi-chevron-left"></i></button>
+                  <h2 style="margin:0">Phương thức thanh toán</h2>
+                </div>
+                <div class="payment-options">
+                <label
+                  class="payment-option"
+                  v-for="option in paymentOptions"
+                  :key="option.id"
+                  :class="{
+                    'popular': option.popular,
+                    'unavailable': !option.available,
+                    'selected': orderForm.paymentMethod === option.id
+                  }"
+                >
+                  <input
+                    type="radio"
+                    :value="option.id"
+                    v-model="orderForm.paymentMethod"
+                    name="payment"
+                    :disabled="!option.available"
+                  >
+                    <div class="option-content">
+                      <div class="option-header">
+                        <div class="option-main">
+                          <i :class="option.icon"></i>
+                          <span class="option-name">{{ option.name }}</span>
+                        </div>
+                        <div class="option-fee">
+                          <span v-if="option.fee > 0" class="fee-amount">{{ formatPrice(option.fee) }}</span>
+                          <span v-else class="free-text">Miễn phí</span>
+                        </div>
+                      </div>
+                      <div class="option-details">
+                        <p class="option-description">{{ option.description }}</p>
+                      </div>
+                    </div>
+                </label>
+                </div>
+                <div class="online-pay-actions" v-if="orderForm.paymentMethod==='vnpay' || orderForm.paymentMethod==='zalopay'">
+                  <div class="pay-summary">Số tiền thanh toán: <strong>{{ formatPrice(totalAfterDiscount) }}</strong></div>
+                  <div class="pay-buttons">
+                    <button v-if="orderForm.paymentMethod==='vnpay'" class="btn-next" @click="createVNPayPayment" :disabled="!isFormValid || totalAfterDiscount<=0">Thanh toán VNPay</button>
+                    <button v-if="orderForm.paymentMethod==='zalopay'" class="btn-next" @click="createZaloPayPayment" :disabled="!isFormValid || totalAfterDiscount<=0">Thanh toán ZaloPay</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Right card: Order summary (single instance) -->
+            <div class="confirm-right">
+              <div class="order-summary">
+                <h3 class="summary-title" style="margin:0 0 8px 0">Tóm tắt đơn hàng</h3>
+                <div class="order-items">
+                  <div v-for="item in selectedItems" :key="item.chiTietSanPhamId" class="order-item">
+                    <div class="item-image">
+                      <img :src="getProductImage(item.hinhAnh)" :alt="item.tenSanPham">
+                    </div>
+                    <div class="item-info">
+                      <h4 class="item-name">{{ item.tenSanPham || 'Sản phẩm không tên' }}</h4>
+                      <div class="item-specs">
+                        <span v-if="item.tenRam">{{ item.tenRam }}</span>
+                        <span v-if="item.tenRom">{{ item.tenRom }}</span>
+                        <span v-if="item.tenMauSac">{{ item.tenMauSac }}</span>
+                      </div>
+                      <div class="item-quantity"><span class="qty-label">Số lượng:</span> x{{ item.quantity || 1 }}</div>
+                    </div>
+                    <div class="item-price">{{ formatPrice((item.gia || 0) * (item.quantity || 1)) }}</div>
+                  </div>
+                </div>
+                <div class="summary-divider"></div>
+                <div class="summary-row">
+                  <span>Tạm tính:</span>
+                  <span class="summary-value">{{ formatPrice(itemsSubtotal) }}</span>
+                </div>
+                <div class="summary-row">
+                  <span>Phí vận chuyển:</span>
+                  <span class="summary-value">{{ formatPrice(shippingPrice) }}</span>
+                </div>
+                <div class="summary-row" v-if="discountAmount>0">
+                  <span>Giảm giá:</span>
+                  <span class="summary-value">-{{ formatPrice(discountAmount) }}</span>
+                </div>
+                <div class="summary-row total">
+                  <span>Tổng cộng:</span>
+                  <span class="summary-total">{{ formatPrice(itemsSubtotal + shippingPrice - discountAmount) }}</span>
+                </div>
+                <div class="summary-footer">
+                  <button class="btn-inline-next" v-if="orderForm.paymentMethod!=='vnpay' && orderForm.paymentMethod!=='zalopay'" @click="openConfirmModal" :disabled="!isFormValid">
+                    Xác nhận đặt hàng
+                    <i class="bi bi-check-circle"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+        </div>
+      </div>
       </div>
     </main>
 
@@ -445,37 +648,218 @@
         <span>{{ toast.message }}</span>
       </div>
     </transition>
+
+    <!-- Confirm Order Modal -->
+    <div v-if="confirmModal.show" class="confirm-overlay" @click.self="closeConfirmModal">
+      <div class="confirm-card">
+        <div class="confirm-header">
+          <h3>Xác nhận đặt hàng</h3>
+          <button class="confirm-close" type="button" @click="closeConfirmModal">
+            <i class="bi bi-x"></i>
+          </button>
+        </div>
+
+        <div class="confirm-content">
+          <div class="confirm-row">
+            <span class="label">Khách hàng</span>
+            <span class="value">{{ orderForm.fullName }}</span>
+          </div>
+          <div class="confirm-row">
+            <span class="label">Số điện thoại</span>
+            <span class="value">{{ orderForm.phone }}</span>
+          </div>
+          <div class="confirm-row">
+            <span class="label">Địa chỉ</span>
+            <span class="value">{{ orderForm.deliveryType === 'pickup' ? 'Tại cửa hàng' : orderForm.address }}</span>
+          </div>
+          <div class="confirm-row">
+            <span class="label">Thanh toán</span>
+            <span class="value">{{ paymentOptions.find(p=>p.id===orderForm.paymentMethod)?.name }}</span>
+          </div>
+          <div class="confirm-row">
+            <span class="label">Giao hàng</span>
+            <span class="value">{{ deliveryOptions.find(d=>d.id===orderForm.deliveryMethod)?.name }}</span>
+          </div>
+          <div class="confirm-divider"></div>
+          <div class="confirm-row">
+            <span class="label">Tạm tính</span>
+            <span class="value">{{ formatPrice(itemsSubtotal) }}</span>
+          </div>
+          <div class="confirm-row">
+            <span class="label">Phí vận chuyển</span>
+            <span class="value">{{ formatPrice(shippingPrice) }}</span>
+          </div>
+          <div class="confirm-row" v-if="discountAmount>0">
+            <span class="label">Giảm giá</span>
+            <span class="value">-{{ formatPrice(discountAmount) }}</span>
+          </div>
+          <div class="confirm-row total">
+            <span class="label">Tổng cộng</span>
+            <span class="value">{{ formatPrice(itemsSubtotal + shippingPrice - discountAmount) }}</span>
+          </div>
+        </div>
+
+        <div class="confirm-actions">
+          <button type="button" class="btn-cancel" @click="closeConfirmModal" :disabled="confirmModal.loading">Hủy</button>
+          <button type="button" class="btn-confirm" @click="confirmPlaceOrder" :disabled="confirmModal.loading">
+            <i v-if="confirmModal.loading" class="bi bi-hourglass-split"></i>
+            <i v-else class="bi bi-check2-circle"></i>
+            {{ confirmModal.loading ? 'Đang xử lý...' : 'Xác nhận đặt hàng' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Address Select Modal -->
+    <div v-if="addressModal.show" class="confirm-overlay" @click.self="closeAddressModal">
+      <div class="confirm-card">
+        <div class="confirm-header">
+          <h3>Chọn địa chỉ đã lưu</h3>
+          <button class="confirm-close" type="button" @click="closeAddressModal"><i class="bi bi-x"></i></button>
+        </div>
+        <div class="confirm-content">
+          <div v-if="!userAddresses.length" class="coupon-error">Bạn chưa có địa chỉ đã lưu.</div>
+          <div v-else class="saved-address-list">
+            <label v-for="addr in userAddresses" :key="addr.id" class="saved-address-item">
+              <input type="radio" name="savedAddr" :value="addr.id" v-model="selectedAddressId">
+              <div class="saved-address-body">
+                <div class="row1">
+                  <strong>{{ addr.fullName }}</strong>
+                  <span class="phone">{{ addr.phone }}</span>
+                  <span v-if="addr.isDefault" class="default-badge">Mặc định</span>
+                </div>
+                <div class="row2">{{ addr.address }}, {{ addr.districtName }}, {{ addr.provinceName }}</div>
+              </div>
+            </label>
+          </div>
+        </div>
+        <div class="confirm-actions">
+          <button class="btn-cancel" type="button" @click="closeAddressModal">Hủy</button>
+          <button class="btn-confirm" type="button" @click="confirmSelectAddress">Chọn</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useCartStore } from '@/stores/cartStore'
 import HeaderLayout from '@/views/Website/HeaderLayout.vue'
 import FooterLayout from '@/views/Website/FooterLayout.vue'
 import FreeMapPicker from '@/components/FreeMapPicker.vue'
 import shippingService from '@/services/shippingService.js'
+import api from '@/services/api'
 
 const router = useRouter()
+const route = useRoute()
 const cartStore = useCartStore()
 // Local list of selected items for checkout (do not mutate full cart)
 const selectedItems = ref([])
 
+// Watch selectedItems to ensure it doesn't get lost when switching steps
+watch(selectedItems, (newVal) => {
+  // If selectedItems becomes empty unexpectedly (and not during order success),
+  // reload from cartStore if available
+  if (newVal.length === 0 && cartStore.items.length > 0 && !orderSuccess.value.show) {
+    console.warn('⚠️ selectedItems became empty, reloading from cartStore')
+    selectedItems.value = [...cartStore.items]
+    window.purchasedItems = [...cartStore.items]
+  }
+}, { deep: true })
+
+// Stepper state
+const currentStep = ref(1)
+const onContinueFromStep1 = () => {
+  if (!isStep1Valid.value) return
+  goToStep(2)
+}
+const goToStep = (step) => {
+  if (step === 2 && !isStep1Valid.value) return
+  currentStep.value = step
+  
+  // Ensure selectedItems is preserved when switching steps
+  // If selectedItems is empty but cartStore has items, reload from cartStore
+  if (selectedItems.value.length === 0 && cartStore.items.length > 0) {
+    console.log('🔄 Reloading selectedItems from cartStore when switching to step', step)
+    selectedItems.value = [...cartStore.items]
+    window.purchasedItems = [...cartStore.items]
+  }
+  
+  // Save selectedItems to sessionStorage to prevent loss
+  try {
+    sessionStorage.setItem('checkoutSelectedItems', JSON.stringify(selectedItems.value))
+  } catch (e) {
+    console.warn('Failed to save selectedItems to sessionStorage:', e)
+  }
+  
+  // reflect in URL for deep-linking each screen
+  router.replace({ query: { ...route.query, step: String(step) } })
+  // ensure top
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+// Xử lý query params từ ProductDetailPage
+const isBuyNow = ref(false)
+const buyNowProduct = ref(null)
+
 const API_BASE_URL = 'http://localhost:8080'
 
-// Form data
-const orderForm = ref({
-  fullName: '',
-  phone: '',
-  email: '',
-  province: '',
-  district: '',
-  address: '',
-  deliveryMethod: 'standard',
-  paymentMethod: 'cod',
-  note: ''
-})
+// Form data - Load from sessionStorage if available
+const loadFormFromStorage = () => {
+  try {
+    const saved = sessionStorage.getItem('checkoutFormData')
+    if (saved) {
+      const parsed = JSON.parse(saved)
+      return {
+        fullName: parsed.fullName || '',
+        phone: parsed.phone || '',
+        email: parsed.email || '',
+        province: parsed.province || '',
+        district: parsed.district || '',
+        address: parsed.address || '',
+        deliveryType: parsed.deliveryType || 'delivery',
+        deliveryMethod: parsed.deliveryMethod || 'standard',
+        paymentMethod: parsed.paymentMethod || 'cod',
+        note: parsed.note || ''
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to load form from storage:', e)
+  }
+  return {
+    fullName: '',
+    phone: '',
+    email: '',
+    province: '',
+    district: '',
+    address: '',
+    deliveryType: 'delivery',
+    deliveryMethod: 'standard',
+    paymentMethod: 'cod',
+    note: ''
+  }
+}
+
+const orderForm = ref(loadFormFromStorage())
+
+// Save form to sessionStorage whenever it changes
+watch(() => orderForm.value, (newVal) => {
+  console.log('📝 Form changed:', {
+    fullName: newVal.fullName,
+    phone: newVal.phone,
+    address: newVal.address,
+    deliveryType: newVal.deliveryType,
+    paymentMethod: newVal.paymentMethod
+  })
+  // Save to sessionStorage
+  try {
+    sessionStorage.setItem('checkoutFormData', JSON.stringify(newVal))
+  } catch (e) {
+    console.warn('Failed to save form to storage:', e)
+  }
+}, { deep: true })
 
 // User authentication state
 const isLoggedIn = ref(false)
@@ -536,35 +920,7 @@ const paymentOptions = ref([
     security: 'An toàn tuyệt đối',
     popular: true
   },
-  {
-    id: 'bank-transfer',
-    name: 'Chuyển khoản ngân hàng',
-    description: 'Chuyển khoản trước khi giao hàng',
-    icon: 'bi bi-bank',
-    available: true,
-    fee: 0,
-    processingTime: '1-2 ngày làm việc',
-    security: 'Bảo mật cao',
-    popular: false,
-    bankInfo: {
-      bankName: 'Vietcombank',
-      accountNumber: '1234567890',
-      accountHolder: 'CÔNG TY TNHH PHONIX',
-      branch: 'Chi nhánh Hà Nội'
-    }
-  },
-  {
-    id: 'momo',
-    name: 'Ví MoMo',
-    description: 'Thanh toán qua ví điện tử MoMo',
-    icon: 'bi bi-phone',
-    available: true,
-    fee: 0,
-    processingTime: 'Ngay lập tức',
-    security: 'Bảo mật cao',
-    popular: true,
-    qrCode: '/QR.png'
-  },
+  // Removed bank transfer & MoMo per request
   {
     id: 'vnpay',
     name: 'VNPay',
@@ -592,39 +948,225 @@ const orderSuccess = ref({
   orderId: ''
 })
 
+// Confirm modal state
+const confirmModal = ref({
+  show: false,
+  loading: false
+})
+
+// Coupons from backend
+const coupons = ref([])
+const selectedCoupon = ref('')
+const couponError = ref('')
+const discountAmount = ref(0)
+const itemsSubtotal = computed(() => selectedItems.value.reduce((s,i)=> s + ((i.gia||0)*(i.quantity||1)), 0))
+const shippingPrice = computed(() => {
+  if (orderForm.value.deliveryType === 'pickup') return 0
+  const selectedDelivery = deliveryOptions.value.find(option => option.id === orderForm.value.deliveryMethod)
+  return selectedDelivery ? (selectedDelivery.price || 0) : 0
+})
+// Helpers for voucher fields from backend (support snake_case and camelCase)
+const getVoucherId = (c) => c?.id || c?.id_phieu_giam_gia || c?.voucherId || null
+const getVoucherCode = (c) => c?.ma_phieu_giam_gia || c?.maPhieuGiamGia || c?.code || ''
+const getVoucherName = (c) => c?.ten_phieu_giam_gia || c?.tenPhieuGiamGia || c?.title || 'VOUCHER'
+const getVoucherType = (c) => (c?.loai_phieu_giam_gia || c?.loaiPhieuGiamGia || c?.type || '').toString().toLowerCase()
+const isPercentVoucher = (c) => {
+  const t = getVoucherType(c)
+  return t.includes('phần') || t.includes('phan') || t.includes('percent') || t.includes('phan_tram')
+}
+const getVoucherValue = (c) => c?.gia_tri_giam_gia ?? c?.giaTriGiamGia ?? c?.value ?? 0
+const getVoucherMax = (c) => c?.so_tien_giam_toi_da ?? c?.soTienGiamToiDa ?? 0
+const getVoucherMinOrder = (c) => c?.hoa_don_toi_thieu ?? c?.hoaDonToiThieu ?? 0
+const getVoucherLabel = (c) => `${getVoucherName(c)} • ${getVoucherCode(c)}`
+
+const applyCoupon = () => {
+  couponError.value = ''
+  discountAmount.value = 0
+  const c = coupons.value.find(x => getVoucherCode(x) === selectedCoupon.value)
+  if (!c) {
+    console.log('⚠️ applyCoupon: No coupon found for', selectedCoupon.value)
+    return
+  }
+  console.log('💳 applyCoupon: Applying coupon', getVoucherCode(c), 'to subtotal', itemsSubtotal.value)
+  if (isPercentVoucher(c)) {
+    const calc = Math.floor(itemsSubtotal.value * getVoucherValue(c) / 100)
+    discountAmount.value = Math.min(calc, getVoucherMax(c) || calc)
+  } else if (getVoucherType(c).includes('shipping')) {
+    // Make delivery price zero
+    const opt = deliveryOptions.value.find(o => o.id === orderForm.value.deliveryMethod)
+    if (opt) discountAmount.value = Math.min(opt.price || 0, opt.price || 0)
+  } else {
+    discountAmount.value = getVoucherValue(c) || 0
+  }
+  console.log('✅ applyCoupon: Discount calculated:', discountAmount.value)
+}
+
+// Re-apply coupon when itemsSubtotal changes (e.g., quantity changes)
+watch(itemsSubtotal, () => {
+  if (selectedCoupon.value) {
+    console.log('📊 itemsSubtotal changed, re-applying coupon')
+    applyCoupon()
+  }
+})
+
+const selectedCouponId = ref(null)
+
+// Save selected coupon to sessionStorage
+watch([selectedCoupon, selectedCouponId], ([coupon, couponId]) => {
+  console.log('💳 Coupon changed:', { coupon, couponId })
+  try {
+    sessionStorage.setItem('checkoutSelectedCoupon', coupon || '')
+    sessionStorage.setItem('checkoutSelectedCouponId', couponId ? String(couponId) : '')
+    // Re-apply coupon if changed
+    if (coupon) {
+      applyCoupon()
+    }
+  } catch (e) {
+    console.warn('Failed to save coupon to storage:', e)
+  }
+})
+
+const onSelectVoucher = (c) => {
+  selectedCoupon.value = getVoucherCode(c)
+  selectedCouponId.value = getVoucherId(c)
+  applyCoupon()
+}
+
+// Derived voucher lists based on subtotal
+const eligibleCoupons = computed(() => {
+  return coupons.value.filter(c => itemsSubtotal.value >= (getVoucherMinOrder(c) || 0))
+})
+const ineligibleCoupons = computed(() => {
+  return coupons.value.filter(c => itemsSubtotal.value < (getVoucherMinOrder(c) || 0))
+})
+const showIneligible = ref(false)
+
 // Computed properties
 const isFormValid = computed(() => {
-  return orderForm.value.fullName &&
+  // For pickup: don't require address/delivery method
+  if (orderForm.value.deliveryType === 'pickup') {
+    const isValid = !!(orderForm.value.fullName && orderForm.value.phone && orderForm.value.paymentMethod)
+    if (!isValid) {
+      console.log('⚠️ Form validation (pickup):', {
+        fullName: !!orderForm.value.fullName,
+        phone: !!orderForm.value.phone,
+        paymentMethod: !!orderForm.value.paymentMethod,
+        fullNameValue: orderForm.value.fullName,
+        phoneValue: orderForm.value.phone,
+        paymentMethodValue: orderForm.value.paymentMethod
+      })
+    }
+    return isValid
+  }
+  // For delivery: require address and a selected delivery method
+  const isValid = !!(orderForm.value.fullName &&
     orderForm.value.phone &&
-    orderForm.value.email &&
-    orderForm.value.province &&
-    orderForm.value.district &&
     orderForm.value.address &&
     orderForm.value.deliveryMethod &&
-    orderForm.value.paymentMethod
+    orderForm.value.paymentMethod)
+  if (!isValid) {
+    console.log('⚠️ Form validation (delivery):', {
+      fullName: !!orderForm.value.fullName,
+      phone: !!orderForm.value.phone,
+      address: !!orderForm.value.address,
+      deliveryMethod: !!orderForm.value.deliveryMethod,
+      paymentMethod: !!orderForm.value.paymentMethod,
+      fullNameValue: orderForm.value.fullName,
+      phoneValue: orderForm.value.phone,
+      addressValue: orderForm.value.address,
+      deliveryMethodValue: orderForm.value.deliveryMethod,
+      paymentMethodValue: orderForm.value.paymentMethod
+    })
+  }
+  return isValid
 })
 
 // Methods
+const increaseItemQuantity = (item) => {
+  try {
+    cartStore.increaseQuantity(item.chiTietSanPhamId)
+    // Update selectedItems to reflect cartStore changes (including price)
+    const target = selectedItems.value.find(i => i.chiTietSanPhamId === item.chiTietSanPhamId)
+    if (target) {
+      const cartItem = cartStore.items.find(i => i.chiTietSanPhamId === item.chiTietSanPhamId)
+      if (cartItem) {
+        target.quantity = cartItem.quantity
+        // Ensure price is synced from cartStore (uses discounted price if available)
+        target.gia = cartItem.gia
+      }
+    }
+  } catch (e) {
+    showToast('error', e?.message || 'Không thể tăng số lượng', 'bi-exclamation-circle-fill')
+  }
+}
+
+const decreaseItemQuantity = (item) => {
+  try {
+    cartStore.decreaseQuantity(item.chiTietSanPhamId)
+    // Update selectedItems to reflect cartStore changes (including price)
+    const target = selectedItems.value.find(i => i.chiTietSanPhamId === item.chiTietSanPhamId)
+    if (target) {
+      const cartItem = cartStore.items.find(i => i.chiTietSanPhamId === item.chiTietSanPhamId)
+      if (cartItem) {
+        target.quantity = cartItem.quantity
+        // Ensure price is synced from cartStore (uses discounted price if available)
+        target.gia = cartItem.gia
+      } else {
+        // Item was removed from cart, remove from selectedItems too
+        selectedItems.value = selectedItems.value.filter(i => i.chiTietSanPhamId !== item.chiTietSanPhamId)
+      }
+    }
+  } catch (e) {
+    showToast('error', e?.message || 'Không thể giảm số lượng', 'bi-exclamation-circle-fill')
+  }
+}
+
+const onQuantityInput = (evt, item) => {
+  const raw = (evt?.target?.value || '').toString().trim()
+  let next = parseInt(raw, 10)
+  if (isNaN(next)) next = 1
+  if (next < 1) next = 1
+  if (item.soLuongTon && next > item.soLuongTon) next = item.soLuongTon
+
+  try {
+    cartStore.updateQuantity(item.chiTietSanPhamId, next)
+    // Update selectedItems to reflect cartStore changes (including price)
+    const target = selectedItems.value.find(i => i.chiTietSanPhamId === item.chiTietSanPhamId)
+    if (target) {
+      const cartItem = cartStore.items.find(i => i.chiTietSanPhamId === item.chiTietSanPhamId)
+      if (cartItem) {
+        target.quantity = cartItem.quantity
+        // Ensure price is synced from cartStore (uses discounted price if available)
+        target.gia = cartItem.gia
+      } else {
+        // Item was removed from cart, remove from selectedItems too
+        selectedItems.value = selectedItems.value.filter(i => i.chiTietSanPhamId !== item.chiTietSanPhamId)
+      }
+    }
+  } catch (e) {
+    showToast('error', e?.message || 'Số lượng không hợp lệ', 'bi-exclamation-circle-fill')
+  }
+}
 const checkUserLogin = () => {
   // Check localStorage for user token/info
   const userToken = localStorage.getItem('user_token')
   const userData = localStorage.getItem('user_data')
-  
+
   if (userToken && userData) {
     try {
       isLoggedIn.value = true
       userInfo.value = JSON.parse(userData)
-      
+
       // Auto-fill form with user data
       if (userInfo.value) {
         orderForm.value.fullName = userInfo.value.fullName || userInfo.value.tenKhachHang || ''
         orderForm.value.phone = userInfo.value.phone || userInfo.value.soDienThoai || ''
         orderForm.value.email = userInfo.value.email || userInfo.value.emailKhachHang || ''
       }
-      
+
       // Load user addresses
       loadUserAddresses()
-      
+
     } catch (error) {
       console.error('Error parsing user data:', error)
       isLoggedIn.value = false
@@ -639,11 +1181,11 @@ const checkUserLogin = () => {
 // Load user addresses from localStorage or API
 const loadUserAddresses = () => {
   const savedAddresses = localStorage.getItem('user_addresses')
-  
+
   if (savedAddresses) {
     try {
       userAddresses.value = JSON.parse(savedAddresses)
-      
+
       // Set default address if available
       const defaultAddress = userAddresses.value.find(addr => addr.isDefault)
       if (defaultAddress) {
@@ -685,16 +1227,24 @@ const loadUserAddresses = () => {
 // Select user address
 const selectUserAddress = (address) => {
   selectedAddressId.value = address.id
-  
+
   // Update form with selected address
   orderForm.value.fullName = address.fullName
   orderForm.value.phone = address.phone
   orderForm.value.province = address.province
   orderForm.value.district = address.district
   orderForm.value.address = address.address
-  
+
   // Recalculate shipping
   calculateShippingRates()
+}
+
+const confirmSelectAddress = () => {
+  const addr = userAddresses.value.find(a => a.id === selectedAddressId.value)
+  if (addr) {
+    selectUserAddress(addr)
+    closeAddressModal()
+  }
 }
 
 const formatPrice = (price) => {
@@ -716,6 +1266,8 @@ const getProductImage = (imagePath) => {
 const getDeliveryPrice = () => {
   const selectedDelivery = deliveryOptions.value.find(option => option.id === orderForm.value.deliveryMethod)
 
+  if (orderForm.value.deliveryType === 'pickup') return 'Miễn phí'
+
   if (!selectedDelivery) return 'Miễn phí'
 
   if (isCalculatingShipping.value) {
@@ -731,10 +1283,26 @@ const getDeliveryPrice = () => {
 
 const getTotalPrice = () => {
   const selectedDelivery = deliveryOptions.value.find(option => option.id === orderForm.value.deliveryMethod)
-  const deliveryPrice = selectedDelivery ? selectedDelivery.price : 0
-  const itemsTotal = selectedItems.value.reduce((sum, item) => sum + (item.gia * item.quantity), 0)
+  const deliveryPrice = orderForm.value.deliveryType === 'pickup' ? 0 : (selectedDelivery ? selectedDelivery.price : 0)
+  const itemsTotal = selectedItems.value.reduce((sum, item) => sum + ((item.gia || 0) * (item.quantity || 1)), 0)
   return itemsTotal + deliveryPrice
 }
+
+// Validation for step 1 minimal info
+const isStep1Valid = computed(() => {
+  if (orderForm.value.deliveryType === 'pickup') {
+    return !!(orderForm.value.fullName && orderForm.value.phone)
+  }
+  return orderForm.value.fullName && orderForm.value.phone && orderForm.value.address && orderForm.value.deliveryMethod
+})
+
+// Total after discount (for online payments)
+const totalAfterDiscount = computed(() => {
+  const total = itemsSubtotal.value + shippingPrice.value - discountAmount.value
+  return total > 0 ? total : 0
+})
+
+// No internal sub-step validation now; whole Step 1 uses isStep1Valid
 
 // Calculate total weight for shipping
 const calculateTotalWeight = () => {
@@ -995,6 +1563,17 @@ watch(
   { deep: true }
 )
 
+// Clear address-related errors when switching to pickup
+watch(
+  () => orderForm.value.deliveryType,
+  (val) => {
+    if (val === 'pickup') {
+      delete errors.value.address
+      delete errors.value.deliveryMethod
+    }
+  }
+)
+
 const validateForm = () => {
   errors.value = {}
 
@@ -1008,19 +1587,45 @@ const validateForm = () => {
     errors.value.phone = 'Số điện thoại không hợp lệ'
   }
 
-  if (!orderForm.value.province) {
-    errors.value.province = 'Vui lòng chọn tỉnh/thành phố'
-  }
-
-  if (!orderForm.value.district) {
-    errors.value.district = 'Vui lòng chọn quận/huyện'
-  }
-
-  if (!orderForm.value.address.trim()) {
-    errors.value.address = 'Vui lòng nhập địa chỉ cụ thể'
+  // Với nhận tại cửa hàng: không bắt buộc địa chỉ
+  if (orderForm.value.deliveryType === 'delivery') {
+    if (!orderForm.value.address.trim()) {
+      errors.value.address = 'Vui lòng nhập địa chỉ cụ thể'
+    }
+    if (!orderForm.value.deliveryMethod) {
+      errors.value.deliveryMethod = 'Vui lòng chọn phương thức giao hàng'
+    }
   }
 
   return Object.keys(errors.value).length === 0
+}
+
+const openConfirmModal = () => {
+  // Validate minimal required fields before opening modal
+  if (!validateForm()) {
+    showToast('error', 'Vui lòng kiểm tra lại thông tin', 'bi-exclamation-circle-fill')
+    return
+  }
+  if (selectedItems.value.length === 0) {
+    showToast('error', 'Giỏ hàng trống', 'bi-exclamation-circle-fill')
+    return
+  }
+  confirmModal.value.show = true
+}
+
+const closeConfirmModal = () => {
+  if (confirmModal.value.loading) return
+  confirmModal.value.show = false
+}
+
+const confirmPlaceOrder = async () => {
+  confirmModal.value.loading = true
+  try {
+    await placeOrder()
+    confirmModal.value.show = false
+  } finally {
+    confirmModal.value.loading = false
+  }
 }
 
 const placeOrder = async () => {
@@ -1036,36 +1641,43 @@ const placeOrder = async () => {
 
   try {
     // Prepare order data
-    const selectedDelivery = deliveryOptions.value.find(option => option.id === orderForm.value.deliveryMethod)
+    const selectedDelivery = orderForm.value.deliveryType === 'pickup' ? null : deliveryOptions.value.find(option => option.id === orderForm.value.deliveryMethod)
     const orderData = {
       // Customer information
       tenKhachHang: orderForm.value.fullName,
       soDienThoai: orderForm.value.phone,
       email: orderForm.value.email,
-      diaChi: orderForm.value.address,
-      tinhThanh: provinces.value.find(p => p.ProvinceID === orderForm.value.province)?.ProvinceName || '',
-      quanHuyen: districts.value.find(d => d.DistrictID === orderForm.value.district)?.DistrictName || '',
-      
+      diaChi: orderForm.value.deliveryType === 'pickup' ? 'Tại cửa hàng' : (orderForm.value.address || ''),
+      tinhThanh: orderForm.value.deliveryType === 'pickup' ? '' : (provinces.value.find(p => p.ProvinceID === orderForm.value.province)?.ProvinceName || ''),
+      quanHuyen: orderForm.value.deliveryType === 'pickup' ? '' : (districts.value.find(d => d.DistrictID === orderForm.value.district)?.DistrictName || ''),
+
       // Order details
-      phuongThucGiaoHang: orderForm.value.deliveryMethod,
+      phuongThucGiaoHang: orderForm.value.deliveryType === 'pickup' ? 'pickup' : (orderForm.value.deliveryMethod || 'standard'),
       phuongThucThanhToan: orderForm.value.paymentMethod,
       ghiChu: orderForm.value.note,
-      
+
       // Pricing
       tongTien: getTotalPrice(),
-      phiVanChuyen: selectedDelivery?.price || 0,
-      
-      // Items
-      chiTietDonHang: selectedItems.value.map(item => ({
-        chiTietSanPhamId: item.chiTietSanPhamId,
-        soLuong: item.quantity,
-        gia: item.gia,
-        thanhTien: item.gia * item.quantity
-      })),
-      
+      phiVanChuyen: orderForm.value.deliveryType === 'pickup' ? 0 : (selectedDelivery?.price || 0),
+
+      // Items - Tạo chi tiết riêng biệt cho từng sản phẩm
+      chiTietDonHang: selectedItems.value.flatMap(item => {
+        // Tạo một mảng chi tiết cho mỗi sản phẩm (số lượng = quantity)
+        const details = []
+        for (let i = 0; i < item.quantity; i++) {
+          details.push({
+            chiTietSanPhamId: item.chiTietSanPhamId,
+            soLuong: 1, // Mỗi dòng chỉ có 1 sản phẩm
+            gia: item.gia,
+            thanhTien: item.gia // Thành tiền = giá (vì soLuong = 1)
+          })
+        }
+        return details
+      }),
+
       // Status
       trangThai: 'CHO_XAC_NHAN',
-      
+
       // Timestamps
       ngayTao: new Date().toISOString(),
       ngayCapNhat: new Date().toISOString()
@@ -1083,27 +1695,29 @@ const placeOrder = async () => {
         // Customer information
         tenKhachHang: orderData.tenKhachHang,
         soDienThoai: orderData.soDienThoai,
-        email: orderData.email,
+        email: orderData.email || '', // Ensure email is sent even if empty
         diaChi: orderData.diaChi,
         tinhThanh: orderData.tinhThanh,
         quanHuyen: orderData.quanHuyen,
-        
+
         // Order details
         phuongThucGiaoHang: orderData.phuongThucGiaoHang,
         phuongThucThanhToan: orderData.phuongThucThanhToan,
         ghiChu: orderData.ghiChu || '',
         loaiHoaDon: 'ONLINE', // Đảm bảo loại đơn hàng là ONLINE
-        
+
         // Pricing
         tongTien: orderData.tongTien,
+        tongTienSauGiam: (itemsSubtotal.value + (orderForm.value.deliveryType==='pickup'?0:(deliveryOptions.value.find(o=>o.id===orderForm.value.deliveryMethod)?.price||0)) - discountAmount.value),
         phiVanChuyen: orderData.phiVanChuyen,
-        
+        phieuGiamGiaId: selectedCouponId.value || null,
+
         // Items
         chiTietDonHang: orderData.chiTietDonHang,
-        
+
         // Status
         trangThai: 'CHO_XAC_NHAN',
-        
+
         // Timestamps
         ngayTao: new Date().toISOString(),
         ngayCapNhat: new Date().toISOString()
@@ -1116,18 +1730,39 @@ const placeOrder = async () => {
       throw new Error(`HTTP error! status: ${response.status} - ${errorText}`)
     }
 
-    const result = await response.json()
-    const orderId = result.maHoaDon || result.id || result.maDonHang
+    // Check if response has content
+    const contentType = response.headers.get('content-type')
+    const responseText = await response.text()
+    
+    let result = {}
+    if (responseText && responseText.trim()) {
+      try {
+        result = JSON.parse(responseText)
+      } catch (e) {
+        console.warn('⚠️ Response is not JSON, treating as empty:', responseText)
+        // If response is not JSON but status is OK, assume success
+        result = { success: true, message: responseText || 'Order created successfully' }
+      }
+    } else {
+      console.warn('⚠️ Empty response, assuming success')
+      result = { success: true }
+    }
+    
+    const orderId = result.maHoaDon || result.id || result.maDonHang || result.orderId
     console.log('✅ Order created successfully:', result)
+    console.log('📋 Extracted orderId:', orderId)
+    if (!orderId) {
+      console.warn('⚠️ No order ID found in response. Full result:', JSON.stringify(result, null, 2))
+    }
 
     // Show success message and clear form
     showOrderSuccess(orderId)
-    
+
     // Remove only purchased items from cart
     try {
       console.log('🛒 Debug - cartStore.items before:', cartStore.items)
       console.log('🛒 Debug - purchasedItems:', window.purchasedItems)
-      
+
       // Remove only the items that were purchased
       if (window.purchasedItems && window.purchasedItems.length > 0) {
         window.purchasedItems.forEach(item => {
@@ -1139,7 +1774,7 @@ const placeOrder = async () => {
         console.log('⚠️ No purchased items found, clearing entire cart')
         cartStore.clearCart()
       }
-      
+
       console.log('🛒 Debug - cartStore.items after:', cartStore.items)
       console.log('✅ Purchased items removed from cart')
       } catch (e) {
@@ -1169,7 +1804,7 @@ const showOrderSuccess = (orderId) => {
     show: true,
     orderId: orderId
   }
-  
+
   // Reset form
   orderForm.value = {
     fullName: '',
@@ -1178,13 +1813,157 @@ const showOrderSuccess = (orderId) => {
     province: '',
     district: '',
     address: '',
+    deliveryType: 'delivery',
     deliveryMethod: 'standard',
     paymentMethod: 'cod',
     note: ''
   }
   
+  // Reset coupon
+  selectedCoupon.value = ''
+  selectedCouponId.value = null
+  discountAmount.value = 0
+  
+  // Clear saved form data, coupon, and selectedItems from sessionStorage
+  try {
+    sessionStorage.removeItem('checkoutFormData')
+    sessionStorage.removeItem('checkoutSelectedCoupon')
+    sessionStorage.removeItem('checkoutSelectedCouponId')
+    sessionStorage.removeItem('checkoutSelectedItems')
+  } catch (e) {}
+
   // Reset selected items
   selectedItems.value = []
+}
+
+// Online payment flows
+const buildOrderPayload = () => {
+  return {
+    hoaDon: {
+      tongTien: itemsSubtotal.value + shippingPrice.value,
+      tongTienSauGiam: totalAfterDiscount.value,
+      loaiHoaDon: 'ONLINE',
+      ghiChu: orderForm.value.note || '',
+      tenKhachHang: orderForm.value.fullName,
+      soDienThoai: orderForm.value.phone,
+      diaChi: orderForm.value.deliveryType === 'pickup' ? 'Tại cửa hàng' : (orderForm.value.address || ''),
+      phuongThucThanhToan: orderForm.value.paymentMethod,
+      phieuGiamGiaId: selectedCouponId.value || null
+    },
+    chiTietHoaDon: selectedItems.value.map(item => ({
+      sanPhamId: item.chiTietSanPhamId,
+      soLuong: item.quantity || 1,
+      donGia: item.gia || 0,
+      thanhTien: (item.gia || 0) * (item.quantity || 1)
+    }))
+  }
+}
+
+const createVNPayPayment = async () => {
+  // Log full form state
+  console.log('🔍 createVNPayPayment called')
+  console.log('🔍 isFormValid:', isFormValid.value)
+  console.log('🔍 Full orderForm.value:', JSON.parse(JSON.stringify(orderForm.value)))
+  console.log('🔍 Form data:', {
+    fullName: orderForm.value.fullName,
+    phone: orderForm.value.phone,
+    email: orderForm.value.email,
+    address: orderForm.value.address,
+    deliveryType: orderForm.value.deliveryType,
+    deliveryMethod: orderForm.value.deliveryMethod,
+    paymentMethod: orderForm.value.paymentMethod,
+    province: orderForm.value.province,
+    district: orderForm.value.district,
+    selectedItems: selectedItems.value.length
+  })
+  
+  // Validate form before proceeding
+  if (!isFormValid.value) {
+    console.warn('⚠️ Form validation failed - check validation logs above')
+    showToast('error', 'Vui lòng điền đầy đủ thông tin', 'bi-exclamation-circle-fill')
+    return
+  }
+
+  try {
+    // Build OnlineOrderRequest payload
+    const selectedDelivery = orderForm.value.deliveryType === 'pickup' ? null : deliveryOptions.value.find(option => option.id === orderForm.value.deliveryMethod)
+    const onlineOrder = {
+      tenKhachHang: orderForm.value.fullName,
+      soDienThoai: orderForm.value.phone,
+      email: orderForm.value.email,
+      diaChi: orderForm.value.deliveryType === 'pickup' ? 'Tại cửa hàng' : (orderForm.value.address || ''),
+      tinhThanh: orderForm.value.deliveryType === 'pickup' ? '' : (provinces.value.find(p => p.ProvinceID === orderForm.value.province)?.ProvinceName || ''),
+      quanHuyen: orderForm.value.deliveryType === 'pickup' ? '' : (districts.value.find(d => d.DistrictID === orderForm.value.district)?.DistrictName || ''),
+      phuongThucGiaoHang: orderForm.value.deliveryType === 'pickup' ? 'pickup' : (orderForm.value.deliveryMethod || 'standard'),
+      phuongThucThanhToan: 'vnpay',
+      ghiChu: orderForm.value.note,
+      loaiHoaDon: 'ONLINE',
+      tongTien: itemsSubtotal.value + (orderForm.value.deliveryType==='pickup' ? 0 : (selectedDelivery?.price || 0)),
+      tongTienSauGiam: totalAfterDiscount.value,
+      phiVanChuyen: (orderForm.value.deliveryType==='pickup' ? 0 : (selectedDelivery?.price || 0)),
+      phieuGiamGiaId: selectedCouponId.value || null,
+      chiTietDonHang: selectedItems.value.flatMap(item => {
+        const details = []
+        for (let i = 0; i < (item.quantity || 1); i++) {
+          details.push({ chiTietSanPhamId: item.chiTietSanPhamId, soLuong: 1, gia: item.gia, thanhTien: item.gia })
+        }
+        return details
+      })
+    }
+
+    console.log('📦 Order payload:', onlineOrder)
+    const payload = { amount: Math.round(totalAfterDiscount.value), orderInfo: 'Thanh toan don hang ONLINE', order: onlineOrder }
+    console.log('💳 Payment payload:', payload)
+    
+    // Persist purchased items for post-payment cleanup
+    try { sessionStorage.setItem('purchasedItems', JSON.stringify(selectedItems.value || [])) } catch (e) {}
+    
+    console.log('📡 Calling VNPay API...')
+    const { data } = await api.post('/api/payments/vnpay/online-create-with-order', payload)
+    console.log('✅ VNPay response:', data)
+    
+    if (data && data.paymentUrl) {
+      console.log('🔗 Redirecting to VNPay:', data.paymentUrl)
+      window.location.href = data.paymentUrl
+    } else {
+      console.error('❌ No payment URL in response')
+      showToast('error', 'Không nhận được link thanh toán từ VNPay', 'bi-exclamation-circle-fill')
+    }
+  } catch (e) {
+    console.error('❌ Create VNPay payment error:', e)
+    console.error('Error details:', {
+      status: e?.response?.status,
+      statusText: e?.response?.statusText,
+      data: e?.response?.data,
+      message: e?.message
+    })
+    
+    const errorMessage = e?.response?.data?.message || e?.response?.data?.error || e?.message || 'Không tạo được thanh toán VNPay'
+    showToast('error', errorMessage, 'bi-exclamation-circle-fill')
+  }
+}
+
+const createZaloPayPayment = async () => {
+  // Validate form before proceeding
+  if (!isFormValid.value) {
+    showToast('error', 'Vui lòng điền đầy đủ thông tin', 'bi-exclamation-circle-fill')
+    return
+  }
+
+  try {
+    const payload = {
+      amount: Math.round(totalAfterDiscount.value),
+      orderInfo: 'Thanh toan don hang ONLINE',
+      order: buildOrderPayload()
+    }
+    const { data } = await api.post('/api/payments/zalopay/create-with-order', payload)
+    if (data && data.paymentUrl) {
+      window.location.href = data.paymentUrl
+    }
+  } catch (e) {
+    console.error('Create ZaloPay payment error', e)
+    showToast('error', 'Không tạo được thanh toán ZaloPay', 'bi-exclamation-circle-fill')
+  }
 }
 
 // Copy to clipboard function
@@ -1202,38 +1981,303 @@ const copyToClipboard = async (text) => {
 const trackOrder = () => {
   router.push({
     path: '/theo-doi-don-hang',
-    query: { 
+    query: {
       orderId: orderSuccess.value.orderId,
-      phone: orderForm.value.phone 
+      phone: orderForm.value.phone
     }
   })
 }
 
+// Continue shopping function - redirect to shop page
+const continueShopping = () => {
+  orderSuccess.value.show = false
+  router.push('/shop')
+}
+
 onMounted(async () => {
+  // Load form data from sessionStorage (preserve data when navigating)
+  const savedForm = loadFormFromStorage()
+  if (savedForm.fullName || savedForm.phone) {
+    console.log('📋 Restored form from storage:', savedForm)
+    orderForm.value = savedForm
+  }
+  
   // Check user login status first
   checkUserLogin()
-  
-  // Load selected items from sessionStorage into local list only
-  const selected = sessionStorage.getItem('selectedItems')
-  if (selected) {
-    try {
-      selectedItems.value = JSON.parse(selected) || []
-      // Store a copy for later use in order processing
-      window.purchasedItems = [...selectedItems.value]
-      sessionStorage.removeItem('selectedItems')
-    } catch (error) {
-      console.error('Error loading selected items:', error)
+
+  // Xử lý query params từ ProductDetailPage (mua ngay)
+  if (route.query.buyNow === 'true' && route.query.productId) {
+    isBuyNow.value = true
+    console.log('🛒 Buy Now mode activated:', {
+      productId: route.query.productId,
+      variantId: route.query.variantId,
+      quantity: route.query.quantity
+    })
+
+    // Lấy thông tin sản phẩm từ giỏ hàng (đã được thêm bởi ProductDetailPage)
+    const cartItems = cartStore.items
+    console.log('🔍 Debug - All cart items:', cartItems)
+    console.log('🔍 Debug - Looking for productId:', route.query.productId, 'variantId:', route.query.variantId)
+
+    const buyNowItem = cartItems.find(item => {
+      console.log('🔍 Debug - Checking item:', {
+        itemChiTietSanPhamId: item.chiTietSanPhamId,
+        searchVariantId: parseInt(route.query.variantId),
+        variantIdMatch: item.chiTietSanPhamId === parseInt(route.query.variantId)
+      })
+      // Tìm kiếm bằng chiTietSanPhamId (variantId)
+      return item.chiTietSanPhamId === parseInt(route.query.variantId)
+    })
+
+    if (buyNowItem) {
+      buyNowProduct.value = buyNowItem
+      // Chỉ hiển thị sản phẩm vừa mua ngay
+      selectedItems.value = [buyNowItem]
+      console.log('✅ Buy Now item found:', buyNowItem)
+      console.log('🔍 Debug - selectedItems after setting:', selectedItems.value)
+      console.log('🔍 Debug - Item structure:', {
+        tenSanPham: buyNowItem.tenSanPham,
+        gia: buyNowItem.gia,
+        quantity: buyNowItem.quantity,
+        hinhAnh: buyNowItem.hinhAnh,
+        tenRam: buyNowItem.tenRam,
+        tenRom: buyNowItem.tenRom,
+        tenMauSac: buyNowItem.tenMauSac
+      })
+    } else {
+      console.warn('⚠️ Buy Now item not found in cart, trying to find by variantId only')
+      // Fallback: tìm sản phẩm chỉ bằng variantId (chiTietSanPhamId)
+      const fallbackItem = cartItems.find(item =>
+        item.chiTietSanPhamId === parseInt(route.query.variantId)
+      )
+
+      if (fallbackItem) {
+        buyNowProduct.value = fallbackItem
+        selectedItems.value = [fallbackItem]
+        console.log('✅ Buy Now item found by variantId only:', fallbackItem)
+      } else {
+        console.warn('⚠️ Buy Now item not found in cart at all')
+        // Nếu không tìm thấy, chuyển về trang giỏ hàng
+        router.push('/cart')
+        return
+      }
     }
-  } else if (cartStore.items.length === 0) {
-    router.push('/cart')
+  } else {
+    // Load selected items from sessionStorage into local list only
+    // First try 'selectedItems' (from CartPage), then 'checkoutSelectedItems' (saved during step switching)
+    const selected = sessionStorage.getItem('selectedItems') || sessionStorage.getItem('checkoutSelectedItems')
+    if (selected) {
+      try {
+        selectedItems.value = JSON.parse(selected) || []
+        // Store a copy for later use in order processing
+        window.purchasedItems = [...selectedItems.value]
+        // Only remove 'selectedItems' (from CartPage), keep 'checkoutSelectedItems' for step switching
+        sessionStorage.removeItem('selectedItems')
+        console.log('📦 Loaded selectedItems from sessionStorage:', selectedItems.value.length, 'items')
+      } catch (error) {
+        console.error('Error loading selected items:', error)
+        // Fallback: load from cartStore if parsing fails
+        if (cartStore.items.length > 0) {
+          selectedItems.value = [...cartStore.items]
+          window.purchasedItems = [...cartStore.items]
+        }
+      }
+    } else {
+      // No selectedItems in sessionStorage, load from cartStore
+      if (cartStore.items.length > 0) {
+        selectedItems.value = [...cartStore.items]
+        window.purchasedItems = [...cartStore.items]
+        console.log('📦 Loaded selectedItems from cartStore:', selectedItems.value.length, 'items')
+      } else {
+        // No items in cart, redirect to cart page
+        router.push('/cart')
+        return
+      }
+    }
   }
 
   // Load provinces for address selection
   await loadProvinces()
+
+  // Initialize step from URL (?step=1|2|3)
+  const stepParam = parseInt(String(route.query.step || ''), 10)
+  if ([1,2,3].includes(stepParam)) {
+    currentStep.value = stepParam
+  }
+
+  // Load vouchers from backend
+  // Nếu có user đăng nhập, lấy customer ID từ userInfo (có thể là id hoặc customerId)
+  // Nếu không có, chỉ lấy public vouchers
+  try {
+    const customerId = userInfo.value?.id || userInfo.value?.customerId || null
+    console.log('🔍 Loading vouchers - customerId:', customerId, 'userInfo:', userInfo.value)
+    
+    // Gọi API với customerId nếu có
+    const url = customerId ? `/api/phieu-giam-gia?customerId=${customerId}` : '/api/phieu-giam-gia'
+    console.log('📡 Calling API:', url)
+    const response = await api.get(url)
+    console.log('📦 API Response:', response)
+    console.log('📦 Response data:', response.data)
+    console.log('📦 Response data type:', typeof response.data)
+    console.log('📦 Is array:', Array.isArray(response.data))
+    
+    const data = response.data
+    console.log('✅ Vouchers loaded:', Array.isArray(data) ? data.length : 0, 'vouchers')
+    if (Array.isArray(data) && data.length > 0) {
+      console.log('📋 First voucher:', data[0])
+    }
+    coupons.value = Array.isArray(data) ? data : []
+    
+    // After vouchers are loaded, restore selected coupon from sessionStorage
+    try {
+      const savedCoupon = sessionStorage.getItem('checkoutSelectedCoupon')
+      const savedCouponId = sessionStorage.getItem('checkoutSelectedCouponId')
+      if (savedCoupon && coupons.value.length > 0) {
+        console.log('💳 Restored coupon from storage:', { coupon: savedCoupon, couponId: savedCouponId })
+        selectedCoupon.value = savedCoupon
+        selectedCouponId.value = savedCouponId ? parseInt(savedCouponId) : null
+        // Re-apply coupon to calculate discount
+        applyCoupon()
+        console.log('✅ Coupon applied, discount:', discountAmount.value)
+      }
+    } catch (e) {
+      console.warn('Failed to load coupon from storage:', e)
+    }
+  } catch (e) {
+    console.error('❌ Failed to load vouchers:', e)
+    console.error('Error details:', {
+      status: e?.response?.status,
+      statusText: e?.response?.statusText,
+      data: e?.response?.data,
+      message: e?.message,
+      config: e?.config
+    })
+    // 401 là bình thường khi người dùng không đăng nhập (website public)
+    // Chỉ log lỗi nếu không phải 401
+    if (e && e.response && e.response.status !== 401) {
+      console.error('Failed to load vouchers', e)
+    }
+    coupons.value = []
+  }
+
+  // If redirected from payment result with success param -> show success overlay
+  if (route.query.success === '1') {
+    const orderId = String(route.query.orderId || '')
+    // Remove purchased items from cart (post-online-payment)
+    try {
+      const storedPurchased = sessionStorage.getItem('purchasedItems')
+      if (storedPurchased) {
+        const items = JSON.parse(storedPurchased)
+        if (Array.isArray(items)) {
+          items.forEach(it => { if (it && it.chiTietSanPhamId) cartStore.removeItem(it.chiTietSanPhamId) })
+        }
+      }
+    } catch (e) { /* ignore */ }
+    try { sessionStorage.removeItem('purchasedItems') } catch (e) {}
+    showOrderSuccess(orderId)
+  }
 })
+
+// Address selection modal for logged-in users
+const addressModal = ref({ show: false })
+const openAddressModal = () => { addressModal.value.show = true }
+const closeAddressModal = () => { addressModal.value.show = false }
 </script>
 
 <style scoped>
+/* Online pay block */
+.online-pay-actions { margin-top: 12px; padding: 12px; border: 1px dashed #ffd7c2; background: #fff7f2; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.online-pay-actions .pay-summary { color: #333; }
+.online-pay-actions .pay-summary strong { color: #FF6B35; }
+.online-pay-actions .pay-buttons { display: flex; gap: 8px; }
+/* Quantity controls */
+.qty-label {
+  margin-right: 12px;
+  color: #666;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.qty-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  background: #ffffff;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 2px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.qty-control:hover {
+  border-color: #ff6b35;
+  box-shadow: 0 4px 8px rgba(255, 107, 53, 0.15);
+}
+
+.qty-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  color: white;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(255, 107, 53, 0.3);
+}
+
+.qty-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(255, 107, 53, 0.4);
+}
+
+.qty-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(255, 107, 53, 0.3);
+}
+
+.qty-btn:disabled {
+  background: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.qty-input {
+  width: 60px;
+  height: 32px;
+  text-align: center;
+  border: none;
+  background: transparent;
+  font-weight: 600;
+  font-size: 14px;
+  color: #374151;
+  outline: none;
+  border-radius: 8px;
+  margin: 0 4px;
+}
+
+.qty-input:focus {
+  background: #f8f9fa;
+}
+
+.qty-input::-webkit-outer-spin-button,
+.qty-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.qty-input[type=number] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
 :root {
   --phoenix-primary: #FF6B35;
   --phoenix-secondary: #F7931E;
@@ -1249,13 +2293,41 @@ onMounted(async () => {
   flex-direction: column;
 }
 
+/* Buy Now Summary */
+.buy-now-summary {
+  border: 2px solid #ff6b35;
+  box-shadow: 0 4px 20px rgba(255, 107, 53, 0.2);
+  position: relative;
+}
+
+.buy-now-summary::before {
+  content: "⚡ MUA NGAY";
+  position: absolute;
+  top: -12px;
+  left: 20px;
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
 .dathang-main {
   flex: 1;
   padding: 3rem 0;
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 0 2rem;
 }
@@ -1269,7 +2341,7 @@ onMounted(async () => {
 .page-header h1 {
   font-size: 2.5rem;
   font-weight: 700;
-  color: var(--phoenix-primary);
+  color: #FF5500;
   margin-bottom: 0.5rem;
 }
 
@@ -1353,7 +2425,7 @@ onMounted(async () => {
 }
 
 .subsection-title i {
-  color: var(--phoenix-primary);
+  color: #FF5500;
 }
 
 .address-options {
@@ -1376,11 +2448,11 @@ onMounted(async () => {
 }
 
 .address-option:hover {
-  border-color: var(--phoenix-primary);
+  border-color: #FF5500;
 }
 
 .address-option.selected {
-  border-color: var(--phoenix-primary);
+  border-color: #FF5500;
   background: rgba(255, 107, 53, 0.05);
 }
 
@@ -1407,7 +2479,7 @@ onMounted(async () => {
 }
 
 .default-badge {
-  background: var(--phoenix-primary);
+  background: #FF5500;
   color: white;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
@@ -1432,7 +2504,7 @@ onMounted(async () => {
 
 .address-phone i,
 .address-location i {
-  color: var(--phoenix-primary);
+  color: #FF5500;
   font-size: 0.9rem;
 }
 
@@ -1443,8 +2515,8 @@ onMounted(async () => {
 
 .btn-add-address {
   background: transparent;
-  color: var(--phoenix-primary);
-  border: 2px dashed var(--phoenix-primary);
+  color: #FF5500;
+  border: 2px dashed #FF5500;
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
   font-weight: 500;
@@ -1456,7 +2528,7 @@ onMounted(async () => {
 }
 
 .btn-add-address:hover {
-  background: var(--phoenix-primary);
+  background: #FF5500;
   color: white;
 }
 
@@ -1522,7 +2594,7 @@ onMounted(async () => {
 .success-title {
   font-size: 2rem;
   font-weight: 700;
-  color: var(--phoenix-primary);
+  color: #FF5500;
   margin-bottom: 1rem;
 }
 
@@ -1543,7 +2615,7 @@ onMounted(async () => {
 }
 
 .order-id strong {
-  color: var(--phoenix-primary);
+  color: #FF5500;
   font-family: monospace;
 }
 
@@ -1580,12 +2652,12 @@ onMounted(async () => {
 }
 
 .btn-track {
-  background: var(--phoenix-primary);
+  background: #FF5500;
   color: white;
 }
 
 .btn-track:hover {
-  background: var(--phoenix-accent);
+  background: #ba2604;
   transform: translateY(-2px);
 }
 
@@ -1658,18 +2730,18 @@ onMounted(async () => {
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: var(--phoenix-primary);
+  border-color: #FF5500;
   box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
 }
 
 .form-group input.error,
 .form-group select.error,
 .form-group textarea.error {
-  border-color: var(--phoenix-accent);
+  border-color: #DC143C;
 }
 
 .error-message {
-  color: var(--phoenix-accent);
+  color: #DC143C;
   font-size: 0.875rem;
   margin-top: 0.25rem;
 }
@@ -1711,7 +2783,7 @@ onMounted(async () => {
 }
 
 .delivery-option:hover {
-  border-color: var(--phoenix-primary);
+  border-color: #FF5500;
 }
 
 .delivery-option input[type="radio"] {
@@ -1719,11 +2791,11 @@ onMounted(async () => {
 }
 
 .delivery-option input[type="radio"]:checked + .option-content {
-  color: var(--phoenix-primary);
+  color: #FF5500;
 }
 
 .delivery-option:has(input:checked) {
-  border-color: var(--phoenix-primary);
+  border-color: #FF5500;
   background: rgba(255, 107, 53, 0.05);
 }
 
@@ -1745,7 +2817,7 @@ onMounted(async () => {
 
 .option-price {
   font-weight: 700;
-  color: var(--phoenix-accent);
+  color: #DC143C;
 }
 
 .option-description {
@@ -1775,18 +2847,14 @@ onMounted(async () => {
 }
 
 .payment-option:hover {
-  border-color: var(--phoenix-primary);
+  border-color: #FF5500;
   box-shadow: 0 4px 12px rgba(255, 107, 53, 0.1);
 }
 
 .payment-option.selected {
-  border-color: var(--phoenix-primary);
+  border-color: #28a745;
   background: rgba(255, 107, 53, 0.05);
   box-shadow: 0 4px 12px rgba(255, 107, 53, 0.15);
-}
-
-.payment-option.popular {
-  border-color: #28a745;
 }
 
 .payment-option.popular::before {
@@ -1833,7 +2901,7 @@ onMounted(async () => {
 
 .option-main i {
   font-size: 1.5rem;
-  color: var(--phoenix-primary);
+  color: #FF5500;
 }
 
 .option-name {
@@ -1857,7 +2925,7 @@ onMounted(async () => {
 
 .fee-amount {
   font-weight: 700;
-  color: var(--phoenix-accent);
+  color: #DC143C;
   font-size: 1rem;
 }
 
@@ -1891,7 +2959,7 @@ onMounted(async () => {
 }
 
 .meta-item i {
-  color: var(--phoenix-primary);
+  color: #FF5500;
   font-size: 0.9rem;
 }
 
@@ -1940,7 +3008,7 @@ onMounted(async () => {
 }
 
 .copy-btn {
-  background: var(--phoenix-primary);
+  background: #FF5500;
   color: white;
   border: none;
   padding: 0.25rem 0.5rem;
@@ -1951,7 +3019,7 @@ onMounted(async () => {
 }
 
 .copy-btn:hover {
-  background: var(--phoenix-accent);
+  background: #DC143C;
 }
 
 .bank-note {
@@ -2040,20 +3108,29 @@ onMounted(async () => {
 
 /* Order Summary */
 .order-summary {
-  background: white;
-  border-radius: 15px;
-  padding: 2rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  background: linear-gradient(180deg,#ffffff 0%, #fffaf5 100%);
+  border: 1px solid #f0e7df;
+  border-radius: 16px;
+  padding: 1.25rem 1.25rem 1.5rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,.06);
   height: fit-content;
   position: sticky;
   top: 2rem;
 }
 
 .summary-title {
-  font-size: 1.3rem;
-  font-weight: 700;
-  margin-bottom: 1.5rem;
-  color: #333;
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin: 0 0 1rem 0;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.summary-title::before {
+  content: "\f46a";
+  font-family: bootstrap-icons!important;
+  color: #ff6b35;
 }
 
 .order-items {
@@ -2063,8 +3140,8 @@ onMounted(async () => {
 .order-item {
   display: flex;
   gap: 1rem;
-  padding: 1rem 0;
-  border-bottom: 1px solid #f0f0f0;
+  padding: 0.75rem 0;
+  border-bottom: 1px dashed #e9e3dd;
 }
 
 .order-item:last-child {
@@ -2110,15 +3187,11 @@ onMounted(async () => {
 
 .item-price {
   font-weight: 700;
-  color: var(--phoenix-accent);
+  color: #DC143C;
   font-size: 0.9rem;
 }
 
-.summary-divider {
-  height: 1px;
-  background: #e0e0e0;
-  margin: 1.5rem 0;
-}
+.summary-divider { height: 1px; background: linear-gradient(90deg, transparent, #f0e7df, transparent); margin: 1rem 0; }
 
 .summary-row {
   display: flex;
@@ -2132,21 +3205,13 @@ onMounted(async () => {
   color: #333;
 }
 
-.summary-row.total {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #333;
-}
-
-.summary-total {
-  font-size: 1.5rem;
-  color: var(--phoenix-accent);
-}
+.summary-row.total { font-size: 1.25rem; font-weight: 900; color: #111827; }
+.summary-total { font-size: 1.6rem; color: #FF6B35; }
 
 .btn-place-order {
   width: 100%;
   padding: 1rem;
-  background: var(--phoenix-primary);
+  background: #FF5500;
   color: white;
   border: none;
   border-radius: 12px;
@@ -2162,7 +3227,7 @@ onMounted(async () => {
 }
 
 .btn-place-order:hover:not(:disabled) {
-  background: var(--phoenix-accent);
+  background: #DC143C;
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(220, 20, 60, 0.3);
 }
@@ -2239,6 +3304,250 @@ onMounted(async () => {
   transform: translateX(100px);
 }
 
+/* Stepper */
+.checkout-steps { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.step { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #fff; border: 2px solid #e0e0e0; border-radius: 12px; min-width: 220px; }
+.step.active { border-color: #FF6B35; background: rgba(255,107,53,0.05); }
+.step.done { border-color: #28a745; }
+.step-index { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; background: #9ca3af; }
+.step.active .step-index { background: #FF6B35; }
+.step.done .step-index { background: #28a745; }
+.step-info { display: flex; flex-direction: column; }
+.step-title { font-weight: 700; font-size: 14px; }
+.step-sub { font-size: 12px; color: #666; }
+.step-connector { flex: 1; height: 2px; background: #e0e0e0; }
+
+/* Step actions */
+.step-actions { display: flex; justify-content: space-between; gap: 12px; margin-top: 12px; }
+.btn-prev, .btn-next, .btn-inline-prev, .btn-inline-next, .btn-confirm, .btn-cancel {
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  transition: all .2s ease;
+}
+.btn-prev, .btn-inline-prev, .btn-cancel {
+  background: #6c757d;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(108,117,125,.3);
+}
+.btn-prev:hover, .btn-inline-prev:hover, .btn-cancel:hover { filter: brightness(1.05); transform: translateY(-1px); }
+.btn-prev:active, .btn-inline-prev:active, .btn-cancel:active { transform: translateY(0); }
+
+.btn-next, .btn-inline-next, .btn-confirm {
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(255,107,53,.35);
+}
+.btn-next:hover, .btn-inline-next:hover, .btn-confirm:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(255,107,53,.45); }
+.btn-next:active, .btn-inline-next:active, .btn-confirm:active { transform: translateY(0); }
+.btn-next:disabled, .btn-inline-next:disabled, .btn-confirm:disabled { opacity: .6; cursor: not-allowed; box-shadow: none; }
+
+/* Inline back icon-only button */
+.btn-inline-prev {
+  background: transparent;
+  color: #6b7280;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.btn-inline-prev:hover { color: #111827; filter: none; transform: none; }
+.btn-inline-prev i { font-size: 20px; }
+
+/* Delivery type toggle */
+.delivery-type { display: flex; gap: 12px; margin: 8px 0 16px; }
+.delivery-type .dtype { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border: 2px solid #e0e0e0; border-radius: 10px; cursor: pointer; background: #fff; }
+.delivery-type .dtype input { display: none; }
+.delivery-type .dtype.active { border-color: #FF6B35; background: rgba(255,107,53,0.05); }
+.delivery-type .dtype i { color: #FF6B35; }
+
+/* Inline address action */
+.address-actions-inline { margin-top: 8px; }
+.btn-select-address { background: #f8f9fa; border: 1px dashed #FF5500; color: #FF5500; padding: 6px 10px; border-radius: 8px; cursor: pointer; }
+
+/* Form sub-steps */
+.form-steps { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.fstep { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border: 1px solid #e0e0e0; border-radius: 10px; background: #fff; }
+.fstep .idx { width: 20px; height: 20px; border-radius: 50%; background: #9ca3af; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+.fstep.active { border-color: #FF6B35; background: rgba(255,107,53,0.05); }
+.fstep.active .idx { background: #FF6B35; }
+.fstep.done { border-color: #28a745; }
+.fstep.done .idx { background: #28a745; }
+.fstep-connector { flex: 1; height: 1px; background: #e0e0e0; }
+
+/* Step2 */
+.confirm-layout { display: grid; grid-template-columns: 1fr 400px; gap: 20px; }
+.confirm-left { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+.confirm-right { position: sticky; top: 24px; height: fit-content; }
+.confirm-title { margin: 0 0 12px 0; font-size: 20px; font-weight: 700; color: #333; }
+.confirm-products { border: 1px solid #eee; border-radius: 12px; margin-bottom: 16px; overflow: hidden; }
+.cp-row { display: grid; grid-template-columns: 80px 1fr auto auto; align-items: center; gap: 14px; padding: 14px 16px; border-bottom: 1px solid #f0f0f0; }
+.cp-row:last-child { border-bottom: none; }
+.cp-image { width: 80px; height: 80px; object-fit: cover; border-radius: 10px; border: 1px solid #eee; }
+.cp-details { display: flex; flex-direction: column; gap: 6px; }
+.cp-name { font-weight: 700; color: #333; font-size: 16px; }
+.cp-specs { font-size: 12px; color: #777; }
+.cp-qty { color: #666; min-width: 40px; text-align: right; }
+.cp-price { font-weight: 800; color: #FF6B35; min-width: 120px; text-align: right; font-size: 15px; }
+.coupon-area { margin: 12px 0; }
+.coupon-label { font-weight: 600; display: block; margin-bottom: 8px; }
+.coupon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+.voucher-card { display: grid; grid-template-columns: 1fr 120px; background: #fff; border-radius: 8px; overflow: hidden; border: 1px solid #eee; box-shadow: 0 2px 10px rgba(0,0,0,0.06); cursor: pointer; }
+.voucher-card .vc-main { padding: 14px 16px; position: relative; }
+.vc-badge { position: absolute; top: 0; left: 0; background: #ff5a5f; color: #fff; padding: 6px 10px; font-weight: 800; font-size: 12px; clip-path: polygon(0 0, 100% 0, calc(100% - 16px) 100%, 0 100%); }
+.vc-badge span { font-weight: 600; margin-left: 6px; }
+.vc-title { font-size: 18px; font-weight: 900; color: #ff5a5f; margin-top: 18px; line-height: 1.2; }
+.vc-desc { color: #666; font-size: 12px; margin-top: 6px; line-height: 1.4; }
+.vc-code { margin-top: 8px; font-size: 12px; color: #999; }
+.voucher-card .vc-right { background: #ff5a5f; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 120px; }
+.vc-currency { font-size: 12px; font-weight: 700; }
+.vc-value { font-size: 22px; font-weight: 900; line-height: 1; }
+.vc-value-label { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; opacity: 0.9; }
+.voucher-card.selected { outline: 2px solid #FF6B35; }
+
+/* Color schemes by type */
+.voucher-card.percent { --voucher-accent: #ff5a5f; }
+.voucher-card.amount { --voucher-accent: #14a38b; }
+.coupon-actions { display: flex; gap: 8px; margin-top: 10px; }
+.coupon-actions.top { margin-bottom: 10px; }
+.coupon-select { flex: 1; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px; }
+.btn-apply { display:none; }
+.coupon-display { flex: 1; padding: 10px 12px; border: 2px solid #e0e0e0; border-radius: 8px; background: #f8f9fa; color: #555; font-weight: 600; }
+.more-vouchers { margin-top: 12px; }
+.btn-more { background: #fff7f2; border: 1px solid #ffd7c2; padding: 10px 14px; border-radius: 10px; cursor: pointer; font-weight: 700; color: #ff6b35; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(255,107,53,0.12); transition: all 0.2s; }
+.btn-more:hover { background: #ffece3; border-color: #ffb892; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(255,107,53,0.18); }
+.btn-more:active { transform: translateY(0); box-shadow: 0 2px 8px rgba(255,107,53,0.12); }
+.coupon-grid.ineligible .voucher-card { opacity: 0.7; }
+.vc-hint { margin-top: 6px; font-size: 12px; color: #b45309; }
+.coupon-error { color: #dc3545; font-size: 0.9rem; margin-top: 6px; }
+.coupon-empty { padding: 16px; text-align: center; color: #666; font-size: 0.9rem; background: #f8f9fa; border-radius: 8px; margin-top: 8px; }
+.confirm-summary { background: linear-gradient(180deg, #ffffff 0%, #fff8f4 100%); border: 1px solid #ffe0d2; border-radius: 14px; padding: 16px; box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
+.srow { display: flex; justify-content: space-between; margin: 12px 0; align-items: center; }
+.srow span:first-child { color: #666; }
+.srow span:last-child { font-weight: 700; color: #333; }
+.srow.total { font-weight: 900; font-size: 20px; }
+.srow.total span:last-child { color: #FF6B35; }
+.confirm-summary .order-items.mini { margin-bottom: 8px; }
+.confirm-summary .order-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+.confirm-summary .order-item:last-child { border-bottom: 0; }
+.confirm-summary .item-image img { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; }
+.confirm-summary .item-info { flex: 1; }
+.confirm-summary .item-name { font-size: 12px; font-weight: 600; color: #333; margin-bottom: 2px; }
+.confirm-summary .item-specs span { font-size: 10px; background: #f1f1f1; padding: 0 4px; border-radius: 4px; margin-right: 4px; }
+.confirm-summary .item-quantity { font-size: 12px; color: #777; }
+.confirm-summary .item-price { font-size: 12px; font-weight: 700; color: #FF6B35; }
+.right-actions { margin-top: 12px; display: flex; justify-content: flex-end; gap: 10px; }
+
+/* Saved address list */
+.saved-address-list { display: flex; flex-direction: column; gap: 8px; }
+.saved-address-item { display: flex; gap: 10px; padding: 10px; border: 1px solid #eee; border-radius: 8px; background: #fff; cursor: pointer; }
+.saved-address-item input { margin-top: 4px; }
+.saved-address-body .row1 { display: flex; gap: 8px; align-items: center; }
+
+/* Confirm Modal */
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+}
+
+.confirm-card {
+  width: 100%;
+  max-width: 680px;
+  background: linear-gradient(180deg, #ffffff 0%, #fffaf5 100%);
+  border: 1px solid #f0e7df;
+  border-radius: 16px;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.25);
+  overflow: hidden;
+}
+
+.confirm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid #f0e7df;
+}
+
+.confirm-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.confirm-header h3::before {
+  content: "\f26a"; /* bi-bag-check */
+  font-family: bootstrap-icons!important;
+  color: #ff6b35;
+}
+
+.confirm-close {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: #666;
+}
+
+.confirm-content {
+  padding: 18px 22px 8px 22px;
+}
+
+.confirm-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  color: #374151;
+}
+
+.confirm-row .label { font-weight: 700; color: #6b7280; }
+.confirm-row .value { font-weight: 700; color: #111827; }
+
+.confirm-row.total { font-size: 1.25rem; color: #111827; }
+
+.confirm-divider { height: 1px; background: linear-gradient(90deg, transparent, #f0e7df, transparent); margin: 10px 0 6px; }
+
+.confirm-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 22px 22px;
+}
+
+.btn-cancel {
+  background: #6c757d;
+  color: #fff;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.btn-confirm {
+  background: #FF5500;
+  color: #fff;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
 /* Responsive */
 @media (max-width: 992px) {
   .dathang-layout {

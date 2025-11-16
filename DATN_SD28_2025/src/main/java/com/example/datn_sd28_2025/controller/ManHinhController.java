@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -21,6 +22,12 @@ public class ManHinhController {
     @GetMapping
     public ResponseEntity<List<ManHinhDTO>> getAll() {
         List<ManHinhDTO> manHinhs = manHinhService.getAll();
+        return ResponseEntity.ok(manHinhs);
+    }
+
+    @GetMapping("/active")
+    public ResponseEntity<List<ManHinhDTO>> getActive() {
+        List<ManHinhDTO> manHinhs = manHinhService.getActive();
         return ResponseEntity.ok(manHinhs);
     }
 
@@ -42,6 +49,20 @@ public class ManHinhController {
         try {
             ManHinhDTO updated = manHinhService.update(id, manHinhDTO);
             return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PutMapping("/{id}/status")
+    public ResponseEntity<?> updateStatus(@PathVariable Integer id, @RequestBody Map<String, Integer> request) {
+        try {
+            Integer trangThai = request.get("trangThai");
+            if (trangThai == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "trangThai is required"));
+            }
+            manHinhService.updateStatus(id, trangThai);
+            return ResponseEntity.ok(Map.of("message", "Status updated successfully"));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }

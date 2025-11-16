@@ -23,6 +23,11 @@ public class HeDieuHanhServiceImpl implements HeDieuHanhService {
     }
 
     @Override
+    public List<HeDieuHanhDTO> getActive() {
+        return heDieuHanhRepository.findAllActive().stream().map(this::convertToDto).toList();
+    }
+
+    @Override
     public Optional<HeDieuHanhDTO> getById(Integer id) {
         return heDieuHanhRepository.findById(id).map(this::convertToDto);
     }
@@ -61,6 +66,15 @@ public class HeDieuHanhServiceImpl implements HeDieuHanhService {
         }
         
         heDieuHanhRepository.deleteById(id);
+    }
+
+    @Override
+    public void updateStatus(Integer id, Integer trangThai) {
+        HeDieuHanh heDieuHanh = heDieuHanhRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hệ điều hành với ID: " + id));
+        heDieuHanh.setTrangThai(trangThai);
+        heDieuHanh.setNgayCapNhat(LocalDateTime.now());
+        heDieuHanhRepository.save(heDieuHanh);
     }
 
     private HeDieuHanhDTO convertToDto(HeDieuHanh heDieuHanh) {

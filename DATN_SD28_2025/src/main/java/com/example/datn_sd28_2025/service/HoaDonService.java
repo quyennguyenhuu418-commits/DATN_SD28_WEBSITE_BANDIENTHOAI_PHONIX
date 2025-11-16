@@ -60,7 +60,11 @@ public interface HoaDonService {
 
     // Update status by maHoaDon
     HoaDonDTO updateTrangThaiByMaHoaDon(String maHoaDon, Integer trangThai);
+
+    // Update status by maHoaDon with nguoiThucHien
+    HoaDonDTO updateTrangThaiByMaHoaDon(String maHoaDon, Integer trangThai, String nguoiThucHien);
     
     // Find HoaDon entity by maHoaDon
     com.example.datn_sd28_2025.entity.HoaDon findByMaHoaDon(String maHoaDon);
+
 }

@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -21,6 +22,12 @@ public class CameraSauController {
     @GetMapping
     public ResponseEntity<List<CameraSauDTO>> getAll() {
         List<CameraSauDTO> cameras = cameraSauService.getAll();
+        return ResponseEntity.ok(cameras);
+    }
+
+    @GetMapping("/active")
+    public ResponseEntity<List<CameraSauDTO>> getActive() {
+        List<CameraSauDTO> cameras = cameraSauService.getActive();
         return ResponseEntity.ok(cameras);
     }
 
@@ -42,6 +49,20 @@ public class CameraSauController {
         try {
             CameraSauDTO updated = cameraSauService.update(id, cameraSauDTO);
             return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PutMapping("/{id}/status")
+    public ResponseEntity<?> updateStatus(@PathVariable Integer id, @RequestBody Map<String, Integer> request) {
+        try {
+            Integer trangThai = request.get("trangThai");
+            if (trangThai == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "trangThai is required"));
+            }
+            cameraSauService.updateStatus(id, trangThai);
+            return ResponseEntity.ok(Map.of("message", "Status updated successfully"));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }

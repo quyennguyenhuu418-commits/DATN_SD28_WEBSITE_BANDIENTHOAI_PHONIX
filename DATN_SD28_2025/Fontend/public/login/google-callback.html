@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Google OAuth Callback</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+      .container {
+        background: white;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        max-width: 400px;
+      }
+      .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3498db;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 2s linear infinite;
+        margin: 0 auto 1rem;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+      .success {
+        color: #27ae60;
+      }
+      .error {
+        color: #e74c3c;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div id="loading">
+        <div class="spinner"></div>
+        <p>Đang xử lý đăng nhập Google...</p>
+      </div>
+      <div id="result" style="display: none">
+        <h3 id="message"></h3>
+        <p id="details"></p>
+      </div>
+    </div>
+
+    <script>
+      // Get URL parameters
+      const urlParams = new URLSearchParams(window.location.search)
+      const token = urlParams.get('token')
+      const error = urlParams.get('error')
+
+      const loadingDiv = document.getElementById('loading')
+      const resultDiv = document.getElementById('result')
+      const messageEl = document.getElementById('message')
+      const detailsEl = document.getElementById('details')
+
+      if (token) {
+        // Success - store token and redirect
+        localStorage.setItem('customer_token', token)
+
+        // Get user info from token (you might want to decode JWT or make an API call)
+        messageEl.textContent = 'Đăng nhập thành công!'
+        messageEl.className = 'success'
+        detailsEl.textContent = 'Đang chuyển hướng...'
+
+        loadingDiv.style.display = 'none'
+        resultDiv.style.display = 'block'
+
+        // Redirect to home page
+        setTimeout(() => {
+          window.location.href = window.location.origin + '/'
+        }, 2000)
+      } else if (error) {
+        // Error - show error message
+        messageEl.textContent = 'Đăng nhập thất bại!'
+        messageEl.className = 'error'
+        detailsEl.textContent = decodeURIComponent(error)
+
+        loadingDiv.style.display = 'none'
+        resultDiv.style.display = 'block'
+
+        // Redirect to login page after 3 seconds
+        setTimeout(() => {
+          window.location.href = 'login.html'
+        }, 3000)
+      } else {
+        // No token or error - something went wrong
+        messageEl.textContent = 'Có lỗi xảy ra!'
+        messageEl.className = 'error'
+        detailsEl.textContent = 'Không thể xử lý phản hồi từ Google.'
+
+        loadingDiv.style.display = 'none'
+        resultDiv.style.display = 'block'
+
+        // Redirect to login page after 3 seconds
+        setTimeout(() => {
+          window.location.href = 'login.html'
+        }, 3000)
+      }
+    </script>
+  </body>
+</html>

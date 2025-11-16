@@ -12,10 +12,15 @@ import java.util.Map;
 @AllArgsConstructor
 public class SanPhamTrackingDTO {
     private Integer id;
+    private String maCtsp;
     private String tenSanPham;
     private String hinhAnh;
     private Double gia;
     private Integer soLuong;
     private List<Map<String, Object>> imeis;
+    
+    // Thông tin chi tiết sản phẩm
+    private String tenRam;
+    private String tenRom;
+    private String tenMauSac;
 }
-

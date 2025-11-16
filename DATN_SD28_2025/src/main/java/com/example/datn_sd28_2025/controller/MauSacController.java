@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -21,6 +22,12 @@ public class MauSacController {
     @GetMapping
     public ResponseEntity<List<MauSacDTO>> getAll() {
         List<MauSacDTO> mauSacs = mauSacService.getAll();
+        return ResponseEntity.ok(mauSacs);
+    }
+
+    @GetMapping("/active")
+    public ResponseEntity<List<MauSacDTO>> getActive() {
+        List<MauSacDTO> mauSacs = mauSacService.getActive();
         return ResponseEntity.ok(mauSacs);
     }
 
@@ -42,6 +49,20 @@ public class MauSacController {
         try {
             MauSacDTO updated = mauSacService.update(id, mauSacDTO);
             return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PutMapping("/{id}/status")
+    public ResponseEntity<?> updateStatus(@PathVariable Integer id, @RequestBody Map<String, Integer> request) {
+        try {
+            Integer trangThai = request.get("trangThai");
+            if (trangThai == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "trangThai is required"));
+            }
+            mauSacService.updateStatus(id, trangThai);
+            return ResponseEntity.ok(Map.of("message", "Status updated successfully"));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }

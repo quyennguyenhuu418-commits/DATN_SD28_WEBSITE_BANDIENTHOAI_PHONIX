@@ -1,0 +1,116 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "PhoniX MobilePhone API (Extended)", "version": "1.0.0" },
+  "servers": [ { "url": "http://localhost:8080" } ],
+  "tags": [
+    { "name": "CameraSau" }, { "name": "CameraTruoc" }, { "name": "SanPham" }, { "name": "KhuyenMai" }, { "name": "HoaDon" },
+    { "name": "DanhMuc" }, { "name": "Cpu" }, { "name": "Chip" }, { "name": "Gpu" }, { "name": "HeDieuHanh" }, { "name": "ManHinh" }, { "name": "Pin" }, { "name": "Sim" }
+  ],
+  "paths": {
+    
+    "/api/danh-muc": {
+      "get": { "tags": ["DanhMuc"], "summary": "List categories", "responses": { "200": { "description": "OK" } } },
+      "post": { "tags": ["DanhMuc"], "summary": "Create category", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Generic" } } } }, "responses": { "201": { "description": "Created" } } }
+    },
+    "/api/danh-muc/active": { "get": { "tags": ["DanhMuc"], "summary": "Active categories", "responses": { "200": { "description": "OK" } } } },
+    "/api/danh-muc/{id}": {
+      "get": { "tags": ["DanhMuc"], "summary": "Get category", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "responses": { "200": { "description": "OK" } } },
+      "put": { "tags": ["DanhMuc"], "summary": "Update category", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Generic" } } } }, "responses": { "200": { "description": "OK" } } },
+      "delete": { "tags": ["DanhMuc"], "summary": "Delete category", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "responses": { "204": { "description": "No Content" } } }
+    },
+    "/api/danh-muc/{id}/status": { "put": { "tags": ["DanhMuc"], "summary": "Toggle category status", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Toggle" } } } }, "responses": { "200": { "description": "OK" } } } },
+
+    "/api/cpu": {
+      "get": { "tags": ["Cpu"], "summary": "List CPUs", "responses": { "200": { "description": "OK" } } },
+      "post": { "tags": ["Cpu"], "summary": "Create CPU", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Generic" } } } }, "responses": { "201": { "description": "Created" } } }
+    },
+    "/api/cpu/active": { "get": { "tags": ["Cpu"], "summary": "Active CPUs", "responses": { "200": { "description": "OK" } } } },
+    "/api/cpu/{id}": {
+      "get": { "tags": ["Cpu"], "summary": "Get CPU", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "responses": { "200": { "description": "OK" } } },
+      "put": { "tags": ["Cpu"], "summary": "Update CPU", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Generic" } } } }, "responses": { "200": { "description": "OK" } } },
+      "delete": { "tags": ["Cpu"], "summary": "Delete CPU", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "responses": { "204": { "description": "No Content" } } }
+    },
+    "/api/cpu/{id}/status": { "put": { "tags": ["Cpu"], "summary": "Toggle CPU status", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Toggle" } } } }, "responses": { "200": { "description": "OK" } } } },
+
+    "/api/chip": {
+      "get": { "tags": ["Chip"], "summary": "List chips", "responses": { "200": { "description": "OK" } } },
+      "post": { "tags": ["Chip"], "summary": "Create chip", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Generic" } } } }, "responses": { "201": { "description": "Created" } } }
+    },
+    "/api/chip/active": { "get": { "tags": ["Chip"], "summary": "Active chips", "responses": { "200": { "description": "OK" } } } },
+    "/api/chip/{id}": {
+      "get": { "tags": ["Chip"], "summary": "Get chip", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "responses": { "200": { "description": "OK" } } },
+      "put": { "tags": ["Chip"], "summary": "Update chip", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Generic" } } } }, "responses": { "200": { "description": "OK" } } },
+      "delete": { "tags": ["Chip"], "summary": "Delete chip", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "responses": { "204": { "description": "No Content" } } }
+    },
+    "/api/chip/{id}/status": { "put": { "tags": ["Chip"], "summary": "Toggle chip status", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Toggle" } } } }, "responses": { "200": { "description": "OK" } } } },
+
+    "/api/gpu": {
+      "get": { "tags": ["Gpu"], "summary": "List GPUs", "responses": { "200": { "description": "OK" } } },
+      "post": { "tags": ["Gpu"], "summary": "Create GPU", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Generic" } } } }, "responses": { "201": { "description": "Created" } } }
+    },
+    "/api/gpu/active": { "get": { "tags": ["Gpu"], "summary": "Active GPUs", "responses": { "200": { "description": "OK" } } } },
+    "/api/gpu/{id}": {
+      "get": { "tags": ["Gpu"], "summary": "Get GPU", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "responses": { "200": { "description": "OK" } } },
+      "put": { "tags": ["Gpu"], "summary": "Update GPU", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Generic" } } } }, "responses": { "200": { "description": "OK" } } },
+      "delete": { "tags": ["Gpu"], "summary": "Delete GPU", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "responses": { "204": { "description": "No Content" } } }
+    },
+    "/api/gpu/{id}/status": { "put": { "tags": ["Gpu"], "summary": "Toggle GPU status", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Toggle" } } } }, "responses": { "200": { "description": "OK" } } } },
+
+    "/api/he-dieu-hanh": {
+      "get": { "tags": ["HeDieuHanh"], "summary": "List OS", "responses": { "200": { "description": "OK" } } },
+      "post": { "tags": ["HeDieuHanh"], "summary": "Create OS", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Generic" } } } }, "responses": { "201": { "description": "Created" } } }
+    },
+    "/api/he-dieu-hanh/active": { "get": { "tags": ["HeDieuHanh"], "summary": "Active OS", "responses": { "200": { "description": "OK" } } } },
+    "/api/he-dieu-hanh/{id}": {
+      "get": { "tags": ["HeDieuHanh"], "summary": "Get OS", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "responses": { "200": { "description": "OK" } } },
+      "put": { "tags": ["HeDieuHanh"], "summary": "Update OS", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Generic" } } } }, "responses": { "200": { "description": "OK" } } },
+      "delete": { "tags": ["HeDieuHanh"], "summary": "Delete OS", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "responses": { "204": { "description": "No Content" } } }
+    },
+    "/api/he-dieu-hanh/{id}/status": { "put": { "tags": ["HeDieuHanh"], "summary": "Toggle OS status", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Toggle" } } } }, "responses": { "200": { "description": "OK" } } } },
+
+    "/api/man-hinh": {
+      "get": { "tags": ["ManHinh"], "summary": "List screens", "responses": { "200": { "description": "OK" } } },
+      "post": { "tags": ["ManHinh"], "summary": "Create screen", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Generic" } } } }, "responses": { "201": { "description": "Created" } } }
+    },
+    "/api/man-hinh/active": { "get": { "tags": ["ManHinh"], "summary": "Active screens", "responses": { "200": { "description": "OK" } } } },
+    "/api/man-hinh/{id}": {
+      "get": { "tags": ["ManHinh"], "summary": "Get screen", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "responses": { "200": { "description": "OK" } } },
+      "put": { "tags": ["ManHinh"], "summary": "Update screen", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Generic" } } } }, "responses": { "200": { "description": "OK" } } },
+      "delete": { "tags": ["ManHinh"], "summary": "Delete screen", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "responses": { "204": { "description": "No Content" } } }
+    },
+    "/api/man-hinh/{id}/status": { "put": { "tags": ["ManHinh"], "summary": "Toggle screen status", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Toggle" } } } }, "responses": { "200": { "description": "OK" } } } },
+
+    "/api/pin": {
+      "get": { "tags": ["Pin"], "summary": "List batteries", "responses": { "200": { "description": "OK" } } },
+      "post": { "tags": ["Pin"], "summary": "Create battery", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Generic" } } } }, "responses": { "201": { "description": "Created" } } }
+    },
+    "/api/pin/active": { "get": { "tags": ["Pin"], "summary": "Active batteries", "responses": { "200": { "description": "OK" } } } },
+    "/api/pin/{id}": {
+      "get": { "tags": ["Pin"], "summary": "Get battery", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "responses": { "200": { "description": "OK" } } },
+      "put": { "tags": ["Pin"], "summary": "Update battery", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Generic" } } } }, "responses": { "200": { "description": "OK" } } },
+      "delete": { "tags": ["Pin"], "summary": "Delete battery", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "responses": { "204": { "description": "No Content" } } }
+    },
+    "/api/pin/{id}/status": { "put": { "tags": ["Pin"], "summary": "Toggle battery status", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Toggle" } } } }, "responses": { "200": { "description": "OK" } } } },
+
+    "/api/sim": {
+      "get": { "tags": ["Sim"], "summary": "List SIMs", "responses": { "200": { "description": "OK" } } },
+      "post": { "tags": ["Sim"], "summary": "Create SIM", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Generic" } } } }, "responses": { "201": { "description": "Created" } } }
+    },
+    "/api/sim/{id}": {
+      "get": { "tags": ["Sim"], "summary": "Get SIM", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "responses": { "200": { "description": "OK" } } },
+      "put": { "tags": ["Sim"], "summary": "Update SIM", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Generic" } } } }, "responses": { "200": { "description": "OK" } } },
+      "delete": { "tags": ["Sim"], "summary": "Delete SIM", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "responses": { "204": { "description": "No Content" } } }
+    },
+    "/api/sim/{id}/status": { "put": { "tags": ["Sim"], "summary": "Toggle SIM status", "parameters": [ { "$ref": "#/components/parameters/Id" } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Toggle" } } } }, "responses": { "200": { "description": "OK" } } } }
+  },
+  "components": {
+    "schemas": {
+      "Generic": { "type": "object", "additionalProperties": true },
+      "Toggle": { "type": "object", "additionalProperties": true }
+    },
+    "parameters": {
+      "Id": { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+    }
+  }
+}
+

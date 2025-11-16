@@ -26,6 +26,12 @@ public class GpuServiceImpl implements GpuService {
     }
 
     @Override
+    public List<GpuDTO> getActive() {
+        return gpuRepository.findAllActive().stream()
+                .map(this::convertToDto).toList();
+    }
+
+    @Override
     public Page<GpuDTO> getAll(Pageable pageable) {
         return gpuRepository.findAll(pageable)
                 .map(this::convertToDto);
@@ -72,6 +78,15 @@ public class GpuServiceImpl implements GpuService {
         }
         
         gpuRepository.deleteById(id);
+    }
+
+    @Override
+    public void updateStatus(Integer id, Integer trangThai) {
+        Gpu gpu = gpuRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy GPU với ID: " + id));
+        gpu.setTrangThai(trangThai);
+        gpu.setNgayCapNhat(LocalDateTime.now());
+        gpuRepository.save(gpu);
     }
 
     private GpuDTO convertToDto(Gpu gpu) {

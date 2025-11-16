@@ -31,3 +31,7 @@ SET dia_chi = 'Chưa cập nhật địa chỉ'
 WHERE dia_chi IS NULL OR dia_chi = '';
 
 
+
+
+
+

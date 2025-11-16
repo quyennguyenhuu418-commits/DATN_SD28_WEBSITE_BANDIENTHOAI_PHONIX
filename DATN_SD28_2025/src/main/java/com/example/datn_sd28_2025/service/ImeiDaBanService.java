@@ -12,5 +12,3 @@ public interface ImeiDaBanService {
     void markImeiAsSold(String imei, Integer idHoaDonChiTiet);
 }
 
-
-

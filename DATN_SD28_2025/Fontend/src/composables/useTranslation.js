@@ -11,7 +11,7 @@ const translations = {
     products: 'Sản phẩm',
     orders: 'Đơn hàng',
     customers: 'Khách hàng',
-    vouchers: 'Voucher',
+    vouchers: 'Phiếu giảm giá',
     settings: 'Cài đặt',
     pos: 'Bán hàng',
     
@@ -156,6 +156,10 @@ export function useTranslation() {
     initLanguage
   }
 }
+
+
+
+
 
 
 

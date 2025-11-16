@@ -25,9 +25,11 @@ public class PhieuGiamGiaController {
     private KhachHangGiamGiaRepository khachHangGiamGiaRepository;
 
     @GetMapping
-    public ResponseEntity<List<PhieuGiamGiaDTO>> getAll() {
-        List<PhieuGiamGiaDTO> phieuGiamGias = phieuGiamGiaService.getAll();
-        return ResponseEntity.ok(phieuGiamGias);
+    public ResponseEntity<List<PhieuGiamGiaDTO>> getAll(@RequestParam(required = false) Integer customerId) {
+        // Nếu có customerId, trả về vouchers available cho customer đó (public + private)
+        // Nếu không có customerId, chỉ trả về public vouchers
+        List<PhieuGiamGiaDTO> vouchers = phieuGiamGiaService.getAvailableVouchers(customerId);
+        return ResponseEntity.ok(vouchers);
     }
 
     @GetMapping("/{id}")
@@ -41,6 +43,12 @@ public class PhieuGiamGiaController {
     public ResponseEntity<List<PhieuGiamGiaDTO>> getActiveVouchers() {
         List<PhieuGiamGiaDTO> activeVouchers = phieuGiamGiaService.getActiveVouchers();
         return ResponseEntity.ok(activeVouchers);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<PhieuGiamGiaDTO>> searchByQuery(@RequestParam String query) {
+        List<PhieuGiamGiaDTO> vouchers = phieuGiamGiaService.searchByQuery(query);
+        return ResponseEntity.ok(vouchers);
     }
 
     @GetMapping("/by-code/{code}")
@@ -191,6 +199,38 @@ public class PhieuGiamGiaController {
             }
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/validate-walkin")
+    public ResponseEntity<?> validateVoucherForWalkIn(@RequestBody Map<String, String> request) {
+        try {
+            String voucherCode = request.get("voucherCode");
+            if (voucherCode == null || voucherCode.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "valid", false,
+                    "message", "Mã voucher không được để trống"
+                ));
+            }
+            
+            boolean isValid = phieuGiamGiaService.canWalkInCustomerUseVoucher(voucherCode);
+            
+            if (isValid) {
+                return ResponseEntity.ok(Map.of(
+                    "valid", true,
+                    "message", "Voucher có thể sử dụng cho khách vãng lai"
+                ));
+            } else {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "valid", false,
+                    "message", "Voucher không thể sử dụng cho khách vãng lai (có thể là voucher riêng tư hoặc đã hết hạn)"
+                ));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "valid", false,
+                "message", "Lỗi khi kiểm tra voucher: " + e.getMessage()
+            ));
         }
     }
 

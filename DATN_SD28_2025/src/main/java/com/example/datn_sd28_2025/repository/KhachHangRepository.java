@@ -2,6 +2,7 @@ package com.example.datn_sd28_2025.repository;
 
 import com.example.datn_sd28_2025.entity.KhachHang;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -13,6 +14,14 @@ import java.util.Optional;
 @Repository
 public interface KhachHangRepository extends JpaRepository<KhachHang, Integer> {
     
+    @Modifying
+    @Query("UPDATE KhachHang k SET k.trangThai = :trangThai, k.ngayCapNhat = :ngayCapNhat WHERE k.id = :id")
+    int updateStatusOnly(@Param("id") Integer id,
+                         @Param("trangThai") Integer trangThai,
+                         @Param("ngayCapNhat") LocalDateTime ngayCapNhat);
+
+    Optional<KhachHang> findTopByMaKhachHangStartingWithOrderByMaKhachHangDesc(String prefix);
+    
     @Query("SELECT k FROM KhachHang k WHERE k.trangThai = 1")
     List<KhachHang> findAllActive();
     
@@ -23,10 +32,13 @@ public interface KhachHangRepository extends JpaRepository<KhachHang, Integer> {
     Optional<KhachHang> findBySoDienThoai(@Param("soDienThoai") String soDienThoai);
     
     @Query("SELECT k FROM KhachHang k WHERE k.email = :email")
-    Optional<KhachHang> findByEmail(@Param("email") String email);
+    KhachHang findByEmail(@Param("email") String email);
     
     @Query("SELECT k FROM KhachHang k WHERE k.taiKhoan = :taiKhoan")
-    Optional<KhachHang> findByTaiKhoan(@Param("taiKhoan") String taiKhoan);
+    KhachHang findByTaiKhoan(@Param("taiKhoan") String taiKhoan);
+    
+    @Query("SELECT k FROM KhachHang k WHERE k.googleId = :googleId")
+    KhachHang findByGoogleId(@Param("googleId") String googleId);
     
     @Query("SELECT k FROM KhachHang k WHERE k.hoTen LIKE %:hoTen%")
     List<KhachHang> findByHoTenContaining(@Param("hoTen") String hoTen);

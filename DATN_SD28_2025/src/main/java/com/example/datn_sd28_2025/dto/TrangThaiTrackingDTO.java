@@ -14,5 +14,5 @@ public class TrangThaiTrackingDTO {
     private String tenTrangThai;
     private LocalDateTime thoiGian;
     private String moTa;
+    private String actor; // nguoiThucHien
 }
-

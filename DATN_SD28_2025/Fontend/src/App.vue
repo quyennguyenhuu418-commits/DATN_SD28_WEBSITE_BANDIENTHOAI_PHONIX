@@ -1,15 +1,26 @@
 <template>
-  <!-- Admin Layout with Sidebar -->
-  <div v-if="isAdminApp" id="app">
-    <router-view />
+  <!-- Public Website Layout (HomePage, ShopPage, etc.) - No Sidebar -->
+  <div v-if="isPublicWebsite" id="app">
+    <transition name="page-fade" mode="out-in">
+      <router-view :key="$route.fullPath" />
+    </transition>
+    <!-- Scroll-to-top button (above chat widgets) -->
+    <button
+      v-if="showScrollTop"
+      class="scroll-top-floating"
+      @click="scrollToTop"
+      aria-label="Scroll to top"
+      title="Lên đầu trang"
+    >
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 5l-7 7m7-7l7 7M12 5v14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <SimpleChatWidget />
+    <UltraChatBox />
   </div>
 
-  <!-- Public Website Layout (HomePage, ShopPage, etc.) -->
-  <div v-else-if="isPublicWebsite" id="app">
-    <router-view />
-  </div>
-
-  <!-- Legacy Layout with Sidebar -->
+  <!-- Legacy Layout with Sidebar (for admin routes and other routes) -->
   <div v-else id="app" class="h-screen bg-gradient-to-br from-slate-50 to-blue-50">
     <div class="flex h-full">
       <!-- Modern Sidebar - Hide on login page -->
@@ -22,13 +33,13 @@
         <div class="sidebar-header">
           <div class="flex items-center justify-center w-full relative">
             <!-- Logo -->
-            <img
+            <img 
               v-if="!sidebarCollapsed"
-              src="/logo.png"
-              alt="Logo"
+              src="/logo.png" 
+              alt="Logo" 
               class="logo-image"
             />
-
+            
             <!-- Toggle Button -->
             <button
               class="toggle-btn absolute right-0"
@@ -52,16 +63,16 @@
           <router-link to="/trang-chu" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
             <div class="nav-icon">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                       d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
               </svg>
             </div>
-            <span v-if="!sidebarCollapsed" class="nav-text">Trang chủ</span>
+            <span v-if="!sidebarCollapsed" class="nav-text">{{ t('navigation.home') }}</span>
           </router-link>
 
           <!-- Divider -->
           <div v-if="!sidebarCollapsed" class="nav-divider">
-            <span class="nav-section-title">Quản lý bán hàng</span>
+            <span class='nav-section-title'>{{ t('navigation.salesManagement') }}</span>
           </div>
 
           <!-- Bán hàng -->
@@ -72,37 +83,37 @@
                       d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
               </svg>
             </div>
-            <span v-if="!sidebarCollapsed" class="nav-text">Bán hàng</span>
+            <span v-if="!sidebarCollapsed" class="nav-text">{{ t('navigation.sales') }}</span>
           </router-link>
 
           <!-- Sản phẩm -->
           <router-link to="/san-pham" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
             <div class="nav-icon">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                       d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
               </svg>
             </div>
-            <span v-if="!sidebarCollapsed" class="nav-text">Sản phẩm</span>
+            <span v-if="!sidebarCollapsed" class="nav-text">{{ t('navigation.products') }}</span>
           </router-link>
 
           <!-- Khách hàng -->
           <router-link to="/khach-hang" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
             <div class="nav-icon">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                       d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
               </svg>
             </div>
-            <span v-if="!sidebarCollapsed" class="nav-text">Khách hàng</span>
+            <span v-if="!sidebarCollapsed" class="nav-text">{{ t('navigation.customers') }}</span>
           </router-link>
 
           <!-- Đơn hàng -->
-          <router-link to="/hoa-don/detail" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
+          <router-link to="/don-hang" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
             <div class="nav-icon">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
             </div>
             <span v-if="!sidebarCollapsed" class="nav-text">Đơn hàng</span>
@@ -112,12 +123,25 @@
           <router-link to="/hoa-don" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
             <div class="nav-icon">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                       d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
-            <span v-if="!sidebarCollapsed" class="nav-text">Hóa đơn</span>
+            <span v-if="!sidebarCollapsed" class="nav-text">{{ t('navigation.invoices') }}</span>
           </router-link>
+
+          <!-- Bảo hành -->
+          <router-link to="/bao-hanh" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
+            <div class="nav-icon">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <span v-if="!sidebarCollapsed" class="nav-text">Quản lý Bảo hành</span>
+          </router-link>
+
+
 
 
           <!-- Thuộc Tính with Submenu -->
@@ -129,62 +153,62 @@
             >
               <div class="nav-icon">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                         d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                </svg>
+              </svg>
               </div>
-              <span v-if="!sidebarCollapsed" class="nav-text">Thuộc Tính</span>
+              <span v-if="!sidebarCollapsed" class="nav-text">{{ t('navigation.attributes') }}</span>
               <div v-if="!sidebarCollapsed" class="nav-arrow">
                 <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': showThuocTinh }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                </svg>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
               </div>
             </button>
-
+            
             <!-- Submenu -->
             <div v-if="showThuocTinh && !sidebarCollapsed" class="nav-submenu">
               <router-link to="/hang" class="nav-submenu-item">
-                <span>Hãng</span>
+                <span>{{ t('navigation.brand') }}</span>
               </router-link>
               <router-link to="/he-dieu-hanh" class="nav-submenu-item">
-                <span>Hệ điều hành</span>
+                <span>{{ t('navigation.operatingSystem') }}</span>
               </router-link>
               <router-link to="/mau-sac" class="nav-submenu-item">
-                <span>Màu sắc</span>
+                <span>{{ t('navigation.color') }}</span>
               </router-link>
               <router-link to="/man-hinh" class="nav-submenu-item">
-                <span>Màn hình</span>
+                <span>{{ t('navigation.screen') }}</span>
               </router-link>
               <router-link to="/chip" class="nav-submenu-item">
-                <span>Chip</span>
+                <span>{{ t('navigation.chip') }}</span>
               </router-link>
               <router-link to="/ram" class="nav-submenu-item">
-                <span>RAM</span>
+                <span>{{ t('navigation.ram') }}</span>
               </router-link>
               <router-link to="/rom" class="nav-submenu-item">
-                <span>ROM</span>
+                <span>{{ t('navigation.rom') }}</span>
               </router-link>
               <router-link to="/cpu" class="nav-submenu-item">
-                <span>CPU</span>
+                <span>{{ t('navigation.cpu') }}</span>
               </router-link>
               <router-link to="/gpu" class="nav-submenu-item">
-                <span>GPU</span>
+                <span>{{ t('navigation.gpu') }}</span>
               </router-link>
               <router-link to="/pin" class="nav-submenu-item">
-                <span>Pin</span>
+                <span>{{ t('navigation.battery') }}</span>
               </router-link>
               <router-link to="/camera-truoc" class="nav-submenu-item">
-                <span>Camera trước</span>
+                <span>{{ t('navigation.frontCamera') }}</span>
               </router-link>
               <router-link to="/camera-sau" class="nav-submenu-item">
-                <span>Camera sau</span>
+                <span>{{ t('navigation.backCamera') }}</span>
               </router-link>
             </div>
           </div>
 
           <!-- Divider -->
           <div v-if="!sidebarCollapsed" class="nav-divider">
-            <span class="nav-section-title">Quản lý giảm giá</span>
+            <span class='nav-section-title'>{{ t('navigation.discountManagement') }}</span>
           </div>
 
           <!-- Phiếu giảm giá -->
@@ -195,53 +219,70 @@
                       d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
             </svg>
             </div>
-            <span v-if="!sidebarCollapsed" class="nav-text">Phiếu giảm giá</span>
+            <span v-if="!sidebarCollapsed" class="nav-text">{{ t('navigation.discountVouchers') }}</span>
           </router-link>
 
           <!-- Đợt Giảm Giá -->
           <router-link to="/dot-giam-gia" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
             <div class="nav-icon">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                       d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
               </svg>
             </div>
-            <span v-if="!sidebarCollapsed" class="nav-text">Đợt giảm giá</span>
+            <span v-if="!sidebarCollapsed" class="nav-text">{{ t('navigation.discountCampaigns') }}</span>
           </router-link>
 
           <!-- Divider -->
-          <div v-if="!sidebarCollapsed" class="nav-divider">
-            <span class="nav-section-title">Quản lý hệ thống</span>
+          <div v-if="!sidebarCollapsed && (authStore.isManager || authStore.isAdmin)" class="nav-divider">
+            <span class='nav-section-title'>{{ t('navigation.systemManagement') }}</span>
           </div>
 
-          <!-- Nhân viên -->
-          <router-link to="/nhan-vien" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
+          <!-- Nhân viên - MANAGER/ADMIN: toàn bộ danh sách, STAFF: chỉ xem chính họ -->
+          <router-link 
+            v-if="authStore.isManager || authStore.isAdmin || authStore.isStaff"
+            :to="authStore.isStaff ? `/nhan-vien/chi-tiet/${authStore.user?.id}` : '/nhan-vien'" 
+            class="nav-item" 
+            :class="{ 'nav-item-collapsed': sidebarCollapsed }"
+          >
             <div class="nav-icon">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                       d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
+            </svg>
             </div>
-            <span v-if="!sidebarCollapsed" class="nav-text">Nhân viên</span>
+            <span v-if="!sidebarCollapsed" class="nav-text">
+              {{ authStore.isStaff ? 'Thông tin của tôi' : t('navigation.employees') }}
+            </span>
           </router-link>
 
-          <!-- Cài đặt -->
-          <router-link to="/cai-dat" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
+          <!-- Cài đặt - chỉ MANAGER/ADMIN -->
+          <router-link 
+            v-if="authStore.isManager || authStore.isAdmin"
+            to="/cai-dat" 
+            class="nav-item" 
+            :class="{ 'nav-item-collapsed': sidebarCollapsed }"
+          >
             <div class="nav-icon">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                       d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
               </svg>
             </div>
-            <span v-if="!sidebarCollapsed" class="nav-text">Cài đặt</span>
+            <span v-if="!sidebarCollapsed" class="nav-text">{{ t('navigation.settings') }}</span>
           </router-link>
 
-          <!-- Messenger Settings -->
-          <router-link to="/messenger-settings" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
+          <!-- Messenger Settings - chỉ MANAGER/ADMIN -->
+          <router-link 
+            v-if="authStore.isManager || authStore.isAdmin"
+            to="/messenger-settings" 
+            class="nav-item" 
+            :class="{ 'nav-item-collapsed': sidebarCollapsed }"
+          >
             <div class="nav-icon">
               <i class="fab fa-facebook-messenger"></i>
             </div>
-            <span v-if="!sidebarCollapsed" class="nav-text">Messenger</span>
+            <span v-if="!sidebarCollapsed" class="nav-text">{{ t('navigation.messenger') }}</span>
           </router-link>
 
           <!-- Staff Chat Dashboard -->
@@ -252,47 +293,66 @@
                       d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
             </div>
-            <span v-if="!sidebarCollapsed" class="nav-text">Chat Hỗ Trợ</span>
+            <span v-if="!sidebarCollapsed" class="nav-text">{{ t('navigation.supportChat') }}</span>
           </router-link>
 
 
           <!-- Divider -->
-          <div v-if="!sidebarCollapsed" class="nav-divider">
-            <span class="nav-section-title">Báo cáo & Phân tích</span>
+          <div v-if="!sidebarCollapsed && (authStore.isManager || authStore.isAdmin)" class="nav-divider">
+            <span class='nav-section-title'>{{ t('navigation.reportsAnalytics') }}</span>
           </div>
 
-          <!-- Thống kê -->
-          <router-link to="/thong-ke" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
+          <!-- Thống kê - chỉ MANAGER/ADMIN -->
+          <router-link 
+            v-if="authStore.isManager || authStore.isAdmin"
+            to="/thong-ke" 
+            class="nav-item" 
+            :class="{ 'nav-item-collapsed': sidebarCollapsed }"
+          >
             <div class="nav-icon">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                       d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
+              </svg>
             </div>
-            <span v-if="!sidebarCollapsed" class="nav-text">Thống kê</span>
+            <span v-if="!sidebarCollapsed" class="nav-text">{{ t('navigation.statistics') }}</span>
           </router-link>
 
+          <!-- Divider - Ca làm việc -->
+          <div v-if="!sidebarCollapsed && (authStore.isManager || authStore.isAdmin)" class="nav-divider">
+            <span class='nav-section-title'>Quản lý ca làm việc</span>
+          </div>
 
-          <!-- Quản lý ca làm việc -->
-          <router-link to="/ca" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
+          <!-- Quản lý ca làm việc - chỉ MANAGER/ADMIN -->
+          <router-link 
+            v-if="authStore.isManager || authStore.isAdmin"
+            to="/ca" 
+            class="nav-item" 
+            :class="{ 'nav-item-collapsed': sidebarCollapsed }"
+          >
             <div class="nav-icon">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                       d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <span v-if="!sidebarCollapsed" class="nav-text">Ca làm việc</span>
+            <span v-if="!sidebarCollapsed" class="nav-text">{{ t('navigation.workShifts') }}</span>
           </router-link>
 
-          <!-- Phân ca -->
-          <router-link to="/phan-ca" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
+          <!-- Phân ca - chỉ MANAGER/ADMIN -->
+          <router-link 
+            v-if="authStore.isManager || authStore.isAdmin"
+            to="/phan-ca" 
+            class="nav-item" 
+            :class="{ 'nav-item-collapsed': sidebarCollapsed }"
+          >
             <div class="nav-icon">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                       d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
-            <span v-if="!sidebarCollapsed" class="nav-text">Phân ca</span>
+            <span v-if="!sidebarCollapsed" class="nav-text">{{ t('navigation.shiftAssignment') }}</span>
           </router-link>
 
           <!-- Giao ca -->
@@ -303,50 +363,39 @@
                       d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
               </svg>
             </div>
-            <span v-if="!sidebarCollapsed" class="nav-text">Giao ca</span>
+            <span v-if="!sidebarCollapsed" class="nav-text">{{ t('navigation.shiftHandover') }}</span>
           </router-link>
 
           <!-- Divider -->
           <div v-if="!sidebarCollapsed" class="nav-divider">
-            <span class="nav-section-title">HỖ TRỢ & QUẢN LÝ</span>
+            <span class='nav-section-title'>{{ t('navigation.supportManagement') }}</span>
           </div>
 
-          <!-- Hỗ trợ -->
-          <router-link to="/staff-chat" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
+          <!-- FAQ -->
+          <router-link to="/faq" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
             <div class="nav-icon">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <span v-if="!sidebarCollapsed" class="nav-text">Hỗ trợ</span>
+            <span v-if="!sidebarCollapsed" class="nav-text">{{ t('navigation.faq') }}</span>
           </router-link>
 
           <!-- Divider -->
           <div v-if="!sidebarCollapsed" class="nav-divider">
-            <span class="nav-section-title">Demo & Test</span>
+            <span class='nav-section-title'>{{ t('navigation.demoTest') }}</span>
           </div>
-
-          <!-- Public Website -->
-          <a href="/" target="_blank" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
-            <div class="nav-icon">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-              </svg>
-            </div>
-            <span v-if="!sidebarCollapsed" class="nav-text">Website công khai</span>
-          </a>
 
           <!-- Dark Mode Demo -->
           <router-link to="/dark-mode-demo" class="nav-item" :class="{ 'nav-item-collapsed': sidebarCollapsed }">
             <div class="nav-icon">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                       d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
               </svg>
             </div>
-            <span v-if="!sidebarCollapsed" class="nav-text">Dark Mode Demo</span>
+            <span v-if="!sidebarCollapsed" class="nav-text">{{ t('navigation.darkModeDemo') }}</span>
           </router-link>
 
         </nav>
@@ -363,11 +412,7 @@
       </main>
     </div>
     
-    <!-- Simple Chat Widget -->
-    <SimpleChatWidget />
-    
-    <!-- Ultra Chat Box (AI Chatbot) -->
-    <UltraChatBox />
+    <!-- Chat widgets moved to website layout -->
     
     <!-- Facebook Messenger Manager - TẠM THỜI ẨN -->
     <!-- <MessengerManager 
@@ -376,8 +421,9 @@
       :defaultEnabled="false"
     /> -->
     
-    <!-- Shift Handover Modal -->
+    <!-- Shift Handover Modal - Only show in legacy layout -->
     <ShiftHandoverModal
+      v-if="!isAdminApp && !isPublicWebsite"
       :isOpen="showShiftHandoverModal"
       @close="closeShiftHandoverModal"
       @confirm="handleShiftHandoverConfirmed"
@@ -386,10 +432,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
-import { useDarkMode } from '@/composables/useDarkMode.js'
+import { useGlobalTranslation } from '@/composables/useGlobalTranslation.js'
+import { useAutoTranslation } from '@/composables/useAutoTranslation.js'
 import api from '@/services/api'
 import SimpleChatWidget from '@/components/SimpleChatWidget.vue'
 import UltraChatBox from '@/components/UltraChatBox.vue'
@@ -397,21 +444,11 @@ import ShiftHandoverModal from '@/components/ShiftHandoverModal.vue'
 import MessengerManager from '@/components/MessengerManager.vue'
 // import UserMenu from '@/components/UserMenu.vue' // Removed
 
-const route = useRoute()
+// Global translation
+const { t, initLanguage } = useGlobalTranslation()
 
-const isAdminApp = computed(() => {
-  return route.path.startsWith('/admin')
-})
-
-// Public website pages (no sidebar)
-const isPublicWebsite = computed(() => {
-  return route.path === '/' ||
-    route.path === '/shop' ||
-    route.path === '/cart' ||
-    route.path === '/checkout' ||
-    route.path === '/dat-hang' ||
-    route.path.startsWith('/product')
-})
+// Auto translation
+const { translate } = useAutoTranslation()
 
 const sidebarCollapsed = ref(false)
 const showThuocTinh = ref(false)
@@ -421,11 +458,31 @@ const showShiftHandoverModal = ref(false)
 const authStore = useAuthStore()
 const router = useRouter()
 
-// Dark mode
-const { isDarkMode, toggleDarkMode } = useDarkMode()
+// Dark mode - Removed to prevent automatic dark mode in incognito
 
-// Computed properties
-const currentRoute = computed(() => route.name)
+const route = useRoute()
+
+// Check if current route is admin app - REMOVED: Admin routes now use legacy sidebar
+// const isAdminApp = computed(() => {
+//   return route.path.startsWith('/admin')
+// })
+const isAdminApp = computed(() => false) // Disable separate admin layout, use legacy sidebar
+
+// Public website pages (no sidebar)
+const isPublicWebsite = computed(() => {
+  return route.matched.some(record => record.meta?.public === true)
+})
+
+// Scroll-to-top visibility
+const showScrollTop = ref(false)
+function onScroll() {
+  try {
+    showScrollTop.value = window.scrollY > 600
+  } catch (_) {}
+}
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
 
 function toggleSidebar() {
   sidebarCollapsed.value = !sidebarCollapsed.value
@@ -437,6 +494,14 @@ function toggleThuocTinh() {
 
 // Check for pending handovers on app load
 onMounted(async () => {
+  // Scroll listener for scroll-top button
+  try {
+    window.addEventListener('scroll', onScroll, { passive: true })
+  } catch (_) {}
+
+  // Initialize global translation system
+  initLanguage()
+  
   // Remove login-active class from body on app mount
   document.body.classList.remove('login-active')
   
@@ -446,9 +511,13 @@ onMounted(async () => {
   // Only check if user is authenticated and not on login page
   if (authStore.isAuthenticated && authStore.user?.id && router.currentRoute.value.path !== '/login') {
     try {
-      const response = await api.get(`/api/auth/pending-shift-handover?nhanVienId=${authStore.user.id}`)
+      // Use idNguoiDung if available, otherwise use id
+      const nhanVienId = authStore.user.idNguoiDung || authStore.user.id
+      if (nhanVienId) {
+        const response = await api.get(`/api/auth/pending-shift-handover?nhanVienId=${nhanVienId}`)
       if (response.data && response.data.length > 0) {
         showShiftHandoverModal.value = true
+        }
       }
     } catch (error) {
       // Log error but don't show to user - this is a non-critical feature
@@ -470,13 +539,13 @@ const handleShiftHandoverConfirmed = (confirmedGiaoCa) => {
   }, 500)
 }
 
-const route = useRoute()
 const currentPathName = computed(() => route.name || route.path)
 
 // Check if current page is login
 const isLoginPage = computed(() => {
   return route.path === '/login' || route.name === 'LoginPage' || 
-         route.path === '/forgot-password' || route.name === 'forgot-password'
+         route.path === '/forgot-password' || route.name === 'forgot-password' ||
+         route.path === '/admin/login' || route.name === 'admin-login'
 })
 const globalSearch = ref('')
 function doGlobalSearch() {
@@ -492,10 +561,43 @@ watch(() => route.path, (newPath) => {
     document.body.classList.remove('login-active')
   }
 }, { immediate: true })
+
+onUnmounted(() => {
+  try {
+    window.removeEventListener('scroll', onScroll)
+  } catch (_) {}
+})
 </script>
 
-<!-- Giữ nguyên tất cả CSS hiện tại -->
 <style scoped>
+#website-floating-root {
+  position: relative;
+}
+
+.scroll-top-floating {
+  position: fixed;
+  right: 2rem;
+  bottom: calc(2rem + 2*(55px + 16px)); /* SimpleChat + Ultra + 2 gaps 16px */
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  border: 1px solid #fde68a; /* nhạt */
+  background: linear-gradient(135deg, #fff7ed, #fffbeb); /* rất nhẹ */
+  color: #f97316; /* icon cam */
+  box-shadow: 0 6px 18px rgba(249, 115, 22, 0.15);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scroll-top-floating:hover {
+  transform: translateY(-3px);
+  background: linear-gradient(135deg, #fff1e6, #fff7e6);
+  box-shadow: 0 10px 22px rgba(249, 115, 22, 0.2);
+}
 /* CSS Variables for Light/Dark Mode */
 :root {
   /* Light Mode Colors */
@@ -1019,11 +1121,11 @@ main::-webkit-scrollbar-thumb {
     overflow: hidden; /* Không scroll toàn bộ sidebar */
     -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
   }
-
+  
   .sidebar-container.open {
     transform: translateX(0);
   }
-
+  
   main {
     width: 100%;
   }
@@ -1216,4 +1318,27 @@ body:not(.login-active) .header-right {
   visibility: hidden !important;
   opacity: 0 !important;
 }
+
+/* Page Transition - Fade effect khi chuyển trang */
+.page-fade-enter-active,
+.page-fade-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.page-fade-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.page-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.page-fade-enter-to,
+.page-fade-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+}
 </style>
+          

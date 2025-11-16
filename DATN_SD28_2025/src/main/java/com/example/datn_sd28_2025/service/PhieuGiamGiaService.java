@@ -10,6 +10,7 @@ public interface PhieuGiamGiaService {
     Optional<PhieuGiamGiaDTO> getById(Integer id);
     List<PhieuGiamGiaDTO> getActiveVouchers();
     Optional<PhieuGiamGiaDTO> getByCode(String code);
+    List<PhieuGiamGiaDTO> searchByQuery(String query);
     PhieuGiamGiaDTO save(PhieuGiamGiaDTO phieuGiamGiaDTO);
     PhieuGiamGiaDTO update(Integer id, PhieuGiamGiaDTO phieuGiamGiaDTO);
     void delete(Integer id);
@@ -19,4 +20,8 @@ public interface PhieuGiamGiaService {
     List<PhieuGiamGiaDTO> getUsedVouchersByCustomer(Integer customerId);
     boolean canCustomerUseVoucher(Integer customerId, String voucherCode);
     boolean markVoucherAsUsed(Integer customerId, String voucherCode, Double discountAmount);
+    void decreaseUsage(Integer voucherId);
+    boolean canWalkInCustomerUseVoucher(String voucherCode);
+    boolean markVoucherAsUsedForWalkIn(String voucherCode);
+    List<PhieuGiamGiaDTO> getAvailableVouchers(Integer customerId);
 }

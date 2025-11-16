@@ -136,7 +136,13 @@
         <!-- Actions -->
         <div class="actions-section">
           <button class="btn-secondary" @click="goBack">Đóng</button>
-          <button class="btn-primary" @click="editEmployee">Chỉnh sửa</button>
+          <button 
+            v-if="authStore.isManager || authStore.isAdmin" 
+            class="btn-primary" 
+            @click="editEmployee"
+          >
+            Chỉnh sửa
+          </button>
         </div>
       </div>
 
@@ -160,12 +166,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
 import Toast from '@/components/Toast.vue'
 import PosHeader from '@/components/PosHeader.vue'
 import api from '@/services/api'
 
 const router = useRouter()
 const route = useRoute()
+const authStore = useAuthStore()
 const toastRef = ref()
 const loading = ref(true)
 const nhanVien = ref(null)
@@ -176,7 +184,12 @@ const employeeId = route.params.id
 
 // Go back to employee list
 function goBack() {
-  router.push('/nhan-vien')
+  // Nếu là STAFF thì quay về POS, nếu không thì về danh sách nhân viên
+  if (authStore.isStaff) {
+    router.push('/pos')
+  } else {
+    router.push('/nhan-vien')
+  }
 }
 
 // Edit employee
@@ -318,6 +331,19 @@ async function loadEmployeeDetails() {
   try {
     loading.value = true
     imageError.value = false // Reset image error state
+    
+    // Kiểm tra nếu STAFF cố xem nhân viên khác
+    if (authStore.isStaff) {
+      const currentUserId = authStore.user?.id
+      const viewingId = parseInt(employeeId as string)
+      
+      if (currentUserId && viewingId !== currentUserId) {
+        toastRef.value?.warning('Thông báo', 'Bạn chỉ có thể xem thông tin của chính mình')
+        router.push(`/nhan-vien/chi-tiet/${currentUserId}`)
+        return
+      }
+    }
+    
     const response = await api.get(`/api/nhan-vien/${employeeId}`)
     nhanVien.value = response.data
     console.log('Employee data:', response.data) // Debug log

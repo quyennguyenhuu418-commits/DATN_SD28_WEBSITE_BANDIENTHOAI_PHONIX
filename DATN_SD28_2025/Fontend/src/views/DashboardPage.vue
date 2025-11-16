@@ -1,728 +1,792 @@
 <template>
   <div class="dashboard">
-    <!-- POS Header -->
     <PosHeader />
-
+    
     <!-- Main Content -->
     <main class="dashboard-main">
-
-      <!-- Stats Cards -->
-      <section class="stats-section">
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-icon">
-              <font-awesome-icon icon="box" class="fa-2x" />
+      <!-- Welcome Section -->
+      <section class="welcome-section">
+        <div class="welcome-content">
+          <div class="welcome-text">
+            <h1 class="welcome-title">{{ t('dashboard.title') }}</h1>
+            <p class="welcome-subtitle">{{ t('dashboard.subtitle') }}</p>
+            <div class="welcome-actions">
+              <button class="refresh-btn" @click="refreshData" :disabled="loading">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                {{ loading ? t('dashboard.loading') : t('dashboard.refresh') }}
+              </button>
+              <router-link to="/thong-ke" class="view-stats-btn">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                {{ t('dashboard.viewDetailedStats') }}
+              </router-link>
             </div>
-            <div class="stat-content">
-              <h3>{{ stats.totalProducts }}</h3>
-              <p>{{ t('totalProducts') }}</p>
-              <span class="stat-change" :class="stats.productsChangePercent >= 0 ? 'positive' : 'negative'">
-                {{ stats.productsChangePercent >= 0 ? '+' : '' }}{{ stats.productsChangePercent.toFixed(0) }}%
-              </span>
+          </div>
+          <div class="welcome-chart">
+            <canvas ref="revenueChart" class="chart-canvas"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- System Overview Cards -->
+      <section class="overview-section">
+        <div class="section-header">
+          <h2 class="section-title">{{ t('dashboard.systemOverview') }}</h2>
+          <p class="section-subtitle">{{ t('dashboard.lastUpdated') }}: {{ lastUpdated }}</p>
+        </div>
+        <div class="overview-grid">
+          <div class="overview-card revenue-card">
+            <div class="card-icon">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+              </svg>
+            </div>
+            <div class="card-content">
+              <h3 class="card-title">{{ t('dashboard.todayRevenue') }}</h3>
+              <p class="card-value">{{ formatCurrency(overview.todayRevenue) }}</p>
+              <p class="card-subtitle">{{ t('dashboard.inDay') }}</p>
             </div>
           </div>
 
-          <div class="stat-card">
-            <div class="stat-icon">
-              <font-awesome-icon icon="shopping-cart" class="fa-2x" />
+          <div class="overview-card orders-card">
+            <div class="card-icon">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
             </div>
-            <div class="stat-content">
-              <h3>{{ stats.totalOrders }}</h3>
-              <p>{{ t('ordersToday') }}</p>
-              <span class="stat-change" :class="stats.ordersChangePercent >= 0 ? 'positive' : 'negative'">
-                {{ stats.ordersChangePercent >= 0 ? '+' : '' }}{{ stats.ordersChangePercent.toFixed(0) }}%
-              </span>
-            </div>
-          </div>
-
-          <div class="stat-card">
-            <div class="stat-icon">
-              <font-awesome-icon icon="dollar-sign" class="fa-2x" />
-            </div>
-            <div class="stat-content">
-              <h3>{{ formatNumberVietnamese(stats.revenue) }} ₫</h3>
-              <p>{{ t('revenueToday') }}</p>
-              <span class="stat-change" :class="stats.revenueChangePercent >= 0 ? 'positive' : 'negative'">
-                {{ stats.revenueChangePercent >= 0 ? '+' : '' }}{{ stats.revenueChangePercent.toFixed(0) }}%
-              </span>
+            <div class="card-content">
+              <h3 class="card-title">{{ t('dashboard.todayOrders') }}</h3>
+              <p class="card-value">{{ overview.todayOrders }}</p>
+              <p class="card-subtitle">{{ t('dashboard.inDay') }}</p>
             </div>
           </div>
 
-          <div class="stat-card">
-            <div class="stat-icon">
-              <font-awesome-icon icon="users" class="fa-2x" />
+          <div class="overview-card products-card">
+            <div class="card-icon">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
             </div>
-            <div class="stat-content">
-              <h3>{{ stats.totalCustomers }}</h3>
-              <p>{{ t('newCustomers') }}</p>
-              <span class="stat-change" :class="stats.customersChangePercent >= 0 ? 'positive' : 'negative'">
-                {{ stats.customersChangePercent >= 0 ? '+' : '' }}{{ stats.customersChangePercent.toFixed(0) }}%
-              </span>
+            <div class="card-content">
+              <h3 class="card-title">{{ t('dashboard.todayProductsSold') }}</h3>
+              <p class="card-value">{{ overview.todayProductsSold }}</p>
+              <p class="card-subtitle">{{ t('dashboard.inDay') }}</p>
+            </div>
+          </div>
+
+          <div class="overview-card customers-card">
+            <div class="card-icon">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
+            <div class="card-content">
+              <h3 class="card-title">{{ t('dashboard.todayNewCustomers') }}</h3>
+              <p class="card-value">{{ overview.todayNewCustomers }}</p>
+              <p class="card-subtitle">{{ t('dashboard.inDay') }}</p>
+            </div>
+          </div>
+
+          <div class="overview-card staff-card">
+            <div class="card-icon">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+              </svg>
+            </div>
+            <div class="card-content">
+              <h3 class="card-title">{{ t('dashboard.totalStaff') }}</h3>
+              <p class="card-value">{{ overview.totalStaff }}</p>
+              <p class="card-subtitle">{{ t('dashboard.activeStaff') }}</p>
+            </div>
+          </div>
+
+          <div class="overview-card categories-card">
+            <div class="card-icon">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+            </div>
+            <div class="card-content">
+              <h3 class="card-title">{{ t('dashboard.totalCategories') }}</h3>
+              <p class="card-value">{{ overview.totalCategories }}</p>
+              <p class="card-subtitle">{{ t('dashboard.brands') }}: {{ overview.totalBrands }}</p>
             </div>
           </div>
         </div>
       </section>
 
       <!-- Quick Actions -->
-      <section class="quick-actions">
-        <h2>{{ t('quickActions') }}</h2>
+      <section class="quick-actions-section">
+        <div class="section-header">
+          <h2 class="section-title">{{ t('dashboard.quickActions') }}</h2>
+        </div>
         <div class="actions-grid">
           <router-link to="/san-pham" class="action-card">
             <div class="action-icon">
-              <font-awesome-icon icon="box" class="fa-2x" />
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
             </div>
-            <h3>{{ t('manageProducts') }}</h3>
-            <p>{{ t('manageProductsDesc') }}</p>
+            <div class="action-content">
+              <h3 class="action-title">{{ t('dashboard.productManagement') }}</h3>
+              <p class="action-description">{{ t('dashboard.productManagementDesc') }}</p>
+            </div>
+            <div class="action-badge">{{ overview.totalProducts }}</div>
           </router-link>
 
           <router-link to="/hoa-don" class="action-card">
             <div class="action-icon">
-              <font-awesome-icon icon="file-invoice" class="fa-2x" />
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
             </div>
-            <h3>{{ t('manageOrders') }}</h3>
-            <p>{{ t('manageOrdersDesc') }}</p>
+            <div class="action-content">
+              <h3 class="action-title">{{ t('dashboard.orderManagement') }}</h3>
+              <p class="action-description">{{ t('dashboard.orderManagementDesc') }}</p>
+            </div>
+            <div class="action-badge">{{ overview.totalOrders }}</div>
           </router-link>
 
-          <router-link to="/pos" class="action-card">
+          <router-link to="/khach-hang" class="action-card">
             <div class="action-icon">
-              <font-awesome-icon icon="cash-register" class="fa-2x" />
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
             </div>
-            <h3>{{ t('posSystem') }}</h3>
-            <p>{{ t('posSystemDesc') }}</p>
+            <div class="action-content">
+              <h3 class="action-title">{{ t('dashboard.customerManagement') }}</h3>
+              <p class="action-description">{{ t('dashboard.customerManagementDesc') }}</p>
+            </div>
+            <div class="action-badge">{{ overview.totalCustomers }}</div>
           </router-link>
 
-          <router-link to="/online" class="action-card">
+          <router-link to="/nhan-vien" class="action-card">
             <div class="action-icon">
-              <font-awesome-icon icon="globe" class="fa-2x" />
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+              </svg>
             </div>
-            <h3>{{ t('onlineSales') }}</h3>
-            <p>{{ t('onlineSalesDesc') }}</p>
+            <div class="action-content">
+              <h3 class="action-title">{{ t('dashboard.employeeManagement') }}</h3>
+              <p class="action-description">{{ t('dashboard.employeeManagementDesc') }}</p>
+            </div>
+            <div class="action-badge">{{ overview.totalStaff }}</div>
           </router-link>
         </div>
       </section>
 
-      <!-- Recent Orders -->
-      <section class="recent-orders">
-        <div class="section-header">
-          <h2>{{ t('recentOrders') }}</h2>
-          <div style="display: flex; gap: 10px; align-items: center;">
-            <button @click="loadRecentOrders" style="padding: 5px 10px; background: #3b82f6; color: white; border: none; border-radius: 5px; cursor: pointer;">
-              Reload
-            </button>
-            <router-link to="/hoa-don" class="view-all"> {{ t('viewAll') }} </router-link>
-          </div>
-        </div>
-        <div class="orders-table">
-          <div class="table-wrapper">
-            <table class="modern-table">
-              <thead>
-                <tr>
-                  <th class="table-header">
-                    <div class="header-content">
-                      <font-awesome-icon icon="clipboard-list" class="header-icon" />
-                      <span>{{ t('orderId') }}</span>
-                    </div>
-                  </th>
-                  <th class="table-header">
-                    <div class="header-content">
-                      <font-awesome-icon icon="user" class="header-icon" />
-                      <span>{{ t('customer') }}</span>
-                    </div>
-                  </th>
-                  <th class="table-header">
-                    <div class="header-content">
-                      <font-awesome-icon icon="box" class="header-icon" />
-                      <span>{{ t('products') }}</span>
-                    </div>
-                  </th>
-                  <th class="table-header">
-                    <div class="header-content">
-                      <font-awesome-icon icon="dollar-sign" class="header-icon" />
-                      <span>{{ t('totalAmount') }}</span>
-                    </div>
-                  </th>
-                  <th class="table-header">
-                    <div class="header-content">
-                      <font-awesome-icon icon="chart-line" class="header-icon" />
-                      <span>{{ t('status') }}</span>
-                    </div>
-                  </th>
-                  <th class="table-header">
-                    <div class="header-content">
-                      <font-awesome-icon icon="cog" class="header-icon" />
-                      <span>{{ t('actions') }}</span>
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="order in recentOrders" :key="order.id" class="table-row">
-                  <td class="table-cell">
-                    <div class="cell-content">
-                      <span class="order-code">{{ order.maHoaDon }}</span>
-                    </div>
-                  </td>
-                  <td class="table-cell">
-                    <div class="cell-content customer-info">
-                      <div class="customer-avatar">
-                        {{ (order.tenKhachHang || 'N/A').charAt(0).toUpperCase() }}
-                      </div>
-                      <div class="customer-details">
-                        <span class="customer-name">{{ order.tenKhachHang || 'Khách lẻ' }}</span>
-                        <span class="customer-id">#{{ order.soDienThoai || 'N/A' }}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="table-cell">
-                    <div class="cell-content product-info">
-                      <span class="product-count">{{ order.soLuongSanPham || 0 }}</span>
-                      <span class="product-label">sản phẩm</span>
-                    </div>
-                  </td>
-                  <td class="table-cell">
-                    <div class="cell-content">
-                      <span class="amount">{{ formatNumberVietnamese(order.tongTien) }} ₫</span>
-                    </div>
-                  </td>
-                  <td class="table-cell">
-                    <div class="cell-content">
-                      <span :class="getStatusClass(order.trangThai)" class="status-badge">
-                        <span class="status-dot"></span>
-                        {{ order.trangThaiText || getStatusText(order.trangThai) }}
-                      </span>
-                    </div>
-                  </td>
-                  <td class="table-cell">
-                    <div class="cell-content">
-                      <div class="action-buttons">
-                        <button class="btn-view" :title="t('view')">
-                          <font-awesome-icon icon="eye" class="btn-icon" />
-                          <span>{{ t('view') }}</span>
-                        </button>
-                        <button class="btn-edit" :title="t('edit')">
-                          <font-awesome-icon icon="edit" class="btn-icon" />
-                        </button>
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          
-          <!-- Debug Info -->
-          <div v-if="recentOrders.length === 0" class="empty-state">
-            <div class="empty-icon">📋</div>
-            <h3>Chưa có đơn hàng nào</h3>
-            <p>Các đơn hàng gần đây sẽ hiển thị tại đây</p>
-            <div style="margin-top: 20px; padding: 10px; background: #f0f0f0; border-radius: 5px;">
-              <p><strong>Debug Info:</strong></p>
-              <p>recentOrders.length: {{ recentOrders.length }}</p>
-              <p>recentOrders: {{ JSON.stringify(recentOrders) }}</p>
+      <!-- Recent Data -->
+      <section class="recent-data-section">
+        <div class="data-grid">
+          <!-- Recent Orders -->
+          <div class="data-card">
+            <div class="card-header">
+              <h3 class="card-title">{{ t('dashboard.recentOrders') }}</h3>
+              <router-link to="/hoa-don" class="view-all-link">{{ t('dashboard.viewAll') }}</router-link>
+            </div>
+            <div class="card-content">
+              <div v-if="loading" class="loading-state">
+                <div class="loading-spinner"></div>
+                <p>{{ t('dashboard.loadingData') }}</p>
+              </div>
+              <div v-else-if="recentOrders.length === 0" class="empty-state">
+                <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <p>{{ t('dashboard.noOrders') }}</p>
+              </div>
+              <div v-else class="orders-list">
+                <div v-for="order in recentOrders" :key="order.id" class="order-item">
+                  <div class="order-info">
+                    <h4 class="order-id">{{ order.maHoaDon }}</h4>
+                    <p class="order-customer">{{ order.customerName }}</p>
+                  </div>
+                  <div class="order-details">
+                    <span class="order-amount">{{ formatCurrency(order.total) }}</span>
+                    <span class="order-status" :class="getStatusClass(order.status)">
+                      {{ getStatusText(order.status) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
 
-      <!-- Product Categories -->
-      <section class="product-categories">
-        <div class="section-header">
-          <h2>Quản lý danh mục</h2>
-          <router-link to="/san-pham" class="view-all"> Quản lý sản phẩm </router-link>
-        </div>
-        <div class="categories-grid">
-          <router-link to="/hang" class="category-card">
-            <div class="category-icon">
-              <i class="icon-brand" />
+          <!-- Top Products -->
+          <div class="data-card">
+            <div class="card-header">
+              <h3 class="card-title">{{ t('dashboard.topProducts') }}</h3>
+              <router-link to="/thong-ke" class="view-all-link">{{ t('dashboard.viewDetails') }}</router-link>
             </div>
-            <h3>Hãng sản xuất</h3>
-            <p>{{ stats.totalBrands }} hãng</p>
-          </router-link>
-
-          <router-link to="/chip" class="category-card">
-            <div class="category-icon">
-              <i class="icon-cpu" />
+            <div class="card-content">
+              <div v-if="loading" class="loading-state">
+                <div class="loading-spinner"></div>
+                <p>{{ t('dashboard.loadingData') }}</p>
+              </div>
+              <div v-else-if="topProducts.length === 0" class="empty-state">
+                <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+                <p>{{ t('dashboard.noProducts') }}</p>
+              </div>
+              <div v-else class="products-list">
+                <div v-for="(product, index) in topProducts" :key="product.productId" class="product-item">
+                  <div class="product-rank" :class="`rank-${index + 1}`">{{ index + 1 }}</div>
+                  <div class="product-info">
+                    <h4 class="product-name">{{ product.productName }}</h4>
+                    <p class="product-sales">{{ product.totalSold }} {{ t('dashboard.itemsSold') }}</p>
+                  </div>
+                  <div class="product-revenue">{{ formatCurrency(product.totalRevenue) }}</div>
+                </div>
+              </div>
             </div>
-            <h3>Chip xử lý</h3>
-            <p>{{ stats.totalChips }} loại</p>
-          </router-link>
-
-          <router-link to="/ram" class="category-card">
-            <div class="category-icon">
-              <i class="icon-memory" />
-            </div>
-            <h3>RAM</h3>
-            <p>{{ stats.totalRams }} loại</p>
-          </router-link>
-
-          <router-link to="/rom" class="category-card">
-            <div class="category-icon">
-              <i class="icon-storage" />
-            </div>
-            <h3>ROM</h3>
-            <p>{{ stats.totalRoms }} loại</p>
-          </router-link>
+          </div>
         </div>
       </section>
     </main>
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import api from '@/services/api'
-import { useTranslation } from '@/composables/useTranslation.js'
-import PosHeader from '@/components/PosHeader.vue'
+<script>
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { Chart, registerables } from 'chart.js'
+import { useGlobalTranslation } from '../composables/useGlobalTranslation.js'
+import PosHeader from '../components/PosHeader.vue'
+import api from '../services/api'
 
-const { t, initLanguage } = useTranslation()
+Chart.register(...registerables)
 
-// Header data
+export default {
+  name: 'DashboardPage',
+  components: {
+    PosHeader
+  },
+  setup() {
+    // Global translation
+    const { t } = useGlobalTranslation()
+    
+    // Reactive data
+    const loading = ref(false)
+    const overview = ref({
+      totalStaff: 0,
+      totalCategories: 0,
+      totalBrands: 0,
+      todayRevenue: 0,
+      todayOrders: 0,
+      todayProductsSold: 0,
+      todayNewCustomers: 0
+    })
+    
+    const recentOrders = ref([])
+    const topProducts = ref([])
+    const chartData = ref([])
+    const lastUpdated = ref('')
+    
+    // Chart refs
+    const revenueChart = ref(null)
+    const chartInstance = ref(null)
 
-const stats = ref({
-  totalProducts: 0,
-  totalOrders: 0,
-  revenue: 0,
-  totalCustomers: 0,
-  ordersChangePercent: 0,
-  revenueChangePercent: 0,
-  customersChangePercent: 0,
-  productsChangePercent: 0,
-})
-
-const recentOrders = ref([])
-
-
-onMounted(async () => {
-  initLanguage()
-  await loadStats()
-  await loadRecentOrders()
-  
-  // Test Vietnamese number formatting
-  console.log('Testing Vietnamese number formatting:')
-  console.log('666666666 ->', formatNumberVietnamese(666666666))
-  console.log('15000000 ->', formatNumberVietnamese(15000000))
-  console.log('500000 ->', formatNumberVietnamese(500000))
-  
-  // Debug: Force some data for testing
-  console.log('Recent orders after load:', recentOrders.value)
-  if (recentOrders.value.length === 0) {
-    console.log('No orders loaded, adding test data...')
-    recentOrders.value = [
-      {
-        id: 1,
-        maHoaDon: 'HD001',
-        tenKhachHang: 'Nguyễn Văn A',
-        soDienThoai: '0123456789',
-        soLuongSanPham: 2,
-        tongTien: 15000000,
-        trangThai: 3,
-        trangThaiText: 'Đã hoàn thành',
-        ngayTao: new Date().toISOString()
+    // Load dashboard data
+    async function loadDashboardData() {
+      loading.value = true
+      try {
+        console.log('🔄 Loading dashboard data...')
+        
+        // Load overview data - sử dụng API mới
+        const overviewRes = await api.get('/api/dashboard/tong-quan')
+        console.log('[Dashboard] /tong-quan response:', overviewRes.data)
+        if (overviewRes.data && overviewRes.data.thanhCong) {
+          const data = overviewRes.data.duLieu
+          overview.value = {
+            totalStaff: data.tongNhanVien || 0,
+            totalCategories: data.tongDanhMuc || 0,
+            totalBrands: data.tongHang || 0,
+            totalProducts: data.tongSanPham || 0,
+            totalCustomers: data.tongKhachHang || 0,
+            todayRevenue: data.doanhThuHomNay || 0,
+            todayOrders: data.donHangHomNay || 0,
+            // Backend hiện không trả sanPhamBanRaHomNay cho dashboard cơ bản
+            todayProductsSold: data.sanPhamBanRaHomNay || 0,
+            todayNewCustomers: data.khachHangMoiHomNay || 0
+          }
+          lastUpdated.value = data.thoiGianCapNhat || ''
+        }
+        
+        // Load recent orders - sử dụng API mới
+        const ordersRes = await api.get('/api/dashboard/don-hang-gan-day')
+        console.log('[Dashboard] /don-hang-gan-day response:', ordersRes.data)
+        if (ordersRes.data && ordersRes.data.thanhCong) {
+          recentOrders.value = ordersRes.data.duLieu.donHangGanDay || []
+        }
+        
+        // Load top products - sử dụng API mới
+        const productsRes = await api.get('/api/dashboard/san-pham-ban-chay-nhat')
+        console.log('[Dashboard] /san-pham-ban-chay-nhat response:', productsRes.data)
+        if (productsRes.data && productsRes.data.thanhCong) {
+          topProducts.value = productsRes.data.duLieu.sanPhamBanChay || []
+        }
+        
+        // Load chart data - sử dụng API mới
+        const chartRes = await api.get('/api/dashboard/bieu-do-doanh-thu')
+        console.log('[Dashboard] /bieu-do-doanh-thu response:', chartRes.data)
+        if (chartRes.data && chartRes.data.thanhCong) {
+          chartData.value = chartRes.data.duLieu.duLieuBieuDo || []
+        }
+        
+        // Initialize chart
+        await nextTick()
+        await initializeChart()
+        
+        console.log('✅ Dashboard data loaded successfully')
+        
+      } catch (error) {
+        console.error('❌ Error loading dashboard data:', error)
+        setDefaultValues()
+      } finally {
+        loading.value = false
       }
-    ]
-  }
-})
-
-async function loadStats() {
-  try {
-    // Load dashboard statistics from API
-    const response = await api.get('/api/thong-ke/dashboard')
-    const data = response.data
-    
-    stats.value.totalProducts = data.totalProducts || 0
-    stats.value.totalOrders = data.ordersToday || 0
-    stats.value.revenue = data.revenueToday || 0
-    stats.value.totalCustomers = data.newCustomersToday || 0
-    
-    // Store percentage changes for display
-    stats.value.ordersChangePercent = data.ordersChangePercent || 0
-    stats.value.revenueChangePercent = data.revenueChangePercent || 0
-    stats.value.customersChangePercent = data.customersChangePercent || 0
-    stats.value.productsChangePercent = data.productsChangePercent || 0
-  } catch (error) {
-    console.error('Error loading stats:', error)
-    // Fallback to default values
-    stats.value = {
-      totalProducts: 0,
-      totalOrders: 0,
-      revenue: 0,
-      totalCustomers: 0,
-      ordersChangePercent: 0,
-      revenueChangePercent: 0,
-      customersChangePercent: 0,
-      productsChangePercent: 0
     }
-  }
-}
 
-async function loadRecentOrders() {
-  try {
-    console.log('Loading recent orders...')
-    const response = await api.get('/api/thong-ke/don-hang-gan-day?page=0&size=5')
-    console.log('Recent orders response:', response.data)
-    console.log('Response status:', response.status)
-    
-    // Backend returns { orders: [...], totalElements: ..., totalPages: ..., currentPage: ..., size: ... }
-    if (response.data && response.data.orders) {
-      recentOrders.value = response.data.orders
-      console.log('Recent orders loaded:', recentOrders.value.length, 'orders')
-      console.log('Orders data:', recentOrders.value)
-    } else {
+    // Set default values
+    function setDefaultValues() {
+      overview.value = {
+        totalProducts: 0,
+        totalOrders: 0,
+        totalCustomers: 0,
+        totalStaff: 0,
+        totalCategories: 0,
+        totalBrands: 0,
+        totalRevenue: 0,
+        recentRevenue: 0,
+        recentOrders: 0,
+        newCustomers: 0,
+        productsSold: 0
+      }
       recentOrders.value = []
-      console.log('No orders found in response')
-      console.log('Response structure:', Object.keys(response.data || {}))
+      topProducts.value = []
+      chartData.value = []
+      lastUpdated.value = new Date().toLocaleString('vi-VN')
     }
-  } catch (error) {
-    console.error('Error loading recent orders:', error)
-    console.error('Error details:', error.response?.data)
-    
-    // Temporary mock data for testing display
-    recentOrders.value = [
-      {
-        id: 1,
-        maHoaDon: 'HD001',
-        tenKhachHang: 'Nguyễn Văn A',
-        soDienThoai: '0123456789',
-        soLuongSanPham: 2,
-        tongTien: 15000000,
-        trangThai: 3,
-        trangThaiText: 'Đã hoàn thành',
-        ngayTao: new Date().toISOString()
-      },
-      {
-        id: 2,
-        maHoaDon: 'HD002',
-        tenKhachHang: 'Trần Thị B',
-        soDienThoai: '0987654321',
-        soLuongSanPham: 1,
-        tongTien: 8500000,
-        trangThai: 2,
-        trangThaiText: 'Đang xử lý',
-        ngayTao: new Date().toISOString()
-      },
-      {
-        id: 3,
-        maHoaDon: 'HD003',
-        tenKhachHang: 'Lê Văn C',
-        soDienThoai: '0369258147',
-        soLuongSanPham: 3,
-        tongTien: 22000000,
-        trangThai: 1,
-        trangThaiText: 'Chờ xử lý',
-        ngayTao: new Date().toISOString()
+
+    // Initialize chart
+    async function initializeChart() {
+      try {
+        await nextTick()
+        
+        if (!revenueChart.value) {
+          console.warn('Chart canvas not found')
+          return
+        }
+
+        // Destroy existing chart
+        if (chartInstance.value) {
+          chartInstance.value.destroy()
+          chartInstance.value = null
+        }
+
+        const ctx = revenueChart.value.getContext('2d')
+        const labels = chartData.value.map(item => {
+          if (item.date) {
+            return new Date(item.date).toLocaleDateString('vi-VN')
+          }
+          return item.label || 'Không có dữ liệu'
+        })
+        const values = chartData.value.map(item => Number(item.value || item.revenue) || 0)
+
+        chartInstance.value = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Doanh thu (VNĐ)',
+              data: values,
+              borderColor: '#ff8c42',
+              backgroundColor: 'rgba(255, 140, 66, 0.1)',
+              borderWidth: 3,
+              fill: true,
+              tension: 0.4,
+              pointBackgroundColor: '#ff8c42',
+              pointBorderColor: '#ffffff',
+              pointBorderWidth: 2,
+              pointRadius: 6,
+              pointHoverRadius: 8
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false
+              },
+              tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#ffffff',
+                bodyColor: '#ffffff',
+                borderColor: '#ff8c42',
+                borderWidth: 1,
+                callbacks: {
+                  label: function(context) {
+                    return 'Doanh thu: ' + formatCurrency(context.parsed.y)
+                  }
+                }
+              }
+            },
+            scales: {
+              x: {
+                grid: {
+                  display: false
+                },
+                ticks: {
+                  color: '#666666',
+                  font: {
+                    size: 12
+                  }
+                }
+              },
+              y: {
+                beginAtZero: true,
+                grid: {
+                  color: 'rgba(0, 0, 0, 0.1)'
+                },
+                ticks: {
+                  color: '#666666',
+                  font: {
+                    size: 12
+                  },
+                  callback: function(value) {
+                    return formatCurrency(value)
+                  }
+                }
+              }
+            },
+            interaction: {
+              intersect: false,
+              mode: 'index'
+            }
+          }
+        })
+        
+        console.log('✅ Chart created successfully')
+      } catch (error) {
+        console.error('❌ Error creating chart:', error)
       }
-    ]
-    console.log('Using mock data for testing:', recentOrders.value)
-    toastRef.value?.warning('Cảnh báo', 'Đang sử dụng dữ liệu mẫu - Backend chưa sẵn sàng')
-  }
-}
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND',
-  }).format(amount)
-}
-
-function formatCurrencyVietnamese(amount: number): string {
-  if (amount >= 1000000) {
-    const millions = amount / 1000000
-    if (millions === Math.floor(millions)) {
-      return `${millions} triệu`
-    } else {
-      return `${millions.toFixed(1)} triệu`
     }
-  } else if (amount >= 1000) {
-    const thousands = amount / 1000
-    if (thousands === Math.floor(thousands)) {
-      return `${thousands} nghìn`
-    } else {
-      return `${thousands.toFixed(1)} nghìn`
+
+    // Refresh data
+    async function refreshData() {
+      await loadDashboardData()
     }
-  } else {
-    return formatCurrency(amount)
-  }
-}
 
-// Format number with Vietnamese thousands separator (dots)
-function formatNumberVietnamese(number: number | string): string {
-  const num = typeof number === 'string' ? parseFloat(number) : number
-  if (isNaN(num)) return '0'
-  
-  // Use Vietnamese locale which uses dots as thousands separators
-  return num.toLocaleString('vi-VN', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-    useGrouping: true
-  })
-}
+    // Helper functions
+    function formatCurrency(amount) {
+      if (!amount) return '0 ₫'
+      return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND'
+      }).format(amount)
+    }
 
-// Parse Vietnamese formatted number back to number
-function parseVietnameseNumber(formattedNumber: string): number {
-  // Remove all dots and spaces, then parse
-  const cleanNumber = formattedNumber.replace(/\./g, '').replace(/\s/g, '')
-  return parseFloat(cleanNumber) || 0
-}
+    function getStatusClass(status) {
+      const statusClasses = {
+        0: 'status-pending',
+        1: 'status-paid',
+        2: 'status-waiting',
+        3: 'status-processing',
+        4: 'status-completed',
+        5: 'status-cancelled'
+      }
+      return statusClasses[status] || 'status-unknown'
+    }
 
+    function getStatusText(status) {
+      const statusTexts = {
+        0: 'Chờ xác nhận',
+        1: 'Đã thanh toán',
+        2: 'Chờ giao hàng',
+        3: 'Đang giao hàng',
+        4: 'Hoàn thành',
+        5: 'Đã hủy'
+      }
+      return statusTexts[status] || 'Không xác định'
+    }
 
-function getStatusClass(status: number): string {
-  switch (status) {
-    case 0:
-      return 'status-cancelled'
-    case 1:
-      return 'status-pending'
-    case 2:
-      return 'status-processing'
-    case 3:
-      return 'status-completed'
-    case 4:
-      return 'status-completed'
-    default:
-      return 'status-pending'
-  }
-}
+    // Lifecycle
+    onMounted(async () => {
+      await loadDashboardData()
+    })
 
-function getStatusText(status: number): string {
-  switch (status) {
-    case 0:
-      return 'Đã hủy'
-    case 1:
-      return 'Chờ xử lý'
-    case 2:
-      return 'Đang xử lý'
-    case 3:
-      return 'Đã hoàn thành'
-    case 4:
-      return 'Đã giao hàng'
-    default:
-      return 'Chờ xử lý'
+    onUnmounted(() => {
+      if (chartInstance.value) {
+        chartInstance.value.destroy()
+      }
+    })
+
+    return {
+      t,
+      loading,
+      overview,
+      recentOrders,
+      topProducts,
+      chartData,
+      lastUpdated,
+      revenueChart,
+      refreshData,
+      formatCurrency,
+      getStatusClass,
+      getStatusText
+    }
   }
 }
 </script>
 
 <style scoped>
-/* Prevent horizontal scrolling globally */
-* {
-  box-sizing: border-box;
-}
-
-/* Reset margins and padding for dashboard */
-.dashboard,
-.dashboard * {
-  margin: 0;
-  padding: 0;
-}
-
 .dashboard {
   min-height: 100vh;
-  background: #f8fafc;
-  overflow-x: hidden;
-  overflow-y: auto;
-  width: 100%;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  scroll-behavior: smooth;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-
-
-.header-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  max-width: 100%;
-  margin: 0 auto;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.logo h1 {
-  margin: 0;
-  font-size: 1.8rem;
-  font-weight: 700;
-}
-
-.logo p {
-  margin: 0;
-  opacity: 0.9;
-  font-size: 0.9rem;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.btn-notification {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: white;
-  padding: 0.5rem;
-  border-radius: 50%;
-  cursor: pointer;
-  position: relative;
-}
-
-.badge {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  background: #ff4757;
-  color: white;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.7rem;
-}
-
-.user-profile {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
 }
 
 .dashboard-main {
-  max-width: 100%;
-  margin: 0 auto;
-  padding: 1.5rem;
+  margin-top: 80px;
+  padding: 2rem;
   width: 100%;
-  box-sizing: border-box;
-  overflow-x: hidden;
-  flex: 1;
-  overflow-y: auto;
-  min-height: 0;
-  position: static;
-  z-index: 1;
-  background: #f8fafc;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  min-height: calc(100vh - 80px);
 }
 
-
-.stats-section {
-  margin-bottom: 0;
-  position: static;
-  z-index: 1;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-  width: 100%;
-  box-sizing: border-box;
-  padding: 0 1rem;
-}
-
-.stat-card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 1rem;
-  transition: all 0.3s ease;
-  border: 1px solid #e2e8f0;
-  width: 100%;
-  box-sizing: border-box;
+/* Welcome Section */
+.welcome-section {
+  background: linear-gradient(135deg, #ff8c42 0%, #ffb347 100%);
+  border-radius: 20px;
+  padding: 3rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 20px 40px rgba(255, 140, 66, 0.3);
   position: relative;
   overflow: hidden;
 }
 
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-  border-color: #3b82f6;
+.welcome-section::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  animation: float 6s ease-in-out infinite;
 }
 
-.stat-icon {
-  width: 48px;
-  height: 48px;
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(180deg); }
+}
+
+.welcome-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 100%;
+}
+
+.welcome-text {
+  flex: 1;
+  color: white;
+}
+
+.welcome-title {
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.welcome-subtitle {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+  opacity: 0.9;
+  line-height: 1.6;
+}
+
+.welcome-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.refresh-btn, .view-stats-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
   border-radius: 12px;
-  background: #3b82f6;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.refresh-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.refresh-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.view-stats-btn {
+  background: white;
+  color: #ff8c42;
+}
+
+.view-stats-btn:hover {
+  background: #f8f9fa;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.welcome-chart {
+  flex: 1;
+  height: 300px;
+  margin-left: 2rem;
+  min-width: 400px;
+  max-width: 600px;
+}
+
+.chart-canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Overview Section */
+.overview-section {
+  margin-bottom: 2rem;
+}
+
+.section-header {
+  margin-bottom: 1.5rem;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+}
+
+.section-subtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 100%;
+}
+
+.overview-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.overview-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.card-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 1.25rem;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
-  margin-bottom: 0.5rem;
+  flex-shrink: 0;
 }
 
-.stat-icon:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+.revenue-card .card-icon {
+  background: linear-gradient(135deg, #ff8c42, #ffb347);
 }
 
-.stat-icon .fa-2x {
-  font-size: 1.5em;
+.orders-card .card-icon {
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
 }
 
-.stat-content h3 {
-  margin: 0;
-  font-size: 2rem;
-  font-weight: 700;
-  color: #1e293b;
-  line-height: 1.2;
+.products-card .card-icon {
+  background: linear-gradient(135deg, #ff8c42, #ffb347);
 }
 
-.stat-content p {
-  margin: 0.5rem 0;
-  color: #64748b;
+.customers-card .card-icon {
+  background: linear-gradient(135deg, #ff8c42, #ffb347);
+}
+
+.staff-card .card-icon {
+  background: linear-gradient(135deg, #ff8c42, #ffb347);
+}
+
+.categories-card .card-icon {
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+}
+
+.card-content {
+  flex: 1;
+}
+
+.card-title {
   font-size: 0.875rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.stat-change {
-  font-size: 0.75rem;
   font-weight: 600;
-  padding: 0.25rem 0.5rem;
-  border-radius: 6px;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-top: 0.5rem;
+  letter-spacing: 0.05em;
 }
 
-.stat-change.positive {
-  color: #059669;
-  background: #d1fae5;
+.card-value {
+  font-size: clamp(1.2rem, 4vw, 2rem);
+  font-weight: 800;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
+  line-height: 1.1;
+  word-break: break-all;
+  overflow-wrap: break-word;
 }
 
-.stat-change.negative {
-  color: #dc2626;
-  background: #fee2e2;
+.card-subtitle {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  margin: 0;
 }
 
-.quick-actions {
+/* Quick Actions Section */
+.quick-actions-section {
   margin-bottom: 2rem;
-}
-
-.quick-actions h2 {
-  margin-bottom: 1rem;
-  color: var(--text-primary);
 }
 
 .actions-grid {
@@ -730,484 +794,357 @@ function getStatusText(status: number): string {
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1.5rem;
   width: 100%;
-  box-sizing: border-box;
 }
 
 .action-card {
-  background: var(--card-bg);
+  background: white;
+  border-radius: 16px;
   padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px var(--shadow-light);
   text-decoration: none;
   color: inherit;
   transition: all 0.3s ease;
-  text-align: center;
-  border: 1px solid var(--border-color);
-  width: 100%;
-  box-sizing: border-box;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.action-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(135deg, #ff8c42, #ffb347);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.action-card:hover::before {
+  transform: scaleX(1);
 }
 
 .action-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 20px var(--shadow-medium);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  text-decoration: none;
+  color: inherit;
 }
 
 .action-icon {
-  width: 60px;
-  height: 60px;
+  width: 48px;
+  height: 48px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #ff8c42, #ffb347);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 1.5rem;
-  margin: 0 auto 1rem;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  flex-shrink: 0;
 }
 
-.action-icon:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+.action-content {
+  flex: 1;
 }
 
-.action-icon .fa-2x {
-  font-size: 1.5em;
+.action-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
 }
 
-.action-card h3 {
-  margin: 0 0 0.5rem;
-  color: var(--text-primary);
-}
-
-.action-card p {
+.action-description {
+  font-size: 0.875rem;
+  color: #6b7280;
   margin: 0;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
 }
 
-.recent-orders,
-.product-categories {
-  background: var(--card-bg);
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 10px var(--shadow-light);
+.action-badge {
+  background: linear-gradient(135deg, #ff8c42, #ffb347);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  min-width: 2rem;
+  text-align: center;
+}
+
+/* Recent Data Section */
+.recent-data-section {
   margin-bottom: 2rem;
-  position: static;
-  z-index: 1;
-  border: 1px solid var(--border-color);
-  width: 100%;
-  box-sizing: border-box;
-  overflow-x: hidden;
-  max-width: 100%;
 }
 
-.section-header {
+.data-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+  gap: 2rem;
+  width: 100%;
+}
+
+.data-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.data-card .card-header {
+  padding: 1.5rem 1.5rem 0 1.5rem;
+  border-bottom: 1px solid #f3f4f6;
+  margin-bottom: 0;
+  padding-bottom: 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.card-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+.view-all-link {
+  color: #ff8c42;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.view-all-link:hover {
+  color: #ff6b35;
+  text-decoration: none;
+}
+
+.card-content {
+  padding: 1.5rem;
+}
+
+/* Loading and Empty States */
+.loading-state, .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  text-align: center;
+  color: #6b7280;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #f3f4f6;
+  border-top: 3px solid #ff8c42;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
   margin-bottom: 1rem;
 }
 
-.section-header h2 {
-  margin: 0;
-  color: var(--text-primary);
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-.view-all {
-  color: #667eea;
-  text-decoration: none;
-  font-weight: 500;
+/* Orders List */
+.orders-list {
+  space-y: 0.75rem;
 }
 
-.view-all:hover {
-  text-decoration: underline;
-}
-
-/* Modern Table Styles */
-.orders-table {
-  width: 100%;
-  box-sizing: border-box;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 6px -1px var(--shadow-light);
-}
-
-.table-wrapper {
-  overflow-x: auto;
-  border-radius: 12px;
-}
-
-.modern-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  min-width: 800px;
-  background: var(--card-bg);
-}
-
-/* Table Headers */
-.table-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 0;
-  border: none;
-  position: relative;
-}
-
-.header-content {
+.order-item {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 0.5rem;
-  padding: 1rem 1.5rem;
-  font-weight: 600;
-  font-size: 0.875rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f3f4f6;
 }
 
-.header-icon {
-  font-size: 1rem;
-  opacity: 0.9;
-  margin-right: 8px;
-  color: white;
-}
-
-/* Table Rows */
-.table-row {
-  transition: all 0.3s ease;
-  border-bottom: 1px solid var(--border-light);
-}
-
-.table-row:hover {
-  background: var(--bg-tertiary);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px var(--shadow-light);
-}
-
-.table-row:last-child {
+.order-item:last-child {
   border-bottom: none;
 }
 
-/* Table Cells */
-.table-cell {
-  padding: 0;
-  border: none;
-  vertical-align: middle;
+.order-info {
+  flex: 1;
 }
 
-.cell-content {
-  padding: 1.25rem 1.5rem;
-  display: flex;
-  align-items: center;
-}
-
-/* Order Code */
-.order-code {
-  font-family: 'Monaco', 'Menlo', monospace;
+.order-id {
+  font-size: 0.875rem;
   font-weight: 600;
-  color: var(--text-primary);
-  background: var(--bg-tertiary);
+  color: #1f2937;
+  margin-bottom: 0.25rem;
+}
+
+.order-customer {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.order-details {
+  text-align: right;
+}
+
+.order-amount {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
+}
+
+.order-status {
+  font-size: 0.75rem;
   padding: 0.25rem 0.5rem;
   border-radius: 6px;
-  font-size: 0.875rem;
-}
-
-/* Customer Info */
-.customer-info {
-  gap: 0.75rem;
-}
-
-.customer-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  font-size: 0.875rem;
-}
-
-.customer-details {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-}
-
-.customer-name {
-  font-weight: 600;
-  color: var(--text-primary);
-  font-size: 0.875rem;
-}
-
-.customer-id {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  opacity: 0.8;
-}
-
-/* Product Info */
-.product-info {
-  gap: 0.25rem;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.product-count {
-  font-weight: 700;
-  font-size: 1.125rem;
-  color: var(--text-primary);
-}
-
-.product-label {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-}
-
-/* Amount */
-.amount {
-  font-weight: 700;
-  font-size: 1rem;
-  color: #10b981;
-  font-family: 'Monaco', 'Menlo', monospace;
-}
-
-/* Status Badges */
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  animation: pulse-dot 2s infinite;
-}
-
-.status-pending {
-  background: linear-gradient(135deg, #fef3c7, #fde68a);
-  color: #92400e;
-  border: 1px solid #f59e0b;
-}
-
-.status-pending .status-dot {
-  background: #f59e0b;
-}
-
-.status-processing {
-  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
-  color: #1e40af;
-  border: 1px solid #3b82f6;
-}
-
-.status-processing .status-dot {
-  background: #3b82f6;
-}
-
-.status-completed {
-  background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-  color: #065f46;
-  border: 1px solid #10b981;
-}
-
-.status-completed .status-dot {
-  background: #10b981;
-}
-
-.status-cancelled {
-  background: linear-gradient(135deg, #fee2e2, #fecaca);
-  color: #991b1b;
-  border: 1px solid #ef4444;
-}
-
-.status-cancelled .status-dot {
-  background: #ef4444;
-}
-
-/* Action Buttons */
-.action-buttons {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.btn-view {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  border: none;
-  padding: 0.5rem 0.75rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.75rem;
   font-weight: 500;
-  transition: all 0.3s ease;
 }
 
-.btn-view:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+.status-pending { background: #fef3c7; color: #92400e; }
+.status-paid { background: #e0e7ff; color: #3730a3; }
+.status-waiting { background: #fef3c7; color: #92400e; }
+.status-processing { background: #dbeafe; color: #1e40af; }
+.status-completed { background: #d1fae5; color: #065f46; }
+.status-cancelled { background: #fee2e2; color: #dc2626; }
+.status-unknown { background: #f3f4f6; color: #6b7280; }
+
+/* Products List */
+.products-list {
+  space-y: 0.75rem;
 }
 
-.btn-edit {
+.product-item {
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: var(--bg-tertiary);
-  color: var(--text-secondary);
-  border: 1px solid var(--border-color);
-  padding: 0.5rem;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  width: 36px;
-  height: 36px;
-}
-
-.btn-edit:hover {
-  background: var(--border-color);
-  color: var(--text-primary);
-  transform: translateY(-1px);
-}
-
-.btn-icon {
-  font-size: 0.875rem;
-  margin-right: 4px;
-}
-
-/* Empty State */
-.empty-state {
-  text-align: center;
-  padding: 3rem 2rem;
-  background: var(--card-bg);
-}
-
-.empty-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  opacity: 0.5;
-}
-
-.empty-state h3 {
-  margin: 0 0 0.5rem 0;
-  color: var(--text-primary);
-  font-size: 1.125rem;
-}
-
-.empty-state p {
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: 0.875rem;
-}
-
-/* Animations */
-@keyframes pulse-dot {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-.categories-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem;
-  width: 100%;
-  box-sizing: border-box;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f3f4f6;
 }
 
-.category-card {
-  background: var(--bg-tertiary);
-  padding: 1rem;
+.product-item:last-child {
+  border-bottom: none;
+}
+
+.product-rank {
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
-  text-decoration: none;
-  color: inherit;
-  transition: all 0.3s ease;
-  text-align: center;
-  border: 1px solid var(--border-color);
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.category-card:hover {
-  background: var(--border-color);
-  transform: translateY(-1px);
-}
-
-.category-icon {
-  width: 50px;
-  height: 50px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
   display: flex;
   align-items: center;
   justify-content: center;
+  font-weight: 700;
+  font-size: 0.875rem;
   color: white;
-  font-size: 1.2rem;
-  margin: 0 auto 0.5rem;
+  flex-shrink: 0;
 }
 
-.category-card h3 {
-  margin: 0 0 0.25rem;
-  color: #2c3e50;
-  font-size: 1rem;
+.product-rank.rank-1 { background: linear-gradient(135deg, #ffd700, #ffed4e); }
+.product-rank.rank-2 { background: linear-gradient(135deg, #ff8c42, #ffb347); }
+.product-rank.rank-3 { background: linear-gradient(135deg, #ff6b35, #f7931e); }
+.product-rank.rank-4,
+.product-rank.rank-5 { background: linear-gradient(135deg, #6b7280, #9ca3af); }
+
+.product-info {
+  flex: 1;
 }
 
-.category-card p {
+.product-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
+}
+
+.product-sales {
+  font-size: 0.75rem;
+  color: #6b7280;
   margin: 0;
-  color: #7f8c8d;
-  font-size: 0.8rem;
 }
 
-/* Icon styles */
-.icon-bell::before {
-  content: '🔔';
+.product-revenue {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #16a34a;
 }
-.icon-phone::before {
-  content: '📱';
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard-main {
+    padding: 1rem;
+  }
+  
+  .welcome-section {
+    padding: 2rem;
+  }
+  
+  .welcome-content {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .welcome-chart {
+    margin-left: 0;
+    margin-top: 2rem;
+    height: 250px;
+    min-width: unset;
+    max-width: unset;
+  }
+  
+  .welcome-title {
+    font-size: 2rem;
+  }
+  
+  .overview-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .card-value {
+    font-size: 1.5rem;
+  }
+
+  .card-subtitle {
+    font-size: 0.75rem;
+  }
+  
+  .data-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .actions-grid {
+    grid-template-columns: 1fr;
+  }
 }
-.icon-shopping-cart::before {
-  content: '🛒';
-}
-.icon-dollar::before {
-  content: '💰';
-}
-.icon-users::before {
-  content: '👥';
-}
-.icon-receipt::before {
-  content: '🧾';
-}
-.icon-cash-register::before {
-  content: '🏪';
-}
-.icon-globe::before {
-  content: '🌐';
-}
-.icon-brand::before {
-  content: '🏷️';
-}
-.icon-cpu::before {
-  content: '⚙️';
-}
-.icon-memory::before {
-  content: '💾';
-}
-.icon-storage::before {
-  content: '💿';
+
+@media (max-width: 480px) {
+  .welcome-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .refresh-btn, .view-stats-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .overview-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .card-value {
+    font-size: 1.2rem;
+  }
+
+  .overview-card {
+    padding: 1rem;
+  }
 }
 </style>

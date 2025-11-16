@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Xác nhận đơn hàng</title>
+    <style>
+        /* Tổng thể */
+        body {
+            margin: 0;
+            font-family: Inter, Arial, sans-serif;
+            background: #f8fafc;
+            color: #0f172a;
+        }
+        .wrapper {
+            padding: 24px 12px;
+        }
+        .card {
+            max-width: 720px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(17, 24, 39, 0.12);
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 18px 22px;
+            border-bottom: 1px solid #f1f5f9;
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+        }
+        .brand {
+            text-align: center;
+            font-weight: 800;
+            font-size: 18px;
+            color: #fff;
+            letter-spacing: 0.2px;
+        }
+        .logo {
+            height: 36px;
+        }
+
+        /* Nội dung chính */
+        .content {
+            padding: 26px;
+        }
+        .title {
+            margin: 0 0 6px 0;
+            font-size: 22px;
+            color: #0f172a;
+        }
+        .intro {
+            margin: 0 0 14px 0;
+            font-size: 15px;
+            color: #334155;
+            line-height: 1.6;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+        td {
+            padding: 10px 0;
+            font-size: 14px;
+        }
+        .label {
+            color: #64748b;
+        }
+        .value {
+            text-align: right;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .highlight {
+            color: #ff6b00;
+        }
+        .note {
+            margin-top: 14px;
+            font-size: 13px;
+            color: #64748b;
+            line-height: 1.5;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 16px 22px;
+            background: #fff8f4;
+            border-top: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .sig {
+            font-size: 13px;
+            color: #475569;
+        }
+        .btn {
+            background: #ff6b00;
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 11px 18px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+            box-shadow: 0 6px 14px rgba(255, 107, 0, 0.3);
+            display: inline-block;
+            float: right;
+        }
+        .btn:hover {
+            background: #e85d00;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .content {
+                padding: 18px;
+            }
+            .footer {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <div class="card">
+        <div class="header">
+            <div class="brand">{{storeName}}</div>
+        </div>
+
+        <div class="content">
+            <h2 class="title">Cập nhật trạng thái đơn hàng</h2>
+            <p class="intro">
+                Xin chào <strong>{{customerName}}</strong>,<br />
+                Trạng thái đơn hàng của bạn vừa được cập nhật.
+            </p>
+
+            <table>
+                <tr>
+                    <td class="label">Mã đơn</td>
+                    <td class="value">{{orderCode}}</td>
+                </tr>
+                <tr>
+                    <td class="label">Trạng thái</td>
+                    <td class="value highlight">{{statusName}}</td>
+                </tr>
+            </table>
+
+            <p class="note">
+                Bạn có thể theo dõi tiến trình đơn hàng ở trang theo dõi. Nếu cần hỗ trợ,
+                vui lòng phản hồi trực tiếp email này.
+            </p>
+        </div>
+
+        <div class="footer">
+            <div class="sig">Trân trọng, <br /><strong>Đội ngũ Hỗ trợ khách hàng</strong></div>
+            <a class="btn" href="{{trackUrl}}" style="margin-left: 379px">Theo dõi đơn</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+
+
+
+
+
+
+

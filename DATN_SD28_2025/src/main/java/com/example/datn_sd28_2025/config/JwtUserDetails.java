@@ -20,7 +20,8 @@ public class JwtUserDetails implements UserDetails {
     private boolean enabled;
 
     public JwtUserDetails(NhanVien nhanVien) {
-        this.username = nhanVien.getTaiKhoan();
+        this.username = nhanVien.getTaiKhoan() != null ? nhanVien.getTaiKhoan() : 
+                       (nhanVien.getEmail() != null ? nhanVien.getEmail() : String.valueOf(nhanVien.getId()));
         this.password = nhanVien.getMatKhau();
         this.role = determineRoleByPosition(nhanVien.getChucVu());
         this.id = nhanVien.getId();

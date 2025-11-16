@@ -127,10 +127,72 @@ public class SanPhamServiceImpl implements SanPhamService {
     @Override
     @Transactional(readOnly = true)
     public List<SanPhamDTO> searchSanPham(String searchTerm) {
-        return sanPhamRepository.findByTenSanPhamContainingIgnoreCase(searchTerm)
-                .stream()
-                .map(this::toDTO)
-                .toList();
+        if (searchTerm == null || searchTerm.isBlank()) {
+            return getActiveSanPham();
+        }
+
+        String kw = searchTerm.trim();
+        java.util.LinkedHashMap<Integer, SanPham> merged = new java.util.LinkedHashMap<>();
+
+        // Base search
+        sanPhamRepository.searchBroad(kw).forEach(sp -> merged.put(sp.getId(), sp));
+
+        // Tokenize and try individual meaningful tokens
+        for (String token : kw.toLowerCase().split("[^a-z0-9áàãạăâéèêíìóòôơúùưýđ]+")) {
+            if (token != null && token.length() >= 3) {
+                sanPhamRepository.searchBroad(token).forEach(sp -> merged.put(sp.getId(), sp));
+            }
+            // Brand synonyms
+            if ("iphone".equals(token) || "ios".equals(token)) {
+                sanPhamRepository.searchBroad("apple").forEach(sp -> merged.put(sp.getId(), sp));
+            }
+            if ("galaxy".equals(token)) {
+                sanPhamRepository.searchBroad("samsung").forEach(sp -> merged.put(sp.getId(), sp));
+            }
+            if ("mi".equals(token) || "xiaomi".equals(token) || "redmi".equals(token)) {
+                sanPhamRepository.searchBroad("xiaomi").forEach(sp -> merged.put(sp.getId(), sp));
+            }
+            if ("realme".equals(token)) {
+                sanPhamRepository.searchBroad("realme").forEach(sp -> merged.put(sp.getId(), sp));
+            }
+            if ("oppo".equals(token) || "find".equals(token) || "reno".equals(token)) {
+                sanPhamRepository.searchBroad("oppo").forEach(sp -> merged.put(sp.getId(), sp));
+            }
+            if ("vivo".equals(token) || "x".equals(token)) {
+                sanPhamRepository.searchBroad("vivo").forEach(sp -> merged.put(sp.getId(), sp));
+            }
+            if ("oneplus".equals(token)) {
+                sanPhamRepository.searchBroad("oneplus").forEach(sp -> merged.put(sp.getId(), sp));
+            }
+        }
+
+        return merged.values().stream().map(this::toDTO).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<SanPhamDTO> searchAdvanced(
+            String kw,
+            java.math.BigDecimal minPrice,
+            java.math.BigDecimal maxPrice,
+            String chip,
+            Integer ramId,
+            Integer romId,
+            String osName,
+            Integer brandId,
+            String brandName,
+            String gpu,
+            String cpuName,
+            String simType,
+            String minBattery,
+            String maxBattery,
+            String minScreen,
+            String maxScreen,
+            String rearCam,
+            String frontCam
+    ) {
+        return sanPhamRepository.searchAdvanced(kw, minPrice, maxPrice, chip, ramId, romId, osName,
+                brandId, brandName, gpu, cpuName, simType, minBattery, maxBattery, minScreen, maxScreen, rearCam, frontCam)
+                .stream().map(this::toDTO).toList();
     }
 
     @Override
@@ -549,6 +611,18 @@ public class SanPhamServiceImpl implements SanPhamService {
             tongImei += imeis.stream().mapToInt(imei -> imei.getTrangThai() == 1 ? 1 : 0).sum();
         }
         
+        // Lấy thông tin từ chi tiết sản phẩm đầu tiên (nếu có)
+        ChiTietSanPham firstChiTiet = chiTietList.isEmpty() ? null : chiTietList.get(0);
+        
+        // Lấy ảnh đầu tiên nếu có
+        String hinhAnh = null;
+        if (firstChiTiet != null) {
+            List<HinhAnh> images = hinhAnhRepository.findByChiTietSanPhamId(firstChiTiet.getId());
+            if (!images.isEmpty()) {
+                hinhAnh = images.get(0).getUrlAnh();
+            }
+        }
+        
         return SanPhamDTO.builder()
                 .id(sp.getId())
                 .maSanPham(sp.getMaSanPham())
@@ -571,6 +645,12 @@ public class SanPhamServiceImpl implements SanPhamService {
                 .tenCpu(sp.getCpu() != null ? sp.getCpu().getTenCpu() : null)
                 .tenPin(sp.getPin() != null ? sp.getPin().getDungLuongPin() : null)
                 .tongImei(tongImei)
+                // Thêm thông tin từ chi tiết sản phẩm
+                .giaBan(firstChiTiet != null && firstChiTiet.getGiaBan() != null ? firstChiTiet.getGiaBan().doubleValue() : null)
+                .hinhAnh(hinhAnh)
+                .soLuong(tongImei)
+                .tenRam(firstChiTiet != null && firstChiTiet.getRam() != null ? firstChiTiet.getRam().getTenRam() : null)
+                .tenRom(firstChiTiet != null && firstChiTiet.getRom() != null ? firstChiTiet.getRom().getDungLuong() : null)
                 .build();
     }
 
@@ -1214,11 +1294,27 @@ public class SanPhamServiceImpl implements SanPhamService {
     }
 
     @Override
+    public List<HinhAnh> getImagesByChiTietId(Integer chiTietId) {
+        return hinhAnhService.getByChiTietSanPhamId(chiTietId);
+    }
+
+    @Override
     @Transactional
     public void deleteAllImagesFromChiTiet(Integer chiTietId) {
         List<HinhAnh> images = hinhAnhRepository.findByChiTietSanPhamId(chiTietId);
         for (HinhAnh image : images) {
             hinhAnhService.delete(image.getId());
         }
+    }
+
+    @Override
+    @Transactional
+    public void updateStatus(Integer id, Integer trangThai) {
+        SanPham sanPham = sanPhamRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + id));
+        
+        sanPham.setTrangThai(trangThai);
+        sanPham.setNgayCapNhat(LocalDateTime.now());
+        sanPhamRepository.save(sanPham);
     }
 }

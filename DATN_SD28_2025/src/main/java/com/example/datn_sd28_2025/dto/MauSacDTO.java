@@ -15,6 +15,7 @@ public class MauSacDTO {
     private Integer id;
     private String maMau;
     private String tenMau;
+    private String maHex;
     private String moTa;
     private LocalDateTime ngayTao;
     private LocalDateTime ngayCapNhat;

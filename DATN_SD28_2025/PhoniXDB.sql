@@ -575,13 +575,19 @@ VALUES
 (5, 5, 5, 5, N'CTSP005', 5000000, 6000000, N'OPPO A95 128GB Tím', N'admin');
 
 -- khach_hang
-INSERT INTO khach_hang(ma_khach_hang, ho_ten, so_dien_thoai, tai_khoan, mat_khau, ngay_sinh, gioi_tinh, email, nguoi_tao)
+INSERT INTO khach_hang(ma_khach_hang, ho_ten, so_dien_thoai, tai_khoan, mat_khau, ngay_sinh, gioi_tinh, email, nguoi_tao, ngay_tao)
 VALUES
-(N'KH001', N'Nguyễn Văn A', N'0901234567', N'nguyenvana', N'123456', '1990-01-15', N'Nam', N'nguyenvana@gmail.com', N'admin'),
-(N'KH002', N'Trần Thị B', N'0912345678', N'tranthib', N'123456', '1992-05-20', N'Nữ', N'tranthib@gmail.com', N'admin'),
-(N'KH003', N'Lê Văn C', N'0923456789', N'levanc', N'123456', '1988-08-10', N'Nam', N'levanc@gmail.com', N'admin'),
-(N'KH004', N'Phạm Thị D', N'0934567890', N'phamthid', N'123456', '1995-12-25', N'Nữ', N'phamthid@gmail.com', N'admin'),
-(N'KH005', N'Hoàng Văn E', N'0945678901', N'hoangvane', N'123456', '1993-03-18', N'Nam', N'hoangvane@gmail.com', N'admin');
+(N'KH001', N'Nguyễn Văn A', N'0901234567', N'nguyenvana', N'123456', '1990-01-15', N'Nam', N'nguyenvana@gmail.com', N'admin', '2025-01-15'),
+(N'KH002', N'Trần Thị B', N'0912345678', N'tranthib', N'123456', '1992-05-20', N'Nữ', N'tranthib@gmail.com', N'admin', '2025-01-16'),
+(N'KH003', N'Lê Văn C', N'0923456789', N'levanc', N'123456', '1988-08-10', N'Nam', N'levanc@gmail.com', N'admin', '2025-01-20'),
+(N'KH004', N'Phạm Thị D', N'0934567890', N'phamthid', N'123456', '1995-12-25', N'Nữ', N'phamthid@gmail.com', N'admin', '2025-01-22'),
+(N'KH005', N'Hoàng Văn E', N'0945678901', N'hoangvane', N'123456', '1993-03-18', N'Nam', N'hoangvane@gmail.com', N'admin', '2025-01-25'),
+-- Thêm khách hàng mới
+(N'KH006', N'Nguyễn Văn F', N'0901111111', N'nguyenvanf', N'123456', '1991-02-14', N'Nam', N'nguyenvanf@gmail.com', N'admin', '2025-01-15'),
+(N'KH007', N'Trần Thị G', N'0912222222', N'tranthig', N'123456', '1993-06-25', N'Nữ', N'tranthig@gmail.com', N'admin', '2025-01-16'),
+(N'KH008', N'Lê Văn H', N'0923333333', N'levanh', N'123456', '1989-09-12', N'Nam', N'levanh@gmail.com', N'admin', '2025-01-17'),
+(N'KH009', N'Phạm Thị I', N'0934444444', N'phamthii', N'123456', '1996-11-30', N'Nữ', N'phamthii@gmail.com', N'admin', '2025-01-18'),
+(N'KH010', N'Hoàng Văn J', N'0945555555', N'hoangvanj', N'123456', '1994-04-22', N'Nam', N'hoangvanj@gmail.com', N'admin', '2025-01-19');
 
 -- nhan_vien
 INSERT INTO nhan_vien(ma_nhan_vien, ho_ten, so_dien_thoai, ngay_sinh, tai_khoan, mat_khau, gioi_tinh, dia_chi, email, chuc_vu)
@@ -602,22 +608,36 @@ VALUES
 (N'PGG005', N'Giảm giá 20%', N'Phần trăm', 20, 2000000, 8000000, 10, '2025-06-01', '2025-08-31', 0, N'admin');
 
 -- hoa_don
-INSERT INTO hoa_don(id_phieu_giam_gia, id_khach_hang, id_nhan_vien, ma_hoa_don, ten_khach_hang, so_dien_thoai, dia_chi, tong_tien, tong_tien_sau_giam, loai_hoa_don, ghi_chu, ngay_thanh_toan, nguoi_tao)
+INSERT INTO hoa_don(id_phieu_giam_gia, id_khach_hang, id_nhan_vien, ma_hoa_don, ten_khach_hang, so_dien_thoai, dia_chi, tong_tien, tong_tien_sau_giam, loai_hoa_don, ghi_chu, ngay_thanh_toan, nguoi_tao, trang_thai, ngay_tao)
 VALUES
-(1, 1, 2, N'HD001', N'Nguyễn Văn A', N'0901234567', N'Hà Nội', 20000000, 19500000, N'Bán lẻ', N'Khách hàng thân thiết', '2025-09-15', N'admin'),
-(2, 2, 2, N'HD002', N'Trần Thị B', N'0912345678', N'Hải Phòng', 17000000, 16800000, N'Bán lẻ', N'', '2025-09-16', N'admin'),
-(NULL, 3, 3, N'HD003', N'Lê Văn C', N'0923456789', N'Đà Nẵng', 5500000, 5500000, N'Bán lẻ', N'', '2025-09-20', N'admin'),
-(NULL, 4, 3, N'HD004', N'Phạm Thị D', N'0934567890', N'TP.HCM', 7000000, 7000000, N'Online', N'Giao hàng tận nơi', '2025-09-22', N'admin'),
-(NULL, 5, 2, N'HD005', N'Hoàng Văn E', N'0945678901', N'Cần Thơ', 6000000, 6000000, N'Online', N'', '2025-09-25', N'admin');
+-- HÓA ĐƠN ĐÃ THANH TOÁN (trang_thai = 1) - DỮ LIỆU GẦN ĐÂY
+(1, 1, 2, N'HD001', N'Nguyễn Văn A', N'0901234567', N'Hà Nội', 20000000, 19500000, N'Bán lẻ', N'Khách hàng thân thiết', '2025-10-10', N'admin', 1, '2025-10-10'),
+(2, 2, 2, N'HD002', N'Trần Thị B', N'0912345678', N'Hải Phòng', 17000000, 16800000, N'Bán lẻ', N'', '2025-10-11', N'admin', 1, '2025-10-11'),
+(NULL, 3, 3, N'HD003', N'Lê Văn C', N'0923456789', N'Đà Nẵng', 5500000, 5500000, N'Bán lẻ', N'', '2025-10-12', N'admin', 1, '2025-10-12'),
+(NULL, 4, 3, N'HD004', N'Phạm Thị D', N'0934567890', N'TP.HCM', 7000000, 7000000, N'Online', N'Giao hàng tận nơi', '2025-10-13', N'admin', 1, '2025-10-13'),
+(NULL, 5, 2, N'HD005', N'Hoàng Văn E', N'0945678901', N'Cần Thơ', 6000000, 6000000, N'Online', N'', '2025-10-14', N'admin', 1, '2025-10-14'),
+-- HÓA ĐƠN HOÀN THÀNH (trang_thai = 4) - DỮ LIỆU CŨ
+(1, 1, 2, N'HD006', N'Nguyễn Văn F', N'0901111111', N'Hà Nội', 15000000, 14500000, N'Bán lẻ', N'Khách hàng VIP', '2025-01-15', N'admin', 4, '2025-01-15'),
+(2, 2, 2, N'HD007', N'Trần Thị G', N'0912222222', N'Hải Phòng', 12000000, 11800000, N'Bán lẻ', N'', '2025-01-16', N'admin', 4, '2025-01-16'),
+(NULL, 3, 3, N'HD008', N'Lê Văn H', N'0923333333', N'Đà Nẵng', 8000000, 8000000, N'Bán lẻ', N'', '2025-01-17', N'admin', 4, '2025-01-17'),
+(NULL, 4, 3, N'HD009', N'Phạm Thị I', N'0934444444', N'TP.HCM', 9000000, 9000000, N'Online', N'Giao hàng nhanh', '2025-01-18', N'admin', 4, '2025-01-18'),
+(NULL, 5, 2, N'HD010', N'Hoàng Văn J', N'0945555555', N'Cần Thơ', 11000000, 11000000, N'Online', N'', '2025-01-19', N'admin', 4, '2025-01-19');
 
 -- hoa_don_chi_tiet
-INSERT INTO hoa_don_chi_tiet(id_hoa_don, id_ctsp, don_gia, thanh_tien)
+INSERT INTO hoa_don_chi_tiet(hoa_don_id, san_pham_id, so_luong, don_gia, thanh_tien)
 VALUES
-(1, 1, 20000000, 20000000),
-(2, 2, 17000000, 17000000),
-(3, 3, 5500000, 5500000),
-(4, 4, 7000000, 7000000),
-(5, 5, 6000000, 6000000);
+-- Chi tiết cho hóa đơn đã thanh toán (trang_thai = 1)
+(1, 1, 1, 20000000, 20000000),
+(2, 2, 1, 17000000, 17000000),
+(3, 3, 1, 5500000, 5500000),
+(4, 4, 1, 7000000, 7000000),
+(5, 5, 1, 6000000, 6000000),
+-- Chi tiết cho hóa đơn hoàn thành (trang_thai = 4)
+(6, 1, 1, 15000000, 15000000),
+(7, 2, 1, 12000000, 12000000),
+(8, 3, 1, 8000000, 8000000),
+(9, 4, 1, 9000000, 9000000),
+(10, 5, 1, 11000000, 11000000);
 
 -- phuong_thuc_thanh_toan
 INSERT INTO phuong_thuc_thanh_toan(ten_phuong_thuc, loai_hinh_thuc)
@@ -631,11 +651,17 @@ VALUES
 -- chi_tiet_thanh_toan
 INSERT INTO chi_tiet_thanh_toan(id_don_hang, id_phuong_thuc_thanh_toan, ma_giao_dich, so_tien, ngay_thanh_toan)
 VALUES
-(1, 1, N'TM001', 19500000, '2025-09-15'),
-(2, 2, N'CK001', 16800000, '2025-09-16'),
-(3, 1, N'TM002', 5500000, '2025-09-20'),
-(4, 4, N'MOMO001', 7000000, '2025-09-22'),
-(5, 5, N'ZALO001', 6000000, '2025-09-25');
+(1, 1, N'TM001', 19500000, '2025-01-15'),
+(2, 2, N'CK001', 16800000, '2025-01-16'),
+(3, 1, N'TM002', 5500000, '2025-01-20'),
+(4, 4, N'MOMO001', 7000000, '2025-01-22'),
+(5, 5, N'ZALO001', 6000000, '2025-01-25'),
+-- Thanh toán cho hóa đơn mới
+(6, 1, N'TM003', 14500000, '2025-01-15'),
+(7, 2, N'CK002', 11800000, '2025-01-16'),
+(8, 1, N'TM004', 8000000, '2025-01-17'),
+(9, 4, N'MOMO002', 9000000, '2025-01-18'),
+(10, 5, N'ZALO002', 11000000, '2025-01-19');
 
 -- khuyen_mai
 INSERT INTO khuyen_mai(ma_khuyen_mai, ten_khuyen_mai, mo_ta, muc_do_uu_tien, phan_tram_giam, giam_toi_da, ngay_bat_dau, ngay_ket_thuc, nguoi_tao)

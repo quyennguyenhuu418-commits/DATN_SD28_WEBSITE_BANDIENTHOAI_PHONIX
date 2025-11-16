@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Debug Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .debug-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .debug-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+        }
+        .issue {
+            background: #ffe6e6;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .solution {
+            background: #e6ffe6;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .code {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin: 10px 0;
+            border: 1px solid #dee2e6;
+        }
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .info {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 WebSocket Debug Tool - Phân tích vấn đề không nhận tin nhắn</h1>
+    
+    <div class="debug-section">
+        <div class="debug-title">📋 Vấn đề đã phát hiện</div>
+        
+        <div class="issue">
+            <strong>❌ Vấn đề 1: Logic kiểm tra tin nhắn trùng lặp quá nghiêm ngặt</strong><br>
+            Trong <code>handleStaffMessage</code>, logic kiểm tra tin nhắn trùng lặp có thể ngăn cản việc hiển thị tin nhắn hợp lệ từ khách hàng.
+        </div>
+        
+        <div class="issue">
+            <strong>❌ Vấn đề 2: Subscription không được tạo lại khi reconnect</strong><br>
+            Khi WebSocket reconnect, các subscription có thể không được tạo lại đúng cách.
+        </div>
+        
+        <div class="issue">
+            <strong>❌ Vấn đề 3: SessionId không đồng bộ giữa frontend và backend</strong><br>
+            Có thể có sự không đồng bộ giữa sessionId được tạo ở frontend và backend.
+        </div>
+        
+        <div class="issue">
+            <strong>❌ Vấn đề 4: Message routing có thể bị lỗi</strong><br>
+            Tin nhắn từ khách hàng có thể không được route đúng đến staff đã được assign.
+        </div>
+    </div>
+    
+    <div class="debug-section">
+        <div class="debug-title">🔧 Giải pháp đề xuất</div>
+        
+        <div class="solution">
+            <strong>✅ Giải pháp 1: Cải thiện logic kiểm tra tin nhắn trùng lặp</strong><br>
+            <div class="code">
+// TRƯỚC (có thể gây lỗi):
+const messageExists = messages.value.some(msg => 
+  msg.content === data.message && 
+  msg.sender === 'customer' && 
+  Math.abs(new Date(msg.timestamp) - new Date(data.timestamp)) < 1000
+)
+
+// SAU (cải thiện):
+const messageExists = messages.value.some(msg => 
+  msg.content === data.message && 
+  msg.sender === 'customer' && 
+  msg.customerName === data.customerName &&
+  Math.abs(new Date(msg.timestamp) - new Date(data.timestamp)) < 5000
+)
+            </div>
+        </div>
+        
+        <div class="solution">
+            <strong>✅ Giải pháp 2: Thêm logging chi tiết để debug</strong><br>
+            <div class="code">
+// Thêm vào handleStaffMessage:
+console.log('🔍 DEBUG - Message details:', {
+  type: data.type,
+  sessionId: data.sessionId,
+  customerName: data.customerName,
+  message: data.message,
+  timestamp: data.timestamp,
+  selectedChatSessionId: selectedChat.value?.sessionId,
+  messagesCount: messages.value.length
+})
+            </div>
+        </div>
+        
+        <div class="solution">
+            <strong>✅ Giải pháp 3: Cải thiện error handling</strong><br>
+            <div class="code">
+// Thêm vào sendCustomerMessage:
+try {
+  socket.value.send('/app/customer/send-message', {}, JSON.stringify({
+    sessionId: sessionId.value,
+    message: message
+  }))
+  console.log('✅ Customer message sent successfully')
+} catch (error) {
+  console.error('❌ Error sending customer message:', error)
+  // Retry logic hoặc fallback
+}
+            </div>
+        </div>
+        
+        <div class="solution">
+            <strong>✅ Giải pháp 4: Thêm validation cho sessionId</strong><br>
+            <div class="code">
+// Thêm vào backend ChatService.sendCustomerMessage:
+public void sendCustomerMessage(String sessionId, String message) {
+  System.out.println("=== SEND CUSTOMER MESSAGE DEBUG ===");
+  System.out.println("SessionId: " + sessionId);
+  System.out.println("Message: " + message);
+  System.out.println("Customer sessions: " + customerSessions.size());
+  
+  CustomerSession session = customerSessions.get(sessionId);
+  if (session != null) {
+    System.out.println("Session found: " + session.getCustomerName());
+    System.out.println("Assigned staff: " + session.getAssignedStaffId());
+    // ... rest of the logic
+  } else {
+    System.out.println("❌ Session not found: " + sessionId);
+  }
+}
+            </div>
+        </div>
+    </div>
+    
+    <div class="debug-section">
+        <div class="debug-title">🧪 Test Cases để kiểm tra</div>
+        
+        <div class="info">
+            <strong>Test Case 1: Tin nhắn từ khách hàng mới</strong><br>
+            1. Khách hàng join chat<br>
+            2. Staff take customer<br>
+            3. Khách hàng gửi tin nhắn<br>
+            4. Kiểm tra staff có nhận được không
+        </div>
+        
+        <div class="info">
+            <strong>Test Case 2: Tin nhắn từ khách hàng đã có</strong><br>
+            1. Khách hàng đã có session<br>
+            2. Staff đã được assign<br>
+            3. Khách hàng gửi tin nhắn<br>
+            4. Kiểm tra tin nhắn có hiển thị không
+        </div>
+        
+        <div class="info">
+            <strong>Test Case 3: WebSocket reconnect</strong><br>
+            1. Disconnect WebSocket<br>
+            2. Reconnect<br>
+            3. Khách hàng gửi tin nhắn<br>
+            4. Kiểm tra staff có nhận được không
+        </div>
+    </div>
+    
+    <div class="debug-section">
+        <div class="debug-title">📊 Monitoring và Debug</div>
+        
+        <div class="warning">
+            <strong>⚠️ Cần kiểm tra:</strong><br>
+            • Console logs trong browser developer tools<br>
+            • Backend logs trong terminal<br>
+            • Network tab để xem WebSocket messages<br>
+            • Session data trong localStorage
+        </div>
+        
+        <div class="code">
+// Commands để debug:
+// 1. Mở browser console và chạy:
+console.log('Current chat state:', {
+  isStaff: window.chatComposable?.isStaff?.value,
+  isCustomer: window.chatComposable?.isCustomer?.value,
+  sessionId: window.chatComposable?.sessionId?.value,
+  selectedChat: window.chatComposable?.selectedChat?.value,
+  messages: window.chatComposable?.messages?.value
+})
+
+// 2. Kiểm tra WebSocket connection:
+console.log('WebSocket state:', {
+  connected: window.chatComposable?.isConnected?.value,
+  socket: !!window.chatComposable?.socket?.value
+})
+        </div>
+    </div>
+    
+    <div class="debug-section">
+        <div class="debug-title">🚀 Các bước sửa lỗi</div>
+        
+        <div class="solution">
+            <strong>Bước 1: Thêm logging chi tiết</strong><br>
+            Thêm console.log vào các hàm quan trọng để theo dõi luồng tin nhắn.
+        </div>
+        
+        <div class="solution">
+            <strong>Bước 2: Cải thiện error handling</strong><br>
+            Thêm try-catch và retry logic cho việc gửi/nhận tin nhắn.
+        </div>
+        
+        <div class="solution">
+            <strong>Bước 3: Validate sessionId</strong><br>
+            Đảm bảo sessionId được đồng bộ giữa frontend và backend.
+        </div>
+        
+        <div class="solution">
+            <strong>Bước 4: Test với nhiều scenarios</strong><br>
+            Test với các trường hợp khác nhau để đảm bảo hệ thống hoạt động ổn định.
+        </div>
+    </div>
+</body>
+</html>
+
+
+

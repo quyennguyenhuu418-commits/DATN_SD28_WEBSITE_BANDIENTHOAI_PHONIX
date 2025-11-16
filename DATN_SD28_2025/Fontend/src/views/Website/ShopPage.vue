@@ -167,6 +167,7 @@
                     <span v-if="product.isHot" class="badge badge-hot">🔥 HOT</span>
                     <span v-if="product.isNew" class="badge badge-new">✨ MỚI</span>
                     <span v-if="product.discount > 0" class="badge badge-discount">
+                      <i class="bi bi-fire"></i>
                       -{{ product.discount }}%
                     </span>
                   </div>
@@ -175,7 +176,7 @@
                   <button
                     class="wishlist-btn"
                     :class="{ active: product.isWishlisted }"
-                    @click="toggleWishlist(product)"
+                    @click.stop="toggleWishlist(product)"
                   >
                     <i class="bi" :class="product.isWishlisted ? 'bi-heart-fill' : 'bi-heart'"></i>
                   </button>
@@ -207,7 +208,7 @@
 
                   <!-- Price -->
                   <div class="product-price">
-                    <span class="current-price">{{ formatPrice(product.gia) }}</span>
+                    <span class="current-price">{{ formatPrice(product.giaSauGiam || product.gia) }}</span>
                     <span v-if="product.oldPrice" class="old-price">{{ formatPrice(product.oldPrice) }}</span>
                   </div>
 
@@ -227,12 +228,19 @@
                   <!-- Actions -->
                   <div class="product-actions">
                     <button
+                      class="btn-buy-now"
+                      :disabled="product.soLuongTon === 0"
+                      @click.stop="openConfirm(product, 'buy')"
+                    >
+                      <i class="bi bi-lightning-fill"></i>
+                      Mua ngay
+                    </button>
+                    <button
                       class="btn-add-cart"
                       :disabled="product.soLuongTon === 0"
-                      @click="addToCart(product)"
+                      @click.stop="openConfirm(product, 'add')"
                     >
                       <i class="bi bi-cart-plus"></i>
-                      Thêm vào giỏ
                     </button>
                   </div>
                 </div>
@@ -282,18 +290,40 @@
         <span>{{ toast.message }}</span>
       </div>
     </transition>
+
+    <!-- Confirm Modal -->
+    <div v-if="confirmModal.show" class="confirm-overlay" @click.self="closeConfirm">
+      <div class="confirm-card">
+        <div class="confirm-header">
+          <h3>Xác nhận {{ confirmModal.action === 'buy' ? 'mua ngay' : 'thêm vào giỏ' }}</h3>
+          <button class="confirm-close" type="button" @click="closeConfirm">×</button>
+        </div>
+        <div class="confirm-content">
+          <div class="confirm-row"><span class="label">Sản phẩm</span><span class="value">{{ confirmModal.product?.tenSanPham }}</span></div>
+          <div class="confirm-row"><span class="label">Giá</span><span class="value">{{ formatPrice(confirmModal.product?.gia || 0) }}</span></div>
+        </div>
+        <div class="confirm-actions">
+          <button type="button" class="btn-cancel" @click="closeConfirm" :disabled="confirmModal.loading">Hủy</button>
+          <button type="button" class="btn-confirm" @click="confirmProceed" :disabled="confirmModal.loading">
+            <i v-if="confirmModal.loading" class="bi bi-hourglass-split"></i>
+            {{ confirmModal.action === 'buy' ? 'Xác nhận mua ngay' : 'Xác nhận thêm giỏ' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useCartStore } from '@/stores/cartStore'
 import HeaderLayout from './HeaderLayout.vue'
 import FooterLayout from './FooterLayout.vue'
 import axios from 'axios'
 
 const router = useRouter()
+const route = useRoute()
 const cartStore = useCartStore()
 
 // API Base URL
@@ -347,6 +377,33 @@ const toast = ref({
   message: '',
   icon: 'bi-check-circle-fill'
 })
+
+// Confirm modal
+const confirmModal = ref({ show: false, loading: false, action: /** @type{'buy'|'add'|null} */(null), product: null })
+
+const openConfirm = (product, action) => {
+  confirmModal.value = { show: true, loading: false, action, product }
+}
+
+const closeConfirm = () => {
+  if (confirmModal.value.loading) return
+  confirmModal.value.show = false
+}
+
+const confirmProceed = async () => {
+  if (!confirmModal.value.product || !confirmModal.value.action) return
+  confirmModal.value.loading = true
+  try {
+    if (confirmModal.value.action === 'add') {
+      addToCart(confirmModal.value.product)
+    } else {
+      await buyNow(confirmModal.value.product)
+    }
+    confirmModal.value.show = false
+  } finally {
+    confirmModal.value.loading = false
+  }
+}
 
 // Computed
 const filteredProducts = computed(() => {
@@ -461,23 +518,30 @@ const enhanceProduct = (product) => {
   else if (salesCount > 20) rating = 4.5
   else if (salesCount > 10) rating = 4.0
 
-  // Calculate old price (20-30% higher)
-  const discountMultiplier = 1.2 + Math.random() * 0.1
-  const oldPrice = product.gia * discountMultiplier
+  // Sử dụng dữ liệu giảm giá từ backend (không dùng mock)
+  // Chỉ hiển thị giảm giá khi có đợt giảm giá thực từ backend
+  let discount = 0
+  let oldPrice = null
+  
+  // Kiểm tra nếu có giảm giá từ backend
+  if (product.giamPhanTram && product.giamPhanTram > 0) {
+    discount = Math.round(product.giamPhanTram)
+    // Nếu có giá gốc và giá sau giảm, dùng giá gốc làm oldPrice
+    if (product.giaGoc && product.giaSauGiam && product.giaGoc > product.giaSauGiam) {
+      oldPrice = product.giaGoc
+    }
+  }
 
-  // Calculate discount percentage
-  const discount = Math.round(((oldPrice - product.gia) / oldPrice) * 100)
-
-  // Determine if hot or new
-  const isHot = salesCount > 30 || discount > 20
-  const isNew = Math.random() > 0.7 // 30% chance of being new
+  // Determine if hot or new (không dùng discount mock)
+  const isHot = salesCount > 30
+  const isNew = salesCount < 5 // Sản phẩm mới nếu bán ít hơn 5
 
   return {
     ...product,
     rating: Math.round(rating * 10) / 10,
     reviewCount: Math.max(5, Math.floor(salesCount * 0.8)),
-    oldPrice,
-    discount,
+    oldPrice, // Chỉ có giá trị khi có giảm giá từ backend
+    discount, // Chỉ có giá trị khi có giảm giá từ backend
     isHot,
     isNew,
     isWishlisted: cartStore.isInWishlist(product.id)
@@ -540,6 +604,29 @@ const addToCart = (product) => {
   try {
     cartStore.addItem(product)
     showToast('success', `Đã thêm "${product.tenSanPham}" vào giỏ hàng!`, 'bi-cart-check-fill')
+  } catch (error) {
+    showToast('error', error.message, 'bi-exclamation-circle-fill')
+  }
+}
+
+const buyNow = async (product) => {
+  try {
+    // Thêm sản phẩm vào giỏ hàng trước
+    cartStore.addItem(product)
+    
+    // Delay ngắn để cart store cập nhật
+    await new Promise(resolve => setTimeout(resolve, 100))
+    
+    // Chuyển đến trang đặt hàng với thông tin sản phẩm
+    router.push({
+      path: '/dat-hang',
+      query: {
+        productId: product.id,
+        variantId: product.chiTietSanPhamId || product.id,
+        quantity: 1,
+        buyNow: 'true'
+      }
+    })
   } catch (error) {
     showToast('error', error.message, 'bi-exclamation-circle-fill')
   }
@@ -609,10 +696,64 @@ const updateCountdown = () => {
 }
 
 // Lifecycle
-onMounted(() => {
-  fetchProducts()
-  fetchBrands()
-  fetchCategories()
+// Đọc query parameters từ URL và áp dụng filter
+const applyQueryFilters = () => {
+  // Xử lý brand filter từ query
+  if (route.query.brand) {
+    const brandId = parseInt(route.query.brand)
+    if (!isNaN(brandId) && !selectedBrands.value.includes(brandId)) {
+      selectedBrands.value.push(brandId)
+      console.log('✅ Applied brand filter from URL:', brandId)
+    }
+  }
+
+  // Xử lý category filter từ query
+  if (route.query.category) {
+    const categoryId = parseInt(route.query.category)
+    if (!isNaN(categoryId) && !selectedCategories.value.includes(categoryId)) {
+      selectedCategories.value.push(categoryId)
+      console.log('✅ Applied category filter from URL:', categoryId)
+    }
+  }
+}
+
+// Watch route changes để cập nhật filter khi URL thay đổi
+watch(() => route.query, (newQuery) => {
+  // Reset filters
+  selectedBrands.value = []
+  selectedCategories.value = []
+  
+  // Apply new filters from query
+  if (newQuery.brand) {
+    const brandId = parseInt(newQuery.brand)
+    if (!isNaN(brandId)) {
+      selectedBrands.value.push(brandId)
+    }
+  }
+  
+  if (newQuery.category) {
+    const categoryId = parseInt(newQuery.category)
+    if (!isNaN(categoryId)) {
+      selectedCategories.value.push(categoryId)
+    }
+  }
+  
+  // Reset to first page when filters change
+  currentPage.value = 1
+}, { immediate: false })
+
+onMounted(async () => {
+  // Scroll to top khi vào trang
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+  
+  // Load data first
+  await fetchProducts()
+  await fetchBrands()
+  await fetchCategories()
+  
+  // Sau khi load xong brands và categories, mới áp dụng filters từ query
+  applyQueryFilters()
+  
   updateCountdown()
   countdownInterval = setInterval(updateCountdown, 1000)
 })
@@ -654,7 +795,7 @@ onUnmounted(() => {
 
 /* Promo Banner */
 .promo-banner {
-  background: linear-gradient(90deg, var(--phoenix-secondary) 0%, var(--phoenix-gold) 100%);
+  background: linear-gradient(90deg, #F7931E 0%, #FFD700 100%);
   padding: 1.5rem 2rem;
   position: relative;
   overflow: hidden;
@@ -671,7 +812,7 @@ onUnmounted(() => {
 }
 
 .promo-title {
-  color: var(--phoenix-dark);
+  color: #2C1810;
   font-size: 1.5rem;
   font-weight: bold;
   text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
@@ -684,7 +825,7 @@ onUnmounted(() => {
 }
 
 .countdown-label {
-  color: var(--phoenix-dark);
+  color: #2C1810;
   font-weight: 600;
 }
 
@@ -708,7 +849,7 @@ onUnmounted(() => {
 .time-value {
   font-size: 1.5rem;
   font-weight: bold;
-  color: var(--phoenix-primary);
+  color: #FF5500;
 }
 
 .time-label {
@@ -720,7 +861,7 @@ onUnmounted(() => {
 .time-separator {
   font-size: 1.5rem;
   font-weight: bold;
-  color: var(--phoenix-dark);
+  color: #2C1810;
 }
 
 .close-banner {
@@ -729,7 +870,7 @@ onUnmounted(() => {
   right: 1rem;
   background: none;
   border: none;
-  color: var(--phoenix-dark);
+  color: #2C1810;
   font-size: 1.25rem;
   cursor: pointer;
   padding: 0.5rem;
@@ -770,7 +911,7 @@ onUnmounted(() => {
 
 .filter-title {
   font-size: 1.25rem;
-  color: var(--phoenix-primary);
+  color: #FF5500;
   margin-bottom: 1.5rem;
   display: flex;
   align-items: center;
@@ -813,13 +954,13 @@ onUnmounted(() => {
   width: 18px;
   height: 18px;
   cursor: pointer;
-  accent-color: var(--phoenix-primary);
+  accent-color: #FF5500;
 }
 
 .reset-filters-btn {
   width: 100%;
   padding: 0.75rem;
-  background: var(--phoenix-primary);
+  background: #FF5500;
   color: white;
   border: none;
   border-radius: 8px;
@@ -833,7 +974,7 @@ onUnmounted(() => {
 }
 
 .reset-filters-btn:hover {
-  background: var(--phoenix-accent);
+  background: #DC143C;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(220, 20, 60, 0.3);
 }
@@ -883,7 +1024,7 @@ onUnmounted(() => {
 }
 
 .sort-select:focus {
-  border-color: var(--phoenix-primary);
+  border-color: #FF5500;
 }
 
 /* Loading & Empty States */
@@ -898,7 +1039,7 @@ onUnmounted(() => {
   width: 50px;
   height: 50px;
   border: 4px solid #f3f3f3;
-  border-top: 4px solid var(--phoenix-primary);
+  border-top: 4px solid #FF5500;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 1rem;
@@ -921,7 +1062,7 @@ onUnmounted(() => {
 .btn-reset {
   margin-top: 1rem;
   padding: 0.75rem 1.5rem;
-  background: var(--phoenix-primary);
+  background: #FF5500;
   color: white;
   border: none;
   border-radius: 8px;
@@ -931,7 +1072,7 @@ onUnmounted(() => {
 }
 
 .btn-reset:hover {
-  background: var(--phoenix-accent);
+  background: #DC143C;
 }
 
 /* Products Grid */
@@ -1005,8 +1146,30 @@ onUnmounted(() => {
 }
 
 .badge-discount {
-  background: var(--phoenix-accent);
+  background: linear-gradient(135deg, #ff6b35, #f97316);
   color: white;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.875rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
+}
+
+.badge-discount i {
+  font-size: 0.875rem;
+  animation: fire-flicker 1.5s ease-in-out infinite;
+}
+
+@keyframes fire-flicker {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.9;
+  }
 }
 
 .wishlist-btn {
@@ -1029,12 +1192,12 @@ onUnmounted(() => {
 }
 
 .wishlist-btn:hover {
-  color: var(--phoenix-accent);
+  color: #DC143C;
   transform: scale(1.1);
 }
 
 .wishlist-btn.active {
-  color: var(--phoenix-accent);
+  color: #DC143C;
 }
 
 .product-info {
@@ -1082,7 +1245,7 @@ onUnmounted(() => {
 
 .stars i {
   font-size: 0.875rem;
-  color: var(--phoenix-gold);
+  color: #FFD700;
 }
 
 .stars .bi-star {
@@ -1104,7 +1267,7 @@ onUnmounted(() => {
 .current-price {
   font-size: 1.25rem;
   font-weight: bold;
-  color: var(--phoenix-accent);
+  color: #DC143C;
 }
 
 .old-price {
@@ -1118,8 +1281,8 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.375rem;
   padding: 0.375rem 0.75rem;
-  background: linear-gradient(135deg, var(--phoenix-secondary), var(--phoenix-gold));
-  color: var(--phoenix-dark);
+  background: linear-gradient(135deg, #F7931E, #FFD700);
+  color: #2C1810;
   font-size: 0.8rem;
   font-weight: 600;
   border-radius: 6px;
@@ -1142,12 +1305,13 @@ onUnmounted(() => {
 .product-actions {
   display: flex;
   gap: 0.5rem;
+  margin-top: 1rem;
 }
 
-.btn-add-cart {
+.btn-buy-now {
   flex: 1;
   padding: 0.75rem;
-  background: var(--phoenix-primary);
+  background: linear-gradient(135deg, #FF5500, #FF6B35);
   color: white;
   border: none;
   border-radius: 8px;
@@ -1158,16 +1322,47 @@ onUnmounted(() => {
   justify-content: center;
   gap: 0.5rem;
   transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(255, 85, 0, 0.3);
+}
+
+.btn-buy-now:hover:not(:disabled) {
+  background: linear-gradient(135deg, #E04A00, #FF5500);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(255, 85, 0, 0.4);
+}
+
+.btn-buy-now:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.btn-add-cart {
+  width: 48px;
+  height: 48px;
+  background: #f8f9fa;
+  color: #FF5500;
+  border: 2px solid #FF5500;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
 }
 
 .btn-add-cart:hover:not(:disabled) {
-  background: var(--phoenix-accent);
+  background: #FF5500;
+  color: white;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(220, 20, 60, 0.3);
+  box-shadow: 0 4px 12px rgba(255, 85, 0, 0.3);
 }
 
 .btn-add-cart:disabled {
-  background: #ccc;
+  background: #f8f9fa;
+  color: #ccc;
+  border-color: #ccc;
   cursor: not-allowed;
 }
 
@@ -1198,14 +1393,14 @@ onUnmounted(() => {
 }
 
 .page-btn:hover:not(:disabled) {
-  border-color: var(--phoenix-primary);
-  color: var(--phoenix-primary);
+  border-color: #FF5500;
+  color: #FF5500;
 }
 
 .page-btn.active {
-  background: var(--phoenix-primary);
+  background: #FF5500;
   color: white;
-  border-color: var(--phoenix-primary);
+  border-color: #FF5500;
 }
 
 .page-btn:disabled {
@@ -1260,8 +1455,21 @@ onUnmounted(() => {
   transform: translateX(100px);
 }
 
+/* Confirm Modal */
+.confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 16px; }
+.confirm-card { width: 100%; max-width: 520px; background: #fff; border-radius: 14px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); overflow: hidden; }
+.confirm-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #eee; }
+.confirm-header h3 { margin: 0; font-size: 18px; font-weight: 700; color: #333; }
+.confirm-close { background: none; border: none; font-size: 22px; cursor: pointer; color: #666; }
+.confirm-content { padding: 16px 20px; }
+.confirm-row { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; color: #555; }
+.confirm-row .label { font-weight: 600; }
+.confirm-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 12px 20px 20px; }
+.btn-cancel { background: #6c757d; color: #fff; border: none; padding: 10px 14px; border-radius: 10px; cursor: pointer; }
+.btn-confirm { background: #FF5500; color: #fff; border: none; padding: 10px 14px; border-radius: 10px; cursor: pointer; }
+
 /* Responsive */
-@media (max-width: 1200px) {
+@media (max-width: 1400px) {
   .shop-layout {
     grid-template-columns: 250px 1fr;
   }

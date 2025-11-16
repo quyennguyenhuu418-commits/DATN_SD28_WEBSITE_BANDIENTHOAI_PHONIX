@@ -7,8 +7,10 @@ import java.util.Optional;
 
 public interface DanhMucService {
     List<DanhMucDTO> getAll();
+    List<DanhMucDTO> getActive();
     Optional<DanhMucDTO> getById(Integer id);
     DanhMucDTO save(DanhMucDTO danhMucDTO);
     void delete(Integer id);
     DanhMucDTO update(Integer id, DanhMucDTO danhMucDTO);
+    void updateStatus(Integer id, Integer trangThai);
 }

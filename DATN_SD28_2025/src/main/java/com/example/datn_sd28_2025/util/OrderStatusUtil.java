@@ -8,6 +8,7 @@ public class OrderStatusUtil {
     public static final int DANG_GIAO = 2;              // Đang giao (Being transported / In delivery)
     public static final int HOAN_THANH = 3;             // Hoàn thành (Delivered / Completed)
     public static final int DA_HUY = 4;                 // Đã hủy (Order cancelled)
+    public static final int DA_TRA_HANG = 5;           // Đã trả hàng (Returned)
 
     // Payment method constants
     public static final String CASH = "CASH";           // Tiền mặt
@@ -27,6 +28,8 @@ public class OrderStatusUtil {
             return HOAN_THANH; // Thanh toán trực tiếp -> Hoàn thành
         } else if (DELIVERY.equals(orderType)) {
             return CHO_XAC_NHAN; // Giao hàng -> Chờ xác nhận
+        } else if ("ONLINE".equals(orderType)) {
+            return CHO_XAC_NHAN; // Đơn hàng online -> Chờ xác nhận
         }
         return HOAN_THANH; // Default
     }
@@ -37,7 +40,7 @@ public class OrderStatusUtil {
     public static int getNextStatus(int currentStatus) {
         switch (currentStatus) {
             case CHO_XAC_NHAN:
-                return CHO_GIAO_HANG; // Chờ xác nhận -> Chờ giao hàng
+                return CHO_GIAO_HANG; // Đã thanh toán chờ xác nhận -> Chờ giao hàng
             case CHO_GIAO_HANG:
                 return DANG_GIAO; // Chờ giao hàng -> Đang giao
             case DANG_GIAO:
@@ -62,6 +65,8 @@ public class OrderStatusUtil {
                 return "Hoàn thành";
             case DA_HUY:
                 return "Đã hủy";
+            case DA_TRA_HANG:
+                return "Đã trả hàng";
             default:
                 return "Không xác định";
         }

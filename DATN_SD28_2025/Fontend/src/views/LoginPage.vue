@@ -34,6 +34,9 @@
             <input type="checkbox" v-model="loginForm.rememberMe" />
             Ghi nhớ đăng nhập
           </label>
+          <router-link to="/admin/forgot-password" class="forgot-password-link">
+            Quên mật khẩu?
+          </router-link>
         </div>
 
         <button type="submit" class="btn-login" :disabled="loading">
@@ -52,51 +55,71 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
+import api from '@/services/api'
 import Toast from '@/components/Toast.vue'
 
 const router = useRouter()
+const authStore = useAuthStore()
 const toastRef = ref<InstanceType<typeof Toast> | null>(null)
 const loading = ref(false)
 
 const loginForm = ref({
   username: '',
   password: '',
-  rememberMe: false
+  rememberMe: false,
+})
+
+// Check if user is already authenticated and redirect to dashboard
+onMounted(() => {
+  if (authStore.isAuthenticated && authStore.user) {
+    console.log('User already authenticated, redirecting to dashboard')
+    router.push('/admin/dashboard')
+  }
 })
 
 async function handleLogin() {
+  if (!loginForm.value.username || !loginForm.value.password) {
+    toastRef.value?.error('Lỗi', 'Vui lòng nhập đầy đủ tài khoản và mật khẩu!')
+    return
+  }
+
   loading.value = true
-  
+
   try {
-    // Simulate login API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // Demo login - accept admin/admin123
-    if (loginForm.value.username === 'admin' && loginForm.value.password === 'admin123') {
-      // Save login state
-      localStorage.setItem('isLoggedIn', 'true')
-      localStorage.setItem('user', JSON.stringify({
-        username: loginForm.value.username,
-        role: 'admin'
-      }))
-      
+    // Gọi API đăng nhập
+    const result = await authStore.login({
+      username: loginForm.value.username.trim(),
+      password: loginForm.value.password
+    })
+
+    if (result.success) {
       toastRef.value?.success('Thành công', 'Đăng nhập thành công!')
-      
-      // Redirect to dashboard
-      setTimeout(() => {
-        router.push('/dashboard')
-      }, 1000)
+
+      // Redirect to dashboard immediately (don't wait for pending handover check)
+      router.push('/admin/dashboard').catch((err) => {
+        // Ignore navigation errors (e.g., already on dashboard)
+        console.log('Navigation error (ignored):', err)
+      })
     } else {
-      toastRef.value?.error('Lỗi đăng nhập', 'Tài khoản hoặc mật khẩu không đúng!')
+      const errorMsg = result.error || 'Tài khoản hoặc mật khẩu không đúng!'
+      toastRef.value?.error('Lỗi đăng nhập', errorMsg)
     }
-  } catch (error) {
-    toastRef.value?.error('Lỗi', 'Có lỗi xảy ra khi đăng nhập!')
+  } catch (error: any) {
+    console.error('Login error:', error)
+    const errorMessage = error.response?.data?.message || 
+                        error.response?.data?.error || 
+                        error.message || 
+                        'Có lỗi xảy ra khi đăng nhập!'
+    toastRef.value?.error('Lỗi', errorMessage)
   } finally {
     loading.value = false
   }
 }
+
+
 </script>
 
 <style scoped>
@@ -149,8 +172,8 @@ async function handleLogin() {
   color: #333;
 }
 
-.form-group input[type="text"],
-.form-group input[type="password"] {
+.form-group input[type='text'],
+.form-group input[type='password'] {
   width: 100%;
   padding: 12px;
   border: 2px solid #ddd;
@@ -160,8 +183,8 @@ async function handleLogin() {
   box-sizing: border-box;
 }
 
-.form-group input[type="text"]:focus,
-.form-group input[type="password"]:focus {
+.form-group input[type='text']:focus,
+.form-group input[type='password']:focus {
   outline: none;
   border-color: #007bff;
 }
@@ -173,7 +196,24 @@ async function handleLogin() {
   cursor: pointer;
 }
 
-.checkbox-label input[type="checkbox"] {
+.form-group {
+  position: relative;
+}
+
+.forgot-password-link {
+  margin-left: auto;
+  color: #007bff;
+  font-size: 14px;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.forgot-password-link:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+.checkbox-label input[type='checkbox'] {
   margin-right: 8px;
   width: auto;
 }
@@ -216,10 +256,9 @@ async function handleLogin() {
   .login-card {
     padding: 30px 20px;
   }
-  
+
   .login-header h1 {
     font-size: 24px;
   }
 }
 </style>
-

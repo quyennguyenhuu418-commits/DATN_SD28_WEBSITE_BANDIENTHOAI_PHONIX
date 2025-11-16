@@ -23,6 +23,11 @@ public class DanhMucServiceImpl implements DanhMucService {
     }
 
     @Override
+    public List<DanhMucDTO> getActive() {
+        return danhMucRepository.findAllActive().stream().map(this::convertToDto).toList();
+    }
+
+    @Override
     public Optional<DanhMucDTO> getById(Integer id) {
         return danhMucRepository.findById(id).map(this::convertToDto);
     }
@@ -57,6 +62,15 @@ public class DanhMucServiceImpl implements DanhMucService {
         }
         
         danhMucRepository.deleteById(id);
+    }
+
+    @Override
+    public void updateStatus(Integer id, Integer trangThai) {
+        DanhMuc danhMuc = danhMucRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục với ID: " + id));
+        danhMuc.setTrangThai(trangThai);
+        danhMuc.setNgayCapNhat(LocalDateTime.now());
+        danhMucRepository.save(danhMuc);
     }
 
     private DanhMucDTO convertToDto(DanhMuc danhMuc) {

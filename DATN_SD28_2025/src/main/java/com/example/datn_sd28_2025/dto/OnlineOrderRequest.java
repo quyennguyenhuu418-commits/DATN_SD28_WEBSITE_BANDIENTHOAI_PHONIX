@@ -29,6 +29,8 @@ public class OnlineOrderRequest {
     // Pricing
     private BigDecimal tongTien;
     private BigDecimal phiVanChuyen;
+    private BigDecimal tongTienSauGiam;
+    private Integer phieuGiamGiaId;
     
     // Items
     private List<ChiTietDonHangRequest> chiTietDonHang;
@@ -50,3 +52,10 @@ public class OnlineOrderRequest {
         private BigDecimal thanhTien;
     }
 }
+
+
+
+
+
+
+

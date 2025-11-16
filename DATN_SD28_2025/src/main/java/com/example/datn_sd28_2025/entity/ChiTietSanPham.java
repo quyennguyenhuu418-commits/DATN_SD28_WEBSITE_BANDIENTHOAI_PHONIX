@@ -94,17 +94,57 @@ public class ChiTietSanPham {
     // Transient fields for JSON mapping
     @Transient
     @JsonProperty("idSp")
-    private Integer idSp;
+    public Integer getIdSp() {
+        return sanPham != null ? sanPham.getId() : null;
+    }
 
     @Transient
     @JsonProperty("romId")
-    private Integer romId;
+    public Integer getRomId() {
+        return rom != null ? rom.getId() : null;
+    }
 
     @Transient
     @JsonProperty("ramId")
-    private Integer ramId;
+    public Integer getRamId() {
+        return ram != null ? ram.getId() : null;
+    }
 
     @Transient
     @JsonProperty("mauSacId")
-    private Integer mauSacId;
+    public Integer getMauSacId() {
+        return mauSac != null ? mauSac.getId() : null;
+    }
+
+    // Additional getters for nested object details
+    @Transient
+    @JsonProperty("ram")
+    public Object getRamDetails() {
+        if (ram == null) return null;
+        return new Object() {
+            public Integer getId() { return ram.getId(); }
+            public String getTenRam() { return ram.getTenRam(); }
+        };
+    }
+
+    @Transient
+    @JsonProperty("rom")
+    public Object getRomDetails() {
+        if (rom == null) return null;
+        return new Object() {
+            public Integer getId() { return rom.getId(); }
+            public String getDungLuong() { return rom.getDungLuong(); }
+        };
+    }
+
+    @Transient
+    @JsonProperty("mauSac")
+    public Object getMauSacDetails() {
+        if (mauSac == null) return null;
+        return new Object() {
+            public Integer getId() { return mauSac.getId(); }
+            public String getTenMau() { return mauSac.getTenMau(); }
+            public String getMaHex() { return mauSac.getMaHex(); }
+        };
+    }
 }

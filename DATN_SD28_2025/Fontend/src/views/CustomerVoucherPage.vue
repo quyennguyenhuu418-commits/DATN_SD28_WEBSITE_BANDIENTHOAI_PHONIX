@@ -1,10 +1,10 @@
 <template>
   <div class="customer-voucher-page">
     <div class="page-header">
-      <h1>Voucher Của Tôi</h1>
+      <h1>Phiếu Giảm Giá Của Tôi</h1>
       <div class="customer-info">
         <select v-model="selectedCustomerId" @change="loadCustomerVouchers" class="customer-select">
-          <option value="">-- Chọn khách hàng để xem voucher --</option>
+          <option value="">-- Chọn khách hàng để xem phiếu giảm giá --</option>
           <option v-for="customer in customers" :key="customer.id" :value="customer.id">
             {{ customer.hoTen }} ({{ customer.soDienThoai }})
           </option>
@@ -19,7 +19,7 @@
           :class="{ active: activeTab === 'available' }"
           @click="switchTab('available')"
         >
-          Voucher khả dụng ({{ vouchers.length }})
+          Phiếu giảm giá khả dụng ({{ vouchers.length }})
         </button>
         <button 
           class="tab-button" 

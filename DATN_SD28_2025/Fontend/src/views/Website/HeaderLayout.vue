@@ -1,5 +1,5 @@
 <template>
-  <header class="main-header" :class="{ 'header-hidden': !isHeaderVisible }">
+  <header class="main-header">
     <div class="header-container">
       <!-- Logo -->
       <div class="logo-section">
@@ -23,14 +23,11 @@
 
       <!-- Header Actions -->
       <div class="header-actions">
-        <!-- Location -->
-        <div class="action-item location">
-          <i class="bi bi-geo-alt-fill"></i>
-          <div class="action-text">
-            <span class="label">Khu vực</span>
-            <strong>Hà Nội</strong>
-          </div>
-        </div>
+        <!-- Orders -->
+        <router-link to="/theo-doi-don-hang" class="action-item orders">
+          <i class="bi bi-receipt"></i>
+          <span class="action-text">Đơn hàng</span>
+        </router-link>
 
         <!-- Cart -->
         <router-link to="/cart" class="action-item cart">
@@ -42,9 +39,13 @@
         </router-link>
 
         <!-- User -->
-        <div class="action-item user" @click="showLogin = true">
+        <div v-if="!customerAuthStore.isAuthenticated" class="action-item user" @click="goToLogin">
           <i class="bi bi-person-circle"></i>
           <span class="action-text">Đăng nhập</span>
+        </div>
+        <div v-else class="action-item user" @click="goToAccount">
+          <i class="bi bi-person-circle"></i>
+          <span class="action-text">{{ customerAuthStore.userName }}</span>
         </div>
       </div>
     </div>
@@ -61,36 +62,20 @@
     </nav>
   </header>
 
-  <!-- Login Modal (Simple version) -->
-  <div v-if="showLogin" class="modal-overlay" @click="showLogin = false">
-    <div class="modal-box" @click.stop>
-      <div class="modal-header">
-        <h3>Đăng nhập</h3>
-        <button class="close-modal" @click="showLogin = false">
-          <i class="bi bi-x-lg"></i>
-        </button>
-      </div>
-      <div class="modal-body">
-        <p>Tính năng đăng nhập sẽ được cập nhật sớm!</p>
-        <button class="btn btn-primary" @click="showLogin = false">Đóng</button>
-      </div>
-    </div>
-  </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cartStore'
+import { useCustomerAuthStore } from '@/stores/customerAuthStore'
 
 const router = useRouter()
 const cartStore = useCartStore()
+const customerAuthStore = useCustomerAuthStore()
 
 // State
 const searchQuery = ref('')
-const showLogin = ref(false)
-const isHeaderVisible = ref(true)
-const lastScrollY = ref(0)
 
 // Methods
 const handleSearch = () => {
@@ -103,29 +88,21 @@ const performSearch = () => {
   }
 }
 
-// Scroll listener
-const handleScroll = () => {
-  const currentScrollY = window.scrollY
+const goToLogin = () => {
+  router.push({ path: '/customer/login', query: { redirect: router.currentRoute.value.fullPath } })
+}
 
-  // Header hide/show logic
-  if (currentScrollY > lastScrollY.value && currentScrollY > 100) {
-    // Scrolling down and past 100px - hide header
-    isHeaderVisible.value = false
+const goToAccount = () => {
+  if (customerAuthStore.isAuthenticated) {
+    router.push('/account')
   } else {
-    // Scrolling up or at top - show header
-    isHeaderVisible.value = true
+    router.push('/customer/login')
   }
-
-  lastScrollY.value = currentScrollY
 }
 
 // Lifecycle
 onMounted(() => {
-  window.addEventListener('scroll', handleScroll)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll)
+  // Header is now always visible
 })
 </script>
 
@@ -149,12 +126,8 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   z-index: 1000;
-  transition: transform 0.3s ease-in-out;
 }
 
-.main-header.header-hidden {
-  transform: translateY(-100%);
-}
 
 .header-container {
   max-width: 1400px;
@@ -193,7 +166,7 @@ onUnmounted(() => {
   right: 1.25rem;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--phoenix-primary);
+  color: #FF5500;
   font-size: 1.25rem;
   cursor: pointer;
 }
@@ -333,7 +306,7 @@ onUnmounted(() => {
 }
 
 .close-modal:hover {
-  color: var(--phoenix-accent);
+  color: #DC143C;
 }
 
 .modal-body {
@@ -343,7 +316,7 @@ onUnmounted(() => {
 .modal-body .btn {
   margin-top: 1rem;
   padding: 0.75rem 2rem;
-  background: var(--phoenix-primary);
+  background: #FF5500;
   color: white;
   border: none;
   border-radius: 8px;

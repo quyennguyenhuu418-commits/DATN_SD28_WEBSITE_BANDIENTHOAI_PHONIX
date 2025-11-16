@@ -20,17 +20,12 @@ public class HoaDonDTO {
     private String tenKhachHang;
     private String soDienThoai;
     private String diaChi;
-    private String email;
-    private String tinhThanh;
-    private String quanHuyen;
-    private String phuongThucGiaoHang;
-    private String phuongThucThanhToan;
-    private Double phiVanChuyen;
     private Double tongTienSauGiam;
     private LocalDateTime ngayThanhToan;
     private String loaiHoaDon;
     private Integer trangThai;
     private String ghiChu;
+    private String phuongThucThanhToan;
     private LocalDateTime ngayTao;
     private LocalDateTime ngayCapNhat;
     private String nguoiTao;

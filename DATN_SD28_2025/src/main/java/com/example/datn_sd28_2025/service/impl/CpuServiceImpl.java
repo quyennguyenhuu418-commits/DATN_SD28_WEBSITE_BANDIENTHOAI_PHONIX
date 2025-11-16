@@ -26,6 +26,12 @@ public class CpuServiceImpl implements CpuService {
     }
 
     @Override
+    public List<CpuDTO> getActive() {
+        return cpuRepository.findAllActive().stream()
+                .map(this::convertToDto).toList();
+    }
+
+    @Override
     public Page<CpuDTO> getAll(Pageable pageable) {
         return cpuRepository.findAll(pageable)
                 .map(this::convertToDto);
@@ -72,6 +78,15 @@ public class CpuServiceImpl implements CpuService {
         }
         
         cpuRepository.deleteById(id);
+    }
+
+    @Override
+    public void updateStatus(Integer id, Integer trangThai) {
+        Cpu cpu = cpuRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy CPU với ID: " + id));
+        cpu.setTrangThai(trangThai);
+        cpu.setNgayCapNhat(LocalDateTime.now());
+        cpuRepository.save(cpu);
     }
 
     private CpuDTO convertToDto(Cpu cpu) {

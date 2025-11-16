@@ -17,7 +17,6 @@ public class KhuyenMaiDTO {
     private String maKhuyenMai;
     private String tenKhuyenMai;
     private String moTa;
-    private Integer mucDoUuTien;
     private BigDecimal phanTramGiam;
     private BigDecimal giamToiDa;
     private LocalDateTime ngayBatDau;

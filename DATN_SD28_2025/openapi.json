@@ -1,0 +1,98 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "PhoniX MobilePhone API", "version": "1.0.0" },
+  "servers": [ { "url": "http://localhost:8080" } ],
+  "tags": [
+    { "name": "CameraSau" }, { "name": "CameraTruoc" },
+    { "name": "SanPham" }, { "name": "KhuyenMai" }, { "name": "HoaDon" }
+  ],
+  "paths": {
+    
+    "/api/camera-sau": {
+      "get": { "tags": ["CameraSau"], "summary": "Lấy danh sách camera sau", "responses": { "200": { "description": "OK" } } },
+      "post": { "tags": ["CameraSau"], "summary": "Tạo camera sau mới", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GenericEntity" } } } }, "responses": { "201": { "description": "Created" } } }
+    },
+    
+    "/api/camera-sau/active": { "get": { "tags": ["CameraSau"], "summary": "Lấy danh sách đang hoạt động", "responses": { "200": { "description": "OK" } } } },
+    
+    "/api/camera-sau/{id}": {
+      "get": { "tags": ["CameraSau"], "summary": "Chi tiết camera sau", "parameters": [ { "$ref": "#/components/parameters/IdPath" } ], "responses": { "200": { "description": "OK" }, "404": { "description": "Not Found" } } },
+      "put": { "tags": ["CameraSau"], "summary": "Cập nhật camera sau", "parameters": [ { "$ref": "#/components/parameters/IdPath" } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GenericEntity" } } } }, "responses": { "200": { "description": "OK" } } },
+      "delete": { "tags": ["CameraSau"], "summary": "Xóa camera sau", "parameters": [ { "$ref": "#/components/parameters/IdPath" } ], "responses": { "204": { "description": "No Content" } } }
+    },
+    
+    "/api/camera-sau/{id}/status": { "put": { "tags": ["CameraSau"], "summary": "Cập nhật trạng thái", "parameters": [ { "$ref": "#/components/parameters/IdPath" } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ToggleStatusRequest" } } } }, "responses": { "200": { "description": "OK" } } } },
+    
+    
+    "/api/camera-truoc": {
+      "get": { "tags": ["CameraTruoc"], "summary": "Lấy danh sách camera trước", "responses": { "200": { "description": "OK" } } },
+      "post": { "tags": ["CameraTruoc"], "summary": "Thêm camera trước", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GenericEntity" } } } }, "responses": { "201": { "description": "Created" } } }
+    },
+    
+    "/api/camera-truoc/active": { "get": { "tags": ["CameraTruoc"], "summary": "Lấy danh sách đang hoạt động", "responses": { "200": { "description": "OK" } } } },
+    
+    "/api/camera-truoc/{id}": {
+      "get": { "tags": ["CameraTruoc"], "summary": "Chi tiết camera trước", "parameters": [ { "$ref": "#/components/parameters/IdPath" } ], "responses": { "200": { "description": "OK" } } },
+      "put": { "tags": ["CameraTruoc"], "summary": "Cập nhật camera trước", "parameters": [ { "$ref": "#/components/parameters/IdPath" } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GenericEntity" } } } }, "responses": { "200": { "description": "OK" } } },
+      "delete": { "tags": ["CameraTruoc"], "summary": "Xóa camera trước", "parameters": [ { "$ref": "#/components/parameters/IdPath" } ], "responses": { "204": { "description": "No Content" } } }
+    },
+    
+    "/api/camera-truoc/{id}/status": { "put": { "tags": ["CameraTruoc"], "summary": "Cập nhật trạng thái", "parameters": [ { "$ref": "#/components/parameters/IdPath" } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ToggleStatusRequest" } } } }, "responses": { "200": { "description": "OK" } } } },
+    
+    
+    "/api/san-pham": {
+      "get": { "tags": ["SanPham"], "summary": "Lấy danh sách sản phẩm", "parameters": [ { "name": "search", "in": "query", "schema": { "type": "string" } } ], "responses": { "200": { "description": "OK" } } }
+    },
+    
+    "/api/san-pham/compare": { "get": { "tags": ["SanPham"], "summary": "So sánh nhiều sản phẩm", "parameters": [ { "name": "ids", "in": "query", "required": true, "schema": { "type": "string" } } ], "responses": { "200": { "description": "OK" } } } },
+    
+    "/api/san-pham/{id}": {
+      "get": { "tags": ["SanPham"], "summary": "Chi tiết sản phẩm", "parameters": [ { "$ref": "#/components/parameters/IdPath" } ], "responses": { "200": { "description": "OK" }, "404": { "description": "Not Found" } } },
+      "put": { "tags": ["SanPham"], "summary": "Cập nhật sản phẩm", "parameters": [ { "$ref": "#/components/parameters/IdPath" } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GenericEntity" } } } }, "responses": { "200": { "description": "OK" } } },
+      "delete": { "tags": ["SanPham"], "summary": "Xóa sản phẩm", "parameters": [ { "$ref": "#/components/parameters/IdPath" } ], "responses": { "204": { "description": "No Content" } } }
+    },
+    
+    "/api/san-pham/{id}/status": { "put": { "tags": ["SanPham"], "summary": "Cập nhật trạng thái hoạt động", "parameters": [ { "$ref": "#/components/parameters/IdPath" } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ToggleStatusRequest" } } } }, "responses": { "200": { "description": "OK" } } } },
+    
+    "/api/san-pham/danh-muc/{danhMucId}": { "get": { "tags": ["SanPham"], "summary": "Lọc theo danh mục", "parameters": [ { "name": "danhMucId", "in": "path", "required": true, "schema": { "type": "integer" } } ], "responses": { "200": { "description": "OK" } } } },
+    
+    "/api/san-pham/hang/{hangId}": { "get": { "tags": ["SanPham"], "summary": "Lọc theo hãng", "parameters": [ { "name": "hangId", "in": "path", "required": true, "schema": { "type": "integer" } } ], "responses": { "200": { "description": "OK" } } } },
+    
+    
+    "/api/khuyen-mai": {
+      "get": { "tags": ["KhuyenMai"], "summary": "Lấy danh sách khuyến mãi", "responses": { "200": { "description": "OK" } } },
+      "post": { "tags": ["KhuyenMai"], "summary": "Tạo khuyến mãi mới", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GenericEntity" } } } }, "responses": { "201": { "description": "Created" } } }
+    },
+    
+    "/api/khuyen-mai/{id}": {
+      "get": { "tags": ["KhuyenMai"], "summary": "Chi tiết khuyến mãi", "parameters": [ { "$ref": "#/components/parameters/IdPath" } ], "responses": { "200": { "description": "OK" } } },
+      "put": { "tags": ["KhuyenMai"], "summary": "Cập nhật khuyến mãi", "parameters": [ { "$ref": "#/components/parameters/IdPath" } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GenericEntity" } } } }, "responses": { "200": { "description": "OK" } } },
+      "delete": { "tags": ["KhuyenMai"], "summary": "Xóa khuyến mãi", "parameters": [ { "$ref": "#/components/parameters/IdPath" } ], "responses": { "204": { "description": "No Content" } } }
+    },
+    
+    "/api/khuyen-mai/active": { "get": { "tags": ["KhuyenMai"], "summary": "Khuyến mãi đang hoạt động", "responses": { "200": { "description": "OK" } } } },
+    
+    "/api/khuyen-mai/by-code/{code}": { "get": { "tags": ["KhuyenMai"], "summary": "Tìm theo mã", "parameters": [ { "name": "code", "in": "path", "required": true, "schema": { "type": "string" } } ], "responses": { "200": { "description": "OK" } } } },
+    
+    "/api/khuyen-mai/{id}/toggle-status": { "post": { "tags": ["KhuyenMai"], "summary": "Bật/tắt trạng thái khuyến mãi", "parameters": [ { "$ref": "#/components/parameters/IdPath" } ], "responses": { "200": { "description": "OK" } } } },
+    
+    
+    "/api/hoa-don": { "get": { "tags": ["HoaDon"], "summary": "Lấy danh sách hóa đơn", "responses": { "200": { "description": "OK" } } } },
+    
+    "/api/hoa-don/{id}": { "get": { "tags": ["HoaDon"], "summary": "Chi tiết hóa đơn", "parameters": [ { "$ref": "#/components/parameters/IdPath" } ], "responses": { "200": { "description": "OK" } } } },
+    
+    "/api/hoa-don/tracking/{maHoaDon}": { "get": { "tags": ["HoaDon"], "summary": "Tracking hóa đơn", "parameters": [ { "name": "maHoaDon", "in": "path", "required": true, "schema": { "type": "string" } } ], "responses": { "200": { "description": "OK" } } } },
+    
+    "/api/hoa-don/check": { "get": { "tags": ["HoaDon"], "summary": "Kiểm tra đơn hàng theo SĐT + mã", "parameters": [ { "name": "phone", "in": "query", "required": true, "schema": { "type": "string" } }, { "name": "code", "in": "query", "required": true, "schema": { "type": "string" } } ], "responses": { "200": { "description": "OK" } } } }
+  },
+  "components": {
+    "schemas": {
+      "GenericEntity": { "type": "object", "additionalProperties": true },
+      "ToggleStatusRequest": { "type": "object", "additionalProperties": true }
+    },
+    "parameters": {
+      "IdPath": { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+    }
+  }
+}
+

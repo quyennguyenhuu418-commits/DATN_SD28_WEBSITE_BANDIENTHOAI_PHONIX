@@ -25,6 +25,11 @@ public class MauSacServiceImpl implements MauSacService {
     }
 
     @Override
+    public List<MauSacDTO> getActive() {
+        return mauSacRepository.findAllActive().stream().map(this::convertToDto).toList();
+    }
+
+    @Override
     public Optional<MauSacDTO> getById(Integer id) {
         return mauSacRepository.findById(id).map(this::convertToDto);
     }
@@ -42,6 +47,7 @@ public class MauSacServiceImpl implements MauSacService {
         return mauSacRepository.findById(id).map(existingMauSac -> {
             existingMauSac.setMaMau(mauSacDTO.getMaMau());
             existingMauSac.setTenMau(mauSacDTO.getTenMau());
+            existingMauSac.setMaHex(mauSacDTO.getMaHex());
             existingMauSac.setMoTa(mauSacDTO.getMoTa());
             existingMauSac.setTrangThai(mauSacDTO.getTrangThai());
             existingMauSac.setNgayCapNhat(LocalDateTime.now());
@@ -62,11 +68,21 @@ public class MauSacServiceImpl implements MauSacService {
         mauSacRepository.deleteById(id);
     }
 
+    @Override
+    public void updateStatus(Integer id, Integer trangThai) {
+        MauSac mauSac = mauSacRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy màu sắc với ID: " + id));
+        mauSac.setTrangThai(trangThai);
+        mauSac.setNgayCapNhat(LocalDateTime.now());
+        mauSacRepository.save(mauSac);
+    }
+
     private MauSacDTO convertToDto(MauSac mauSac) {
         return MauSacDTO.builder()
                 .id(mauSac.getId())
                 .maMau(mauSac.getMaMau())
                 .tenMau(mauSac.getTenMau())
+                .maHex(mauSac.getMaHex())
                 .moTa(mauSac.getMoTa())
                 .ngayTao(mauSac.getNgayTao())
                 .ngayCapNhat(mauSac.getNgayCapNhat())
@@ -79,6 +95,7 @@ public class MauSacServiceImpl implements MauSacService {
                 .id(mauSacDTO.getId())
                 .maMau(mauSacDTO.getMaMau())
                 .tenMau(mauSacDTO.getTenMau())
+                .maHex(mauSacDTO.getMaHex())
                 .moTa(mauSacDTO.getMoTa())
                 .ngayTao(mauSacDTO.getNgayTao())
                 .ngayCapNhat(mauSacDTO.getNgayCapNhat())

@@ -135,58 +135,6 @@
         </div>
       </div>
     </section>
-
-    <!-- Promotional Banners -->
-    <section class="promo-banners-section">
-      <div class="container">
-        <div class="promo-banners-grid">
-          <div class="promo-banner-card">
-            <img src="/samsung-galaxy-s23-plus-1020x570-1.png" alt="Samsung Galaxy" class="promo-img">
-          </div>
-          <div class="promo-banner-card">
-            <img src="/oppo.png" alt="OPPO" class="promo-img">
-          </div>
-          <div class="promo-banner-card">
-            <img src="/iphone2.png" alt="iPhone" class="promo-img">
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Hot Sale Banner -->
-    <section v-if="showPromoBanner" class="hot-sale-banner">
-      <div class="hot-sale-content">
-        <h2 class="hot-sale-title">🔥 NGÀY HỘI PHONIX - SĂN DEAL NGAY!</h2>
-        <div class="countdown">
-          <span class="countdown-label">Kết thúc sau:</span>
-          <div class="countdown-timer">
-            <div class="time-unit">
-              <span class="time-value">{{ countdown.days }}</span>
-              <span class="time-label">Ngày</span>
-            </div>
-            <span class="time-separator">:</span>
-            <div class="time-unit">
-              <span class="time-value">{{ countdown.hours }}</span>
-              <span class="time-label">Giờ</span>
-            </div>
-            <span class="time-separator">:</span>
-            <div class="time-unit">
-              <span class="time-value">{{ countdown.minutes }}</span>
-              <span class="time-label">Phút</span>
-            </div>
-            <span class="time-separator">:</span>
-            <div class="time-unit">
-              <span class="time-value">{{ countdown.seconds }}</span>
-              <span class="time-label">Giây</span>
-            </div>
-          </div>
-        </div>
-        <button class="close-banner" @click="showPromoBanner = false">
-          <i class="bi bi-x-lg"></i>
-        </button>
-      </div>
-    </section>
-
     <!-- Featured Brands -->
     <section id="brands" class="brands-section">
       <div class="container">
@@ -204,10 +152,15 @@
             class="brand-card"
             @click="filterByBrand(brand.id)"
           >
-            <div class="brand-image" :data-text="brand.displayText">
-              <img :src="brand.image" :alt="brand.tenHang" @error="handleBrandImageError">
+            <div class="brand-image">
+              <img 
+                :src="brand.image" 
+                :alt="brand.tenHang" 
+                @error="handleBrandImageError"
+                @load="handleBrandImageLoad"
+                loading="lazy"
+              >
             </div>
-            <h3 class="brand-name">{{ brand.displayText }}</h3>
           </div>
         </div>
 
@@ -216,16 +169,163 @@
         </div>
       </div>
     </section>
+    
+<!--    &lt;!&ndash; Promotional Banners &ndash;&gt;-->
+<!--    <section class="promo-banners-section">-->
+<!--      <div class="container">-->
+<!--        <div class="promo-banners-grid">-->
+<!--          <div class="promo-banner-card">-->
+<!--            <img src="/samsung-galaxy-s23-plus-1020x570-1.png" alt="Samsung Galaxy" class="promo-img">-->
+<!--          </div>-->
+<!--          <div class="promo-banner-card">-->
+<!--            <img src="/oppo.png" alt="OPPO" class="promo-img">-->
+<!--          </div>-->
+<!--          <div class="promo-banner-card">-->
+<!--            <img src="/iphone2.png" alt="iPhone" class="promo-img">-->
+<!--          </div>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </section>-->
+
+    <!-- Hot Sale Section -->
+    <section v-if="showPromoBanner && activePromotion && promotionProducts.length > 0" class="hot-sale-section">
+      <div class="hot-sale-container">
+        <!-- Hot Sale Banner Header -->
+        <div class="hot-sale-banner">
+          <div class="hot-sale-header">
+            <h2 class="hot-sale-title">
+              <i class="bi bi-fire"></i>
+              {{ activePromotion.tenKhuyenMai || 'HOT SALE CUỐI TUẦN' }}
+            </h2>
+            <div class="countdown">
+              <span class="countdown-label">Kết thúc sau:</span>
+              <div class="countdown-timer">
+                <div class="countdown-box">
+                  <span class="time-value">{{ String(countdown.days).padStart(2, '0') }}</span>
+                </div>
+                <span class="time-separator">:</span>
+                <div class="countdown-box">
+                  <span class="time-value">{{ String(countdown.hours).padStart(2, '0') }}</span>
+                </div>
+                <span class="time-separator">:</span>
+                <div class="countdown-box">
+                  <span class="time-value">{{ String(countdown.minutes).padStart(2, '0') }}</span>
+                </div>
+                <span class="time-separator">:</span>
+                <div class="countdown-box">
+                  <span class="time-value">{{ String(countdown.seconds).padStart(2, '0') }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hot Sale Products Carousel -->
+        <div class="hot-sale-products-wrapper">
+        <button
+          class="carousel-nav-btn carousel-prev"
+          @click="scrollHotSaleCarousel('prev')"
+          :disabled="hotSaleCarouselIndex === 0"
+        >
+          <i class="bi bi-chevron-left"></i>
+        </button>
+
+        <div class="hot-sale-products-container">
+          <div
+            class="hot-sale-products-track"
+            :style="{ transform: `translateX(-${hotSaleCarouselIndex * (100 / hotSaleItemsPerView)}%)` }"
+          >
+            <div
+              v-for="(product, index) in promotionProducts"
+              :key="`hot-sale-${product.id || index}`"
+              class="hot-sale-product-card"
+              @click="viewProductDetail(product)"
+            >
+              <!-- Product Image -->
+              <div class="hot-sale-product-image">
+                <img
+                  :src="getProductImage(product.hinhAnh)"
+                  :alt="product.tenSanPham"
+                  @error="handleImageError"
+                />
+
+                <!-- Badges -->
+                <div class="hot-sale-badges">
+                  <span v-if="product.discount > 0" class="hot-sale-badge hot-sale-badge-discount">
+                    <i class="bi bi-fire"></i>
+                    GIẢM {{ product.discount }}%
+                  </span>
+                  <span class="hot-sale-badge hot-sale-badge-installment">
+                    TRẢ GÓP 0%
+                  </span>
+                </div>
+              </div>
+
+              <!-- Product Info -->
+              <div class="hot-sale-product-info">
+                <h3 class="hot-sale-product-name">
+                  {{ product.tenSanPham }}
+                  <span v-if="product.tenRam || product.tenRom" class="hot-sale-product-specs">
+                    {{ [product.tenRam, product.tenRom].filter(Boolean).join(' ') }}
+                  </span>
+                </h3>
+
+                <!-- Rating -->
+                <div v-if="product.rating" class="hot-sale-product-rating">
+                  <div class="hot-sale-stars">
+                    <i
+                      v-for="star in 5"
+                      :key="star"
+                      class="bi"
+                      :class="star <= Math.round(product.rating) ? 'bi-star-fill' : 'bi-star'"
+                    ></i>
+                  </div>
+                  <span class="hot-sale-rating-value">{{ product.rating }}</span>
+                </div>
+
+                <!-- Price -->
+                <div class="hot-sale-product-price">
+                  <span class="hot-sale-current-price">{{ formatPrice(product.giaSauGiam || product.gia) }}</span>
+                  <span v-if="product.oldPrice" class="hot-sale-old-price">{{ formatPrice(product.oldPrice) }}</span>
+                </div>
+
+                <!-- Promotion Text -->
+                <div class="hot-sale-promotion-text">
+                  <i class="bi bi-credit-card"></i>
+                  Không phí chuyển đổi khi trả góp 0% qua thẻ tín dụng kỳ hạn 3-6 tháng
+                </div>
+
+                <!-- Wishlist Button -->
+                <button
+                  class="hot-sale-wishlist-btn"
+                  @click.stop="toggleWishlist(product)"
+                >
+                  <i class="bi" :class="product.isWishlisted ? 'bi-heart-fill' : 'bi-heart'"></i>
+                  <span>Yêu thích</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button
+          class="carousel-nav-btn carousel-next"
+          @click="scrollHotSaleCarousel('next')"
+          :disabled="hotSaleCarouselIndex >= promotionProducts.length - hotSaleItemsPerView"
+        >
+          <i class="bi bi-chevron-right"></i>
+        </button>
+      </div>
+      </div>
+    </section>
+
+
 
     <!-- Products Section -->
     <section id="products" class="products-section">
       <div class="container">
         <div class="section-header">
           <h2 class="section-title">SẢN PHẨM BÁN CHẠY</h2>
-          <button class="refresh-btn" @click="refreshCategories" :disabled="categoriesLoading">
-            <i class="bi bi-arrow-clockwise" :class="{ 'spinning': categoriesLoading }"></i>
-            {{ categoriesLoading ? 'Đang tải...' : 'Làm mới' }}
-          </button>
         </div>
 
         <!-- Category Tabs -->
@@ -262,8 +362,8 @@
 
         <div v-else-if="displayedHomeProducts.length > 0" class="products-grid">
           <div
-            v-for="product in displayedHomeProducts"
-            :key="product.id"
+            v-for="(product, index) in displayedHomeProducts"
+            :key="`product-${product.id}-${index}`"
             class="product-card"
             @click="viewProductDetail(product)"
           >
@@ -277,6 +377,7 @@
 
               <div class="product-badges">
                 <span v-if="product.discount > 0" class="badge badge-discount">
+                  <i class="bi bi-fire"></i>
                   Giảm {{ product.discount }}%
                 </span>
                 <span class="badge badge-installment">
@@ -296,7 +397,7 @@
               </h3>
 
               <div class="product-price">
-                <span class="current-price">{{ formatPrice(product.gia) }}</span>
+                <span class="current-price">{{ formatPrice(product.giaSauGiam || product.gia) }}</span>
                 <span v-if="product.oldPrice" class="old-price">{{ formatPrice(product.oldPrice) }}</span>
               </div>
 
@@ -422,11 +523,19 @@ const categories = ref([])
 const categoriesLoading = ref(false)
 const brands = ref([])
 const brandsLoading = ref(false)
-const showPromoBanner = ref(true)
+const showPromoBanner = ref(false) // Sẽ được set dựa trên dữ liệu từ backend
 const newsletterEmail = ref('')
 const selectedCategoryFilter = ref(null)
 const showScrollLeft = ref(false)
 const showLogin = ref(false)
+
+// Khuyến mãi
+const activePromotion = ref(null)
+const promotionProducts = ref([])
+
+// Hot Sale Carousel
+const hotSaleCarouselIndex = ref(0)
+const hotSaleItemsPerView = ref(5) // Số sản phẩm hiển thị mỗi lần (desktop)
 
 // Banner Slides - BẠN CÓ THỂ THÊM VIDEO/IMAGE MỚI VÀO ĐÂY!
 const bannerSlides = ref([
@@ -501,8 +610,13 @@ const displayedHomeProducts = computed(() => {
     filtered = filtered.filter(p => p.danhMucId === selectedCategoryFilter.value)
   }
 
+  // Loại bỏ trùng lặp sản phẩm dựa trên ID
+  const uniqueProducts = Array.from(
+    new Map(filtered.map(p => [p.id, p])).values()
+  )
+
   // Sort by sales and limit to 8
-  return filtered
+  return uniqueProducts
     .sort((a, b) => (b.soLuongDaBan || 0) - (a.soLuongDaBan || 0))
     .slice(0, 8)
 })
@@ -515,12 +629,86 @@ const fetchProducts = async () => {
 
     if (response.data && Array.isArray(response.data)) {
       products.value = response.data.map(p => enhanceProduct(p))
+
+      // Nếu đã có khuyến mãi active, lấy lại sản phẩm trong đợt giảm giá
+      if (activePromotion.value) {
+        await fetchPromotionProducts(activePromotion.value.id)
+      }
     }
   } catch (error) {
     console.error('Error fetching products:', error)
     showToast('error', 'Không thể tải sản phẩm', 'bi-exclamation-circle-fill')
   } finally {
     loading.value = false
+  }
+}
+
+// Lấy khuyến mãi active từ backend
+const fetchActivePromotion = async () => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/api/khuyen-mai/active`)
+
+    if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+      // Chọn khuyến mãi có ngày kết thúc gần nhất (ưu tiên hiển thị)
+      const sortedPromotions = response.data.sort((a, b) => {
+        const dateA = new Date(a.ngayKetThuc || 0)
+        const dateB = new Date(b.ngayKetThuc || 0)
+        return dateA - dateB // Sắp xếp tăng dần (gần nhất trước)
+      })
+
+      activePromotion.value = sortedPromotions[0]
+      showPromoBanner.value = true
+
+      // Cập nhật countdown
+      updateCountdown()
+
+      // Lấy danh sách sản phẩm trong đợt giảm giá từ API
+      await fetchPromotionProducts(activePromotion.value.id)
+    } else {
+      // Không có khuyến mãi active
+      activePromotion.value = null
+      showPromoBanner.value = false
+      promotionProducts.value = []
+    }
+  } catch (error) {
+    console.error('Error fetching active promotion:', error)
+    activePromotion.value = null
+    showPromoBanner.value = false
+    promotionProducts.value = []
+  }
+}
+
+// Lấy sản phẩm trong đợt giảm giá
+const fetchPromotionProducts = async (promotionId) => {
+  try {
+    // Lấy danh sách CTSP IDs từ API khuyến mãi
+    const response = await axios.get(`${API_BASE_URL}/api/khuyen-mai/${promotionId}/san-pham`)
+
+    if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+      const ctspIds = response.data.map(item => item.idChiTietSanPham)
+
+      // Lọc sản phẩm từ danh sách products đã có (từ /api/san-pham-pos)
+      // Map với chiTietSanPhamId hoặc id
+      promotionProducts.value = products.value
+        .filter(p => {
+          const productCtspId = p.chiTietSanPhamId || p.id
+          return ctspIds.includes(productCtspId) && p.giamPhanTram && p.giamPhanTram > 0
+        })
+        .slice(0, 8) // Giới hạn 8 sản phẩm
+
+      console.log('✅ Promotion products loaded:', promotionProducts.value.length)
+    } else {
+      // Nếu không có sản phẩm từ API, thử filter từ products theo tenDotGiam
+      promotionProducts.value = products.value
+        .filter(p => p.giamPhanTram && p.giamPhanTram > 0 && p.tenDotGiam === activePromotion.value?.tenKhuyenMai)
+        .slice(0, 8)
+    }
+  } catch (error) {
+    console.error('Error fetching promotion products:', error)
+    // Fallback: filter từ products theo tenDotGiam
+    promotionProducts.value = products.value
+      .filter(p => p.giamPhanTram && p.giamPhanTram > 0 && p.tenDotGiam === activePromotion.value?.tenKhuyenMai)
+      .slice(0, 8)
   }
 }
 
@@ -532,19 +720,30 @@ const enhanceProduct = (product) => {
   else if (salesCount > 20) rating = 4.5
   else if (salesCount > 10) rating = 4.0
 
-  const discountMultiplier = 1.2 + Math.random() * 0.1
-  const oldPrice = product.gia * discountMultiplier
-  const discount = Math.round(((oldPrice - product.gia) / oldPrice) * 100)
+  // Sử dụng dữ liệu giảm giá từ backend (không dùng mock)
+  // Chỉ hiển thị giảm giá khi có đợt giảm giá thực từ backend
+  let discount = 0
+  let oldPrice = null
 
-  const isHot = salesCount > 30 || discount > 20
-  const isNew = Math.random() > 0.7
+  // Kiểm tra nếu có giảm giá từ backend
+  if (product.giamPhanTram && product.giamPhanTram > 0) {
+    discount = Math.round(product.giamPhanTram)
+    // Nếu có giá gốc và giá sau giảm, dùng giá gốc làm oldPrice
+    if (product.giaGoc && product.giaSauGiam && product.giaGoc > product.giaSauGiam) {
+      oldPrice = product.giaGoc
+    }
+  }
+
+  // Xác định hot/new dựa trên số lượng bán (không dùng discount mock)
+  const isHot = salesCount > 30
+  const isNew = salesCount < 5 // Sản phẩm mới nếu bán ít hơn 5
 
   return {
     ...product,
     rating: Math.round(rating * 10) / 10,
     reviewCount: Math.max(5, Math.floor(salesCount * 0.8)),
-    oldPrice,
-    discount,
+    oldPrice, // Chỉ có giá trị khi có giảm giá từ backend
+    discount, // Chỉ có giá trị khi có giảm giá từ backend
     isHot,
     isNew,
     isWishlisted: cartStore.isInWishlist(product.id)
@@ -577,22 +776,95 @@ const fetchCategories = async () => {
   }
 }
 
+// Mapping tên hãng sang logo path (fix cứng)
+const getBrandLogo = (tenHang) => {
+  if (!tenHang) return null
+  
+  // Chuẩn hóa tên hãng để so sánh (loại bỏ khoảng trắng, chuyển về lowercase, loại bỏ dấu)
+  const normalize = (str) => {
+    return str.trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Loại bỏ dấu tiếng Việt
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+  }
+  
+  const normalizedName = normalize(tenHang)
+  
+  // Mapping các hãng phổ biến - dùng exact match trước
+  const brandLogoMap = {
+    'apple': '/brands/apple.png',
+    'samsung': '/brands/samsung.png',
+    'xiaomi': '/brands/xiaomi.png',
+    'oppo': '/brands/oppo.png',
+    'tecno': '/brands/tecno.png',
+    'honor': '/brands/honor.png',
+    'zte': '/brands/zte.png',
+    'nubia': '/brands/zte.png', // Nubia dùng logo ZTE
+    'sony': '/brands/sony.png',
+    'nokia': '/brands/nokia.png',
+    'infinix': '/brands/infinix.png',
+    'nothing': '/brands/nothing.png',
+    'masstel': '/brands/masstel.png',
+    'realme': '/brands/realme.png',
+    'itel': '/brands/itel.png',
+    'vivo': '/brands/vivo.png',
+    'oneplus': '/brands/oneplus.png',
+    'one-plus': '/brands/oneplus.png',
+    'tcl': '/brands/tcl.png',
+    'inoi': '/brands/inoi.png',
+    'benco': '/brands/benco.png',
+    'asus': '/brands/asus.png'
+  }
+  
+  // Thử exact match trước
+  if (brandLogoMap[normalizedName]) {
+    console.log(`✅ Found exact match: "${tenHang}" -> ${brandLogoMap[normalizedName]}`)
+    return brandLogoMap[normalizedName]
+  }
+  
+  // Thử partial match (tên hãng chứa key hoặc ngược lại)
+  for (const [key, logoPath] of Object.entries(brandLogoMap)) {
+    if (normalizedName.includes(key) || key.includes(normalizedName)) {
+      console.log(`✅ Found partial match: "${tenHang}" (normalized: "${normalizedName}") -> ${logoPath}`)
+      return logoPath
+    }
+  }
+  
+  // Nếu không tìm thấy, log để debug
+  console.warn(`⚠️ No logo found for brand: "${tenHang}" (normalized: "${normalizedName}")`)
+  return null
+}
+
 const fetchBrands = async () => {
   brandsLoading.value = true
   try {
     const response = await axios.get(`${API_BASE_URL}/api/hang`)
+    console.log('📦 Brands API response:', response.data)
+    
     if (response.data && Array.isArray(response.data)) {
       brands.value = response.data
         .filter(b => b.trangThai === 1)
-        .map(b => ({
-          id: b.id,
-          tenHang: b.tenHang,
-          image: createPlaceholderImage(b.tenHang, 200, 200, '#FF6B35'),
-          displayText: b.tenHang // Thêm text để hiển thị
-        }))
+        .map(b => {
+          // API trả về trường 'ten', không phải 'tenHang'
+          const tenHang = b.ten || b.tenHang || 'Unknown'
+          const logoPath = getBrandLogo(tenHang)
+          const brandData = {
+            id: b.id,
+            tenHang: tenHang,
+            image: logoPath || createPlaceholderImage(tenHang, 200, 200, '#FF6B35'),
+            displayText: tenHang,
+            hasLogo: !!logoPath // Flag để biết có logo hay không
+          }
+          console.log(`📱 Brand: ${tenHang} -> Logo: ${brandData.image}`)
+          return brandData
+        })
+      
+      console.log(`✅ Loaded ${brands.value.length} brands`)
     }
   } catch (error) {
-    console.error('Error fetching brands:', error)
+    console.error('❌ Error fetching brands:', error)
   } finally {
     brandsLoading.value = false
   }
@@ -614,11 +886,21 @@ const filterByCategory = (categoryId) => {
 }
 
 const filterByBrand = (brandId) => {
+  // Chuyển trang ngay lập tức (router sẽ tự động scroll to top)
   router.push({ path: '/shop', query: { brand: brandId } })
 }
 
 const handleBrandImageError = (event) => {
-  event.target.src = createPlaceholderImage('Brand', 200, 200, '#FF6B35')
+  // Nếu logo không tải được, fallback về placeholder
+  const brandName = event.target.alt || 'Brand'
+  const originalSrc = event.target.src
+  console.warn(`❌ Failed to load brand image: ${originalSrc} for brand: ${brandName}`)
+  event.target.src = createPlaceholderImage(brandName, 200, 200, '#FF6B35')
+}
+
+const handleBrandImageLoad = (event) => {
+  // Log khi ảnh load thành công để debug
+  console.log(`✅ Brand image loaded successfully: ${event.target.src}`)
 }
 
 const scrollToProducts = () => {
@@ -727,10 +1009,17 @@ const showToast = (type, message, icon) => {
 // Countdown Timer
 let countdownInterval
 const updateCountdown = () => {
-  const endDate = new Date()
-  endDate.setDate(endDate.getDate() + 3)
-  endDate.setHours(23, 59, 59, 999)
+  if (!activePromotion.value || !activePromotion.value.ngayKetThuc) {
+    countdown.value = {
+      days: 0,
+      hours: 0,
+      minutes: 0,
+      seconds: 0
+    }
+    return
+  }
 
+  const endDate = new Date(activePromotion.value.ngayKetThuc)
   const now = new Date()
   const diff = endDate - now
 
@@ -741,15 +1030,65 @@ const updateCountdown = () => {
       minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
       seconds: Math.floor((diff % (1000 * 60)) / 1000)
     }
+  } else {
+    // Khuyến mãi đã hết hạn
+    countdown.value = {
+      days: 0,
+      hours: 0,
+      minutes: 0,
+      seconds: 0
+    }
+    // Ẩn banner nếu hết hạn
+    showPromoBanner.value = false
   }
 }
 
 
+// Hot Sale Carousel Functions
+const scrollHotSaleCarousel = (direction) => {
+  const maxIndex = Math.max(0, promotionProducts.value.length - hotSaleItemsPerView.value)
+
+  if (direction === 'next') {
+    if (hotSaleCarouselIndex.value < maxIndex) {
+      hotSaleCarouselIndex.value++
+    }
+  } else if (direction === 'prev') {
+    if (hotSaleCarouselIndex.value > 0) {
+      hotSaleCarouselIndex.value--
+    }
+  }
+}
+
+// Update items per view based on screen size
+const updateHotSaleItemsPerView = () => {
+  const width = window.innerWidth
+  if (width < 768) {
+    hotSaleItemsPerView.value = 1
+  } else if (width < 1024) {
+    hotSaleItemsPerView.value = 3
+  } else if (width < 1400) {
+    hotSaleItemsPerView.value = 4
+  } else {
+    hotSaleItemsPerView.value = 5
+  }
+}
+
 // Lifecycle
-onMounted(() => {
-  fetchProducts()
+onMounted(async () => {
+  // Update items per view
+  updateHotSaleItemsPerView()
+  window.addEventListener('resize', updateHotSaleItemsPerView)
+
+  // Lấy khuyến mãi active trước
+  await fetchActivePromotion()
+
+  // Sau đó lấy sản phẩm (để có thể filter sản phẩm trong đợt giảm giá)
+  await fetchProducts()
+
   refreshCategories()
   fetchBrands()
+
+  // Bắt đầu countdown timer
   updateCountdown()
   countdownInterval = setInterval(updateCountdown, 1000)
 
@@ -766,6 +1105,7 @@ onUnmounted(() => {
   if (countdownInterval) {
     clearInterval(countdownInterval)
   }
+  window.removeEventListener('resize', updateHotSaleItemsPerView)
 })
 </script>
 
@@ -789,7 +1129,7 @@ onUnmounted(() => {
 .homepage {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: #333;
-  background: #f5f5f5;
+  background: white;
   padding-top: 77px; /* Compensate for fixed header */
 }
 
@@ -884,13 +1224,13 @@ onUnmounted(() => {
 }
 
 .carousel-buttons .btn-primary {
-  background: var(--phoenix-accent);
+  background: #DC143C;
   border: none;
   color: white;
 }
 
 .carousel-buttons .btn-primary:hover {
-  background: var(--phoenix-primary);
+  background: #FF5500;
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(220, 20, 60, 0.4);
 }
@@ -903,7 +1243,7 @@ onUnmounted(() => {
 
 .carousel-buttons .btn-outline-light:hover {
   background: white;
-  color: var(--phoenix-accent);
+  color: #DC143C;
 }
 
 /* Carousel Controls (Prev/Next Buttons) */
@@ -1003,12 +1343,12 @@ onUnmounted(() => {
 
 /* Features Section */
 .features-section {
-  padding: 3rem 0;
+  padding: 0rem 0;
   background: white;
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 0 2rem;
 }
@@ -1023,7 +1363,7 @@ onUnmounted(() => {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 1.5rem;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
@@ -1100,7 +1440,7 @@ onUnmounted(() => {
 /* Promo Banners Section */
 .promo-banners-section {
   padding: 2rem 0;
-  background: #f8f9fa;
+  background: white;
 }
 
 .promo-banners-grid {
@@ -1128,29 +1468,56 @@ onUnmounted(() => {
 }
 
 /* Hot Sale Banner */
-.hot-sale-banner {
-  background: linear-gradient(135deg, var(--phoenix-accent), var(--phoenix-primary));
+/* Hot Sale Section */
+.hot-sale-section {
+  background: white;
   padding: 2rem 0;
-  position: relative;
+  margin-bottom: 2rem;
 }
 
-.hot-sale-content {
-  max-width: 1400px;
+.hot-sale-container {
+  max-width: 1332px;
   margin: 0 auto;
-  padding: 0 2rem;
+  padding: 0;
+  background: linear-gradient(135deg, #DC143C 0%, #FF5500 100%);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(220, 20, 60, 0.25);
+}
+
+.hot-sale-banner {
+  background: linear-gradient(135deg, #DC143C 0%, #FF5500 100%);
+  padding: 1.75rem 2rem;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.hot-sale-header {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   gap: 2rem;
   flex-wrap: wrap;
-  position: relative;
 }
 
 .hot-sale-title {
   color: white;
-  font-size: 1.8rem;
-  font-weight: bold;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  font-size: 2rem;
+  font-weight: 900;
+  text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  letter-spacing: 0.5px;
+}
+
+.hot-sale-title i {
+  font-size: 2.25rem;
+  animation: fire-flicker 1.5s ease-in-out infinite;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .countdown {
@@ -1170,6 +1537,33 @@ onUnmounted(() => {
   align-items: center;
 }
 
+.countdown-box {
+  background: white;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  min-width: 60px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.countdown-timer .time-value {
+  color: #DC143C;
+  font-size: 1.8rem;
+  font-weight: 900;
+  line-height: 1;
+  font-family: 'Arial', sans-serif;
+}
+
+.countdown-timer .time-separator {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: white;
+  margin: 0 0.25rem;
+}
+
 .time-unit {
   display: flex;
   flex-direction: column;
@@ -1184,7 +1578,7 @@ onUnmounted(() => {
 .time-value {
   font-size: 1.8rem;
   font-weight: bold;
-  color: var(--phoenix-accent);
+  color: #DC143C;
 }
 
 .time-label {
@@ -1222,6 +1616,314 @@ onUnmounted(() => {
   background: rgba(255, 255, 255, 0.3);
 }
 
+/* Hot Sale Products Carousel */
+.hot-sale-products-wrapper {
+  position: relative;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 2rem 2rem;
+  background: transparent;
+}
+
+.hot-sale-products-container {
+  overflow: hidden;
+  position: relative;
+}
+
+.hot-sale-products-track {
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+  gap: 1rem;
+}
+
+.hot-sale-product-card {
+  flex: 0 0 calc((100% - 4rem) / 5);
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #DC143C;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+}
+
+.hot-sale-product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 24px rgba(220, 20, 60, 0.2);
+  border-color: #FF5500;
+}
+
+.hot-sale-product-image {
+  position: relative;
+  width: 100%;
+  padding-top: 75%;
+  background: #f8f9fa;
+  overflow: hidden;
+}
+
+.hot-sale-product-image img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.hot-sale-product-card:hover .hot-sale-product-image img {
+  transform: scale(1.05);
+}
+
+.hot-sale-badges {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 2;
+}
+
+.hot-sale-badge {
+  padding: 0.5rem 0.875rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  line-height: 1;
+}
+
+.hot-sale-badge-discount {
+  background: linear-gradient(135deg, #ff6b35, #f97316);
+  color: white;
+  border: none;
+}
+
+.hot-sale-badge-discount i {
+  font-size: 1rem;
+  animation: fire-flicker 1.5s ease-in-out infinite;
+}
+
+.hot-sale-badge-installment {
+  background: #1976d2;
+  color: white;
+  border: none;
+}
+
+.hot-sale-product-info {
+  padding: 1rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.hot-sale-product-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 0.375rem;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.hot-sale-product-specs {
+  color: #666;
+  font-weight: 400;
+  font-size: 0.95rem;
+  margin-top: 0.25rem;
+}
+
+.hot-sale-product-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.hot-sale-stars {
+  display: flex;
+  gap: 0.125rem;
+}
+
+.hot-sale-stars i {
+  font-size: 1rem;
+  color: #ffc107;
+}
+
+.hot-sale-stars .bi-star {
+  color: #ddd;
+}
+
+.hot-sale-rating-value {
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 600;
+}
+
+.hot-sale-product-price {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.hot-sale-current-price {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #DC143C;
+  line-height: 1.2;
+}
+
+.hot-sale-old-price {
+  font-size: 1rem;
+  color: #999;
+  text-decoration: line-through;
+  font-weight: 400;
+}
+
+.hot-sale-promotion-text {
+  font-size: 0.7rem;
+  color: #666;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.375rem;
+  line-height: 1.5;
+}
+
+.hot-sale-promotion-text i {
+  color: #1976d2;
+  margin-top: 0.125rem;
+  flex-shrink: 0;
+}
+
+.hot-sale-wishlist-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  color: #666;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: auto;
+}
+
+.hot-sale-wishlist-btn:hover {
+  background: #DC143C;
+  color: white;
+  border-color: #DC143C;
+}
+
+.hot-sale-wishlist-btn i {
+  font-size: 1rem;
+}
+
+.carousel-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #e0e0e0;
+  color: #333;
+  font-size: 1.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.carousel-nav-btn:hover:not(:disabled) {
+  background: #DC143C;
+  color: white;
+  border-color: #DC143C;
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 4px 12px rgba(220, 20, 60, 0.3);
+}
+
+.carousel-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.carousel-prev {
+  left: 0;
+}
+
+.carousel-next {
+  right: 0;
+}
+
+@keyframes fire-flicker {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.9;
+  }
+}
+
+/* Responsive Hot Sale */
+@media (max-width: 1400px) {
+  .hot-sale-product-card {
+    flex: 0 0 calc((100% - 3rem) / 4);
+  }
+}
+
+@media (max-width: 1024px) {
+  .hot-sale-product-card {
+    flex: 0 0 calc((100% - 2rem) / 3);
+  }
+
+  .hot-sale-header {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .hot-sale-product-card {
+    flex: 0 0 calc(100% - 1rem);
+  }
+
+  .hot-sale-products-wrapper {
+    padding: 0 2.5rem;
+  }
+
+  .hot-sale-title {
+    font-size: 1.5rem;
+  }
+
+  .countdown-timer .time-value {
+    font-size: 1.2rem;
+    padding: 0.375rem 0.5rem;
+    min-width: 40px;
+  }
+}
+
 /* Brands Section */
 .brands-section {
   padding: 4rem 0;
@@ -1229,7 +1931,7 @@ onUnmounted(() => {
 }
 
 .section-title {
-  text-align: center;
+  text-align: center !important;
   font-size: 2rem;
   font-weight: 700;
   color: #333;
@@ -1246,91 +1948,67 @@ onUnmounted(() => {
   transform: translateX(-50%);
   width: 80px;
   height: 4px;
-  background: linear-gradient(90deg, var(--phoenix-primary), var(--phoenix-secondary));
+  background: linear-gradient(90deg, #FF5500,#ffc107);
   border-radius: 2px;
 }
 
 .brands-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  max-width: 1200px;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 1rem;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
 .brand-card {
   background: white;
-  padding: 1.5rem;
-  border-radius: 12px;
+  padding: 0.75rem;
+  border-radius: 8px;
   text-align: center;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: all 0.3s;
   cursor: pointer;
   border: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .brand-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 6px 20px rgba(255, 107, 53, 0.15);
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.2);
   border-color: #FF5500;
 }
 
 .brand-image {
-  width: 120px;
-  height: 120px;
-  margin: 0 auto 1rem;
-  border-radius: 12px;
+  width: 100%;
+  height: 60px;
+  border-radius: 6px;
   overflow: hidden;
-  background: #f8f9fa;
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #e0e0e0;
   position: relative;
+  padding: 0.5rem;
 }
 
 .brand-image img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-}
-
-.brand-image::after {
-  content: attr(data-text);
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  font-size: 0.75rem;
-  font-weight: 600;
   padding: 0.25rem;
-  text-align: center;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.brand-card:hover .brand-image::after {
-  opacity: 1;
-}
-
-.brand-name {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #333;
-  margin: 0;
 }
 
 /* Products Section */
 .products-section {
   padding: 4rem 0;
-  background: #f8f9fa;
+  background: white;
 }
 
 .section-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   margin-bottom: 2rem;
 }
@@ -1556,8 +2234,30 @@ onUnmounted(() => {
 }
 
 .badge-discount {
-  background: #dc3545;
+  background: linear-gradient(135deg, #ff6b35, #f97316);
   color: white;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.875rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
+}
+
+.badge-discount i {
+  font-size: 0.875rem;
+  animation: fire-flicker 1.5s ease-in-out infinite;
+}
+
+@keyframes fire-flicker {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.9;
+  }
 }
 
 .badge-installment {
@@ -1587,7 +2287,7 @@ onUnmounted(() => {
 
 .wishlist-btn:hover,
 .wishlist-btn.active {
-  color: var(--phoenix-accent);
+  color: #DC143C;
   transform: scale(1.1);
 }
 
@@ -1640,7 +2340,7 @@ onUnmounted(() => {
 
 .stars i {
   font-size: 0.875rem;
-  color: var(--phoenix-gold);
+  color: #FFD700;
 }
 
 .stars .bi-star {
@@ -1701,8 +2401,8 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.375rem;
   padding: 0.375rem 0.75rem;
-  background: linear-gradient(135deg, var(--phoenix-secondary), var(--phoenix-gold));
-  color: var(--phoenix-dark);
+  background: linear-gradient(135deg, #F7931E, #FFD700);
+  color: #2C1810;
   font-size: 0.8rem;
   font-weight: 600;
   border-radius: 6px;
@@ -1725,7 +2425,7 @@ onUnmounted(() => {
 .btn-add-cart {
   width: 100%;
   padding: 0.75rem;
-  background: var(--phoenix-primary);
+  background: #FF5500;
   color: white;
   border: none;
   border-radius: 8px;
@@ -1739,7 +2439,7 @@ onUnmounted(() => {
 }
 
 .btn-add-cart:hover:not(:disabled) {
-  background: var(--phoenix-accent);
+  background: #DC143C;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(220, 20, 60, 0.3);
 }
@@ -1760,8 +2460,8 @@ onUnmounted(() => {
   gap: 0.5rem;
   padding: 1rem 2.5rem;
   background: white;
-  color: var(--phoenix-primary);
-  border: 2px solid var(--phoenix-primary);
+  color: #FF5500;
+  border: 2px solid #FF5500;
   border-radius: 30px;
   font-weight: 700;
   text-decoration: none;
@@ -1769,7 +2469,7 @@ onUnmounted(() => {
 }
 
 .btn-view-all:hover {
-  background: var(--phoenix-primary);
+  background: #FF5500;
   color: white;
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
@@ -1828,6 +2528,7 @@ onUnmounted(() => {
   color: #333;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -1838,6 +2539,7 @@ onUnmounted(() => {
   margin-bottom: 1rem;
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   line-height: 1.5;
@@ -1859,20 +2561,20 @@ onUnmounted(() => {
 
 .news-link {
   font-size: 0.9rem;
-  color: var(--phoenix-primary);
+  color: #FF5500;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.2s;
 }
 
 .news-link:hover {
-  color: var(--phoenix-accent);
+  color: #DC143C;
 }
 
 /* Newsletter Section */
 .newsletter-section {
   padding: 4rem 0;
-  background: linear-gradient(135deg, var(--phoenix-primary), var(--phoenix-accent));
+  background: linear-gradient(135deg, #FF5500, #FF5500);
   color: white;
   text-align: center;
 }
@@ -1915,7 +2617,7 @@ onUnmounted(() => {
 .btn-subscribe {
   padding: 1rem 2rem;
   background: white;
-  color: var(--phoenix-accent);
+  color: #7b1fa2;
   border: none;
   border-radius: 30px;
   font-weight: 700;
@@ -1928,7 +2630,7 @@ onUnmounted(() => {
 }
 
 .btn-subscribe:hover {
-  background: var(--phoenix-gold);
+  background: #b6ade4;
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
@@ -2029,7 +2731,7 @@ onUnmounted(() => {
 }
 
 .close-modal:hover {
-  color: var(--phoenix-accent);
+  color: #DC143C;
 }
 
 .modal-body {
@@ -2039,7 +2741,7 @@ onUnmounted(() => {
 .modal-body .btn {
   margin-top: 1rem;
   padding: 0.75rem 2rem;
-  background: var(--phoenix-primary);
+  background: #FF5500;
   color: white;
   border: none;
   border-radius: 8px;
@@ -2059,7 +2761,7 @@ onUnmounted(() => {
   width: 50px;
   height: 50px;
   border: 4px solid #f3f3f3;
-  border-top: 4px solid var(--phoenix-primary);
+  border-top: 4px solid #FF5500;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 1rem;
@@ -2076,7 +2778,7 @@ onUnmounted(() => {
 }
 
 /* Responsive */
-@media (max-width: 1200px) {
+@media (max-width: 1400px) {
   .products-grid {
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   }

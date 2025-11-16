@@ -23,6 +23,11 @@ public class ChipServiceImpl implements ChipService {
     }
 
     @Override
+    public List<ChipDTO> getActive() {
+        return chipRepository.findAllActive().stream().map(this::convertToDto).toList();
+    }
+
+    @Override
     public Optional<ChipDTO> getById(Integer id) {
         return chipRepository.findById(id).map(this::convertToDto);
     }
@@ -61,6 +66,15 @@ public class ChipServiceImpl implements ChipService {
         }
         
         chipRepository.deleteById(id);
+    }
+
+    @Override
+    public void updateStatus(Integer id, Integer trangThai) {
+        Chip chip = chipRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy chip với ID: " + id));
+        chip.setTrangThai(trangThai);
+        chip.setNgayCapNhat(LocalDateTime.now());
+        chipRepository.save(chip);
     }
 
     private ChipDTO convertToDto(Chip chip) {

@@ -12,7 +12,7 @@ import java.util.List;
 @Repository
 public interface KhachHangGiamGiaRepository extends JpaRepository<KhachHangGiamGia, Integer> {
     
-    @Query("SELECT khgg FROM KhachHangGiamGia khgg WHERE khgg.phieuGiamGia.id = :phieuGiamGiaId")
+    @Query("SELECT khgg FROM KhachHangGiamGia khgg LEFT JOIN FETCH khgg.khachHang LEFT JOIN FETCH khgg.phieuGiamGia WHERE khgg.phieuGiamGia.id = :phieuGiamGiaId")
     List<KhachHangGiamGia> findByPhieuGiamGiaId(@Param("phieuGiamGiaId") Integer phieuGiamGiaId);
     
     @Query("SELECT khgg FROM KhachHangGiamGia khgg WHERE khgg.khachHang.id = :khachHangId")

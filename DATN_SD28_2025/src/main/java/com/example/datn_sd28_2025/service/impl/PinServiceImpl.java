@@ -26,6 +26,12 @@ public class PinServiceImpl implements PinService {
     }
 
     @Override
+    public List<PinDTO> getActive() {
+        return pinRepository.findAllActive().stream()
+                .map(this::convertToDto).toList();
+    }
+
+    @Override
     public Page<PinDTO> getAll(Pageable pageable) {
         return pinRepository.findAll(pageable)
                 .map(this::convertToDto);
@@ -73,6 +79,15 @@ public class PinServiceImpl implements PinService {
         }
         
         pinRepository.deleteById(id); // Hard delete
+    }
+
+    @Override
+    public void updateStatus(Integer id, Integer trangThai) {
+        Pin pin = pinRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy pin với ID: " + id));
+        pin.setTrangThai(trangThai);
+        pin.setNgayCapNhat(LocalDateTime.now());
+        pinRepository.save(pin);
     }
 
     private PinDTO convertToDto(Pin pin) {

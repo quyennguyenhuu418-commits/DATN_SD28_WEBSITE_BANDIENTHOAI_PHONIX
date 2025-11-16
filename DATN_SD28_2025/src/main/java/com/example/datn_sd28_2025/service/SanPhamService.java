@@ -50,5 +50,9 @@ public interface SanPhamService {
     
     // Image management for chi tiet san pham
     HinhAnh addImageToChiTiet(Integer chiTietId, HinhAnh hinhAnh);
+    List<HinhAnh> getImagesByChiTietId(Integer chiTietId);
     void deleteAllImagesFromChiTiet(Integer chiTietId);
+    
+    // Update product status
+    void updateStatus(Integer id, Integer trangThai);
 }

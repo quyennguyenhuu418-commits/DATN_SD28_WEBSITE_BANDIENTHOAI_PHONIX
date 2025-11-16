@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng nhập / Đăng ký</title>
+    <!-- Link to local stylesheet -->
+    <link rel="stylesheet" href="style.css" />
+    <!-- Font Awesome for social icons (no SRI attributes to avoid blocking in local files) -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <!-- Google OAuth -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- Facebook SDK -->
+    <script
+      async
+      defer
+      crossorigin="anonymous"
+      src="https://connect.facebook.net/vi_VN/sdk.js"
+    ></script>
+  </head>
+  <body>
+    <div class="container" id="container">
+      <div class="form-container sign-up-container">
+        <form action="#">
+          <h1>Tạo tài khoản</h1>
+          <div class="social-container">
+            <a
+              href="#"
+              class="social"
+              title="Facebook"
+              aria-label="Đăng ký / Đăng nhập bằng Facebook"
+              ><i class="fab fa-facebook-f"></i
+            ></a>
+            <a href="#" class="social" title="Google" aria-label="Đăng ký / Đăng nhập bằng Google"
+              ><i class="fab fa-google"></i
+            ></a>
+          </div>
+          <span>hoặc sử dụng email của bạn để đăng ký</span>
+          <input type="text" placeholder="Họ và tên" />
+          <input type="email" placeholder="Email" />
+          <input type="tel" placeholder="Số điện thoại" />
+          <input type="password" placeholder="Mật khẩu" />
+          <button>Đăng ký</button>
+        </form>
+      </div>
+      <div class="form-container sign-in-container">
+        <form action="#">
+          <h1>Đăng Nhập</h1>
+          <div class="social-container">
+            <a href="#" class="social" title="Facebook" aria-label="Đăng nhập bằng Facebook"
+              ><i class="fab fa-facebook-f"></i
+            ></a>
+            <a href="#" class="social" title="Google" aria-label="Đăng nhập bằng Google"
+              ><i class="fab fa-google"></i
+            ></a>
+          </div>
+          <span>hoặc sử dụng tài khoản của bạn</span>
+          <input type="email" placeholder="Email" />
+          <input type="password" placeholder="Mật khẩu" />
+          <a href="forgotpassword.html">Quên mật khẩu?</a>
+          <button>Đăng nhập</button>
+        </form>
+      </div>
+      <div class="overlay-container">
+        <div class="overlay">
+          <div class="overlay-panel overlay-left">
+            <h1>Chào mừng bạn đã trở lại!</h1>
+            <p>Để giữ liên lạc với chúng tôi, vui lòng đăng nhập bằng thông tin cá nhân của bạn</p>
+            <button class="ghost" id="signIn">Đăng Nhập</button>
+          </div>
+          <div class="overlay-panel overlay-right">
+            <h1>Xin chào, bạn!</h1>
+            <p>Nhập thông tin cá nhân của bạn và bắt đầu hành trình cùng chúng tôi</p>
+            <button class="ghost" id="signUp">Đăng ký</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <p>
+        Được tạo bằng <i class="fa fa-heart"></i> bởi
+        <a target="_blank" href="https://florin-pop.com">Florin Pop</a>
+        - Đọc cách tôi tạo trang này và cách bạn có thể tham gia thử thách
+        <a
+          target="_blank"
+          href="https://www.florin-pop.com/blog/2019/03/double-slider-sign-in-up-form/"
+          >tại đây</a
+        >.
+      </p>
+    </footer>
+    <script src="main.js"></script>
+  </body>
+</html>

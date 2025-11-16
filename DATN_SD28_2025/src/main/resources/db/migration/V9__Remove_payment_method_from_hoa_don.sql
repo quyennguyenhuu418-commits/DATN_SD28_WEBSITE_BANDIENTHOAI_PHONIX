@@ -6,3 +6,15 @@ IF EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('hoa_don') AND 
 BEGIN
     ALTER TABLE hoa_don DROP COLUMN phuong_thuc_thanh_toan;
 END
+
+
+
+
+
+
+
+
+
+
+
+

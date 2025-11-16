@@ -40,6 +40,13 @@ public class SanPhamDTO {
     // Optional aggregated fields
     private Integer tongSoLuong;
     private Integer tongImei;
+    
+    // Additional fields for product display
+    private Double giaBan;
+    private String hinhAnh;
+    private Integer soLuong;
+    private String tenRam;
+    private String tenRom;
 }
 
 

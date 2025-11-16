@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -21,6 +22,12 @@ public class HangController {
     @GetMapping
     public ResponseEntity<List<HangDTO>> getAll() {
         List<HangDTO> hangs = hangService.getAll();
+        return ResponseEntity.ok(hangs);
+    }
+
+    @GetMapping("/active")
+    public ResponseEntity<List<HangDTO>> getActive() {
+        List<HangDTO> hangs = hangService.getActive();
         return ResponseEntity.ok(hangs);
     }
 
@@ -42,6 +49,20 @@ public class HangController {
         try {
             HangDTO updated = hangService.update(id, hangDTO);
             return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PutMapping("/{id}/status")
+    public ResponseEntity<?> updateStatus(@PathVariable Integer id, @RequestBody Map<String, Integer> request) {
+        try {
+            Integer trangThai = request.get("trangThai");
+            if (trangThai == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "trangThai is required"));
+            }
+            hangService.updateStatus(id, trangThai);
+            return ResponseEntity.ok(Map.of("message", "Status updated successfully"));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }

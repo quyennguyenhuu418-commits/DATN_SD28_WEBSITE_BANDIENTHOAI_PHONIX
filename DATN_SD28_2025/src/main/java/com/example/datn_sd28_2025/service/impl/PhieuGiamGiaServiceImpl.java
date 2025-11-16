@@ -8,6 +8,7 @@ import com.example.datn_sd28_2025.repository.PhieuGiamGiaRepository;
 import com.example.datn_sd28_2025.repository.KhachHangRepository;
 import com.example.datn_sd28_2025.repository.KhachHangGiamGiaRepository;
 import com.example.datn_sd28_2025.service.PhieuGiamGiaService;
+import com.example.datn_sd28_2025.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +31,9 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
     
     @Autowired
     private KhachHangGiamGiaRepository khachHangGiamGiaRepository;
+    
+    @Autowired
+    private EmailService emailService;
 
     @Override
     public List<PhieuGiamGiaDTO> getAll() {
@@ -47,6 +51,7 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
             
         for (PhieuGiamGia voucher : expiredVouchers) {
             voucher.setTrangThai(0);
+            voucher.setNguoiCapNhat(com.example.datn_sd28_2025.util.SecurityUtil.getCurrentUsername());
             voucher.setNgayCapNhat(LocalDateTime.now());
             phieuGiamGiaRepository.save(voucher);
         }
@@ -59,6 +64,7 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
             
         for (PhieuGiamGia voucher : outOfStockVouchers) {
             voucher.setTrangThai(0);
+            voucher.setNguoiCapNhat(com.example.datn_sd28_2025.util.SecurityUtil.getCurrentUsername());
             voucher.setNgayCapNhat(LocalDateTime.now());
             phieuGiamGiaRepository.save(voucher);
             System.out.println("Voucher " + voucher.getMaPhieuGiamGia() + " đã hết số lượng, tự động vô hiệu hóa");
@@ -73,6 +79,15 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
     @Override
     public List<PhieuGiamGiaDTO> getActiveVouchers() {
         return phieuGiamGiaRepository.findValidVouchers(LocalDate.now()).stream().map(this::convertToDto).toList();
+    }
+
+    @Override
+    public List<PhieuGiamGiaDTO> searchByQuery(String query) {
+        return phieuGiamGiaRepository.findByNameContaining(query)
+                .stream()
+                .filter(voucher -> voucher.getTrangThai() == 1)
+                .map(this::convertToDto)
+                .toList();
     }
 
     @Override
@@ -93,6 +108,13 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
         phieuGiamGia.setNgayTao(LocalDateTime.now());
         phieuGiamGia.setTrangThai(1); // Mặc định là hoạt động
         
+        // Tự động set nguoiTao từ SecurityContext (nhân viên đang đăng nhập)
+        String currentUsername = com.example.datn_sd28_2025.util.SecurityUtil.getCurrentUsername();
+        if (currentUsername != null && !currentUsername.trim().isEmpty() && !"System".equals(currentUsername)) {
+            phieuGiamGia.setNguoiTao(currentUsername);
+            phieuGiamGia.setNguoiCapNhat(currentUsername);
+        }
+        
         // Đặc biệt xử lý voucher riêng tư: số lượng = số khách hàng được chọn
         if (phieuGiamGiaDTO.getRiengTu() != null && phieuGiamGiaDTO.getRiengTu() && 
             phieuGiamGiaDTO.getSelectedCustomers() != null && !phieuGiamGiaDTO.getSelectedCustomers().isEmpty()) {
@@ -105,6 +127,9 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
         // Xử lý liên kết khách hàng cho voucher riêng tư
         if (phieuGiamGiaDTO.getSelectedCustomers() != null && !phieuGiamGiaDTO.getSelectedCustomers().isEmpty()) {
             saveCustomerVoucherRelations(savedVoucher, phieuGiamGiaDTO.getSelectedCustomers());
+            
+            // Gửi email thông báo voucher mới cho khách hàng
+            sendVoucherNotificationToCustomers(savedVoucher, phieuGiamGiaDTO.getSelectedCustomers());
         }
         
         return convertToDto(savedVoucher);
@@ -130,6 +155,7 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
             existingPhieuGiamGia.setRiengTu(phieuGiamGiaDTO.getRiengTu());
             existingPhieuGiamGia.setMoTa(phieuGiamGiaDTO.getMoTa());
             existingPhieuGiamGia.setTrangThai(phieuGiamGiaDTO.getTrangThai());
+            existingPhieuGiamGia.setNguoiCapNhat(com.example.datn_sd28_2025.util.SecurityUtil.getCurrentUsername());
             existingPhieuGiamGia.setNgayCapNhat(LocalDateTime.now());
             
             // Đặc biệt xử lý voucher riêng tư: số lượng = số khách hàng được chọn
@@ -143,9 +169,27 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
             
             // Cập nhật liên kết khách hàng cho voucher riêng tư
             if (phieuGiamGiaDTO.getRiengTu() != null && phieuGiamGiaDTO.getRiengTu()) {
+                // Lấy danh sách khách hàng cũ trước khi cập nhật
+                List<KhachHangGiamGia> oldRelations = khachHangGiamGiaRepository.findByPhieuGiamGiaId(savedVoucher.getId());
+                List<Integer> oldCustomerIds = oldRelations.stream()
+                    .map(rel -> rel.getKhachHang().getId())
+                    .toList();
+                
+                // Cập nhật liên kết mới
                 updateCustomerVoucherRelations(savedVoucher, phieuGiamGiaDTO.getSelectedCustomers());
+                
+                // Gửi email thông báo cho khách hàng mới và cũ
+                handleVoucherUpdateEmails(savedVoucher, oldCustomerIds, phieuGiamGiaDTO.getSelectedCustomers());
             } else {
                 // Nếu không còn là voucher riêng tư, xóa tất cả liên kết
+                List<KhachHangGiamGia> oldRelations = khachHangGiamGiaRepository.findByPhieuGiamGiaId(savedVoucher.getId());
+                List<Integer> oldCustomerIds = oldRelations.stream()
+                    .map(rel -> rel.getKhachHang().getId())
+                    .toList();
+                
+                // Gửi email thông báo voucher hết hiệu lực cho khách hàng cũ
+                sendVoucherExpiredNotificationToCustomers(savedVoucher, oldCustomerIds);
+                
                 khachHangGiamGiaRepository.deleteByPhieuGiamGiaId(savedVoucher.getId());
             }
             
@@ -171,6 +215,7 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
                 if (phieuGiamGia.getTrangThai() == 1) {
                     // Tự động vô hiệu hóa voucher hết hạn
                     phieuGiamGia.setTrangThai(0);
+                    phieuGiamGia.setNguoiCapNhat(com.example.datn_sd28_2025.util.SecurityUtil.getCurrentUsername());
                     phieuGiamGia.setNgayCapNhat(LocalDateTime.now());
                     return convertToDto(phieuGiamGiaRepository.save(phieuGiamGia));
                 } else {
@@ -186,6 +231,7 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
             
             // Toggle trạng thái bình thường
             phieuGiamGia.setTrangThai(phieuGiamGia.getTrangThai() == 1 ? 0 : 1);
+            phieuGiamGia.setNguoiCapNhat(com.example.datn_sd28_2025.util.SecurityUtil.getCurrentUsername());
             phieuGiamGia.setNgayCapNhat(LocalDateTime.now());
             return convertToDto(phieuGiamGiaRepository.save(phieuGiamGia));
         }).orElseThrow(() -> new RuntimeException("PhieuGiamGia not found with id " + id));
@@ -297,6 +343,17 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
     }
 
     @Override
+    @Transactional
+    public void decreaseUsage(Integer voucherId) {
+        if (voucherId == null) return;
+        try {
+            phieuGiamGiaRepository.decrementUsage(voucherId);
+        } catch (Exception e) {
+            System.out.println("decreaseUsage voucher failed: " + e.getMessage());
+        }
+    }
+
+    @Override
     public boolean canCustomerUseVoucher(Integer customerId, String voucherCode) {
         Optional<PhieuGiamGia> voucherOpt = phieuGiamGiaRepository.findByCode(voucherCode);
         
@@ -359,6 +416,7 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
             // Nếu số lượng <= 0 sau khi giảm, vô hiệu hóa voucher
             if (voucher.getSoLuongDung() <= 0) {
                 voucher.setTrangThai(0); // Vô hiệu hóa
+                voucher.setNguoiCapNhat(com.example.datn_sd28_2025.util.SecurityUtil.getCurrentUsername());
                 voucher.setNgayCapNhat(LocalDateTime.now());
                 System.out.println("Voucher " + voucherCode + " đã hết số lượng, tự động vô hiệu hóa");
             }
@@ -389,6 +447,7 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
             // Chỉ vô hiệu hóa khi tất cả khách hàng đã sử dụng hết
             if (voucher.getSoLuongDung() <= 0) {
                 voucher.setTrangThai(0); // Vô hiệu hóa
+                voucher.setNguoiCapNhat(com.example.datn_sd28_2025.util.SecurityUtil.getCurrentUsername());
                 voucher.setNgayCapNhat(LocalDateTime.now());
                 System.out.println("Voucher riêng tư " + voucherCode + " đã được sử dụng hết bởi tất cả khách hàng");
             }
@@ -398,6 +457,68 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
         }
         
         return false;
+    }
+
+    @Override
+    public boolean canWalkInCustomerUseVoucher(String voucherCode) {
+        Optional<PhieuGiamGia> voucherOpt = phieuGiamGiaRepository.findByCode(voucherCode);
+        
+        if (voucherOpt.isEmpty()) {
+            return false;
+        }
+        
+        PhieuGiamGia voucher = voucherOpt.get();
+        
+        // Kiểm tra voucher có hợp lệ không
+        LocalDate now = LocalDate.now();
+        if (voucher.getTrangThai() != 1 || 
+            voucher.getSoLuongDung() <= 0 ||
+            voucher.getNgayBatDau().compareTo(now) > 0 ||
+            voucher.getNgayKetThuc().compareTo(now) < 0) {
+            return false;
+        }
+        
+        // Chỉ cho phép voucher công khai (không riêng tư) cho khách vãng lai
+        if (voucher.getRiengTu() != null && voucher.getRiengTu()) {
+            return false; // Voucher riêng tư không thể dùng cho khách vãng lai
+        }
+        
+        return true;
+    }
+
+    @Override
+    public boolean markVoucherAsUsedForWalkIn(String voucherCode) {
+        Optional<PhieuGiamGia> voucherOpt = phieuGiamGiaRepository.findByCode(voucherCode);
+        
+        if (voucherOpt.isEmpty()) {
+            return false;
+        }
+        
+        PhieuGiamGia voucher = voucherOpt.get();
+        
+        // Kiểm tra voucher còn số lượng sử dụng không
+        if (voucher.getSoLuongDung() <= 0) {
+            return false; // Không còn số lượng để sử dụng
+        }
+        
+        // Kiểm tra voucher có phải là công khai không
+        if (voucher.getRiengTu() != null && voucher.getRiengTu()) {
+            return false; // Voucher riêng tư không thể dùng cho khách vãng lai
+        }
+        
+        // Giảm số lượng sử dụng
+        voucher.setSoLuongDung(voucher.getSoLuongDung() - 1);
+        
+        // Nếu số lượng <= 0 sau khi giảm, vô hiệu hóa voucher
+        if (voucher.getSoLuongDung() <= 0) {
+            voucher.setTrangThai(0); // Vô hiệu hóa
+            voucher.setNguoiCapNhat(com.example.datn_sd28_2025.util.SecurityUtil.getCurrentUsername());
+            voucher.setNgayCapNhat(LocalDateTime.now());
+            System.out.println("Voucher " + voucherCode + " đã hết số lượng, tự động vô hiệu hóa");
+        }
+        
+        phieuGiamGiaRepository.save(voucher);
+        return true;
     }
 
     private String generateVoucherCode() {
@@ -411,6 +532,7 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
                 KhachHangGiamGia relation = KhachHangGiamGia.builder()
                     .khachHang(khachHang.get())
                     .phieuGiamGia(voucher)
+                    .nguoiSuDung(khachHang.get().getHoTen())
                     .ngayCap(LocalDateTime.now())
                     .trangThai(1)
                     .build();
@@ -420,7 +542,7 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
     }
     
     @Transactional
-    private void updateCustomerVoucherRelations(PhieuGiamGia voucher, List<Integer> customerIds) {
+    public void updateCustomerVoucherRelations(PhieuGiamGia voucher, List<Integer> customerIds) {
         // Xóa các liên kết cũ
         khachHangGiamGiaRepository.deleteByPhieuGiamGiaId(voucher.getId());
         
@@ -472,5 +594,243 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
                 .nguoiTao(dto.getNguoiTao())
                 .nguoiCapNhat(dto.getNguoiCapNhat())
                 .build();
+    }
+    
+    /**
+     * Gửi email thông báo voucher mới cho danh sách khách hàng
+     */
+    private void sendVoucherNotificationToCustomers(PhieuGiamGia voucher, List<Integer> customerIds) {
+        if (customerIds == null || customerIds.isEmpty()) {
+            return;
+        }
+        
+        for (Integer customerId : customerIds) {
+            try {
+                Optional<KhachHang> customerOpt = khachHangRepository.findById(customerId);
+                if (customerOpt.isPresent()) {
+                    KhachHang customer = customerOpt.get();
+                    
+                    // Chỉ gửi email nếu khách hàng có email
+                    if (customer.getEmail() != null && !customer.getEmail().trim().isEmpty()) {
+                        String discountAmount = formatDiscountAmount(voucher);
+                        String validFrom = voucher.getNgayBatDau() != null ? voucher.getNgayBatDau().toString() : "N/A";
+                        String validTo = voucher.getNgayKetThuc() != null ? voucher.getNgayKetThuc().toString() : "N/A";
+                        
+                        emailService.sendVoucherNotification(
+                            customer.getEmail(),
+                            customer.getHoTen(),
+                            voucher.getMaPhieuGiamGia(),
+                            voucher.getTenPhieuGiamGia(),
+                            discountAmount,
+                            validFrom,
+                            validTo
+                        );
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Error sending voucher notification to customer " + customerId + ": " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    /**
+     * Gửi email thông báo voucher hết hiệu lực cho danh sách khách hàng
+     */
+    private void sendVoucherExpiredNotificationToCustomers(PhieuGiamGia voucher, List<Integer> customerIds) {
+        if (customerIds == null || customerIds.isEmpty()) {
+            return;
+        }
+        
+        for (Integer customerId : customerIds) {
+            try {
+                Optional<KhachHang> customerOpt = khachHangRepository.findById(customerId);
+                if (customerOpt.isPresent()) {
+                    KhachHang customer = customerOpt.get();
+                    
+                    // Chỉ gửi email nếu khách hàng có email
+                    if (customer.getEmail() != null && !customer.getEmail().trim().isEmpty()) {
+                        emailService.sendVoucherExpiredNotification(
+                            customer.getEmail(),
+                            customer.getHoTen(),
+                            voucher.getMaPhieuGiamGia(),
+                            voucher.getTenPhieuGiamGia()
+                        );
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Error sending voucher expired notification to customer " + customerId + ": " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    /**
+     * Xử lý gửi email khi cập nhật voucher assignment
+     */
+    private void handleVoucherUpdateEmails(PhieuGiamGia voucher, List<Integer> oldCustomerIds, List<Integer> newCustomerIds) {
+        // Tạo final copies để sử dụng trong lambda expressions
+        final List<Integer> finalOldCustomerIds = oldCustomerIds != null ? oldCustomerIds : List.of();
+        final List<Integer> finalNewCustomerIds = newCustomerIds != null ? newCustomerIds : List.of();
+        
+        // Tìm khách hàng bị loại bỏ (có trong old nhưng không có trong new)
+        List<Integer> removedCustomers = finalOldCustomerIds.stream()
+            .filter(id -> !finalNewCustomerIds.contains(id))
+            .toList();
+        
+        // Tìm khách hàng mới (có trong new nhưng không có trong old)
+        List<Integer> addedCustomers = finalNewCustomerIds.stream()
+            .filter(id -> !finalOldCustomerIds.contains(id))
+            .toList();
+        
+        // Tìm khách hàng được giữ lại (có trong cả old và new)
+        List<Integer> keptCustomers = finalOldCustomerIds.stream()
+            .filter(finalNewCustomerIds::contains)
+            .toList();
+        
+        // Gửi email thông báo hết hiệu lực cho khách hàng bị loại bỏ
+        if (!removedCustomers.isEmpty()) {
+            sendVoucherExpiredNotificationToCustomers(voucher, removedCustomers);
+        }
+        
+        // Gửi email thông báo voucher mới cho khách hàng mới
+        if (!addedCustomers.isEmpty()) {
+            sendVoucherNotificationToCustomers(voucher, addedCustomers);
+        }
+        
+        // Gửi email thông báo cập nhật cho khách hàng được giữ lại
+        if (!keptCustomers.isEmpty()) {
+            sendVoucherUpdatedNotificationToCustomers(voucher, keptCustomers);
+        }
+    }
+    
+    /**
+     * Gửi email thông báo voucher đã được cập nhật cho danh sách khách hàng
+     */
+    private void sendVoucherUpdatedNotificationToCustomers(PhieuGiamGia voucher, List<Integer> customerIds) {
+        if (customerIds == null || customerIds.isEmpty()) {
+            return;
+        }
+        
+        for (Integer customerId : customerIds) {
+            try {
+                Optional<KhachHang> customerOpt = khachHangRepository.findById(customerId);
+                if (customerOpt.isPresent()) {
+                    KhachHang customer = customerOpt.get();
+                    
+                    // Chỉ gửi email nếu khách hàng có email
+                    if (customer.getEmail() != null && !customer.getEmail().trim().isEmpty()) {
+                        String discountAmount = formatDiscountAmount(voucher);
+                        String validFrom = voucher.getNgayBatDau() != null ? voucher.getNgayBatDau().toString() : "N/A";
+                        String validTo = voucher.getNgayKetThuc() != null ? voucher.getNgayKetThuc().toString() : "N/A";
+                        
+                        emailService.sendVoucherUpdatedNotification(
+                            customer.getEmail(),
+                            customer.getHoTen(),
+                            voucher.getMaPhieuGiamGia(),
+                            voucher.getTenPhieuGiamGia(),
+                            discountAmount,
+                            validFrom,
+                            validTo
+                        );
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Error sending voucher updated notification to customer " + customerId + ": " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    /**
+     * Format discount amount for display
+     */
+    private String formatDiscountAmount(PhieuGiamGia voucher) {
+        if ("PERCENT".equals(voucher.getLoaiPhieuGiamGia()) || 
+            "1".equals(voucher.getLoaiPhieuGiamGia()) || 
+            "Phần trăm".equals(voucher.getLoaiPhieuGiamGia())) {
+            // Phần trăm
+            return voucher.getGiaTriGiamGia() + "%";
+        } else {
+            // Số tiền cố định
+            return String.format("%,.0f VNĐ", voucher.getGiaTriGiamGia().doubleValue());
+        }
+    }
+
+    @Override
+    public List<PhieuGiamGiaDTO> getAvailableVouchers(Integer customerId) {
+        try {
+            System.out.println("=== DEBUG: getAvailableVouchers called with customerId: " + customerId + " ===");
+            
+            // Lấy tất cả voucher công khai (không riêng tư) và đang hoạt động
+            List<PhieuGiamGia> allVouchers = phieuGiamGiaRepository.findAll();
+            System.out.println("Total vouchers in database: " + allVouchers.size());
+            
+            List<PhieuGiamGia> publicVouchers = allVouchers.stream()
+                .filter(v -> {
+                    // Log all vouchers for debugging
+                    System.out.println("Checking voucher: " + v.getMaPhieuGiamGia() + 
+                        " - Status: " + v.getTrangThai() + 
+                        " - Private: " + v.getRiengTu() + 
+                        " - Start: " + v.getNgayBatDau() + 
+                        " - End: " + v.getNgayKetThuc() + 
+                        " - Quantity: " + v.getSoLuongDung());
+                    
+                    // Tạm thời bỏ filter status = 1 để test (có thể bật lại sau)
+                    // Chỉ filter: không riêng tư, có ngày, có số lượng
+                    boolean isValid = (v.getTrangThai() == 1 || v.getTrangThai() == 0) && // Cho phép cả status 0 và 1 để test
+                           (v.getRiengTu() == null || !v.getRiengTu()) &&
+                           v.getNgayBatDau() != null && v.getNgayKetThuc() != null &&
+                           v.getSoLuongDung() != null && v.getSoLuongDung() > 0;
+                    
+                    if (!isValid && (v.getRiengTu() == null || !v.getRiengTu())) {
+                        System.out.println("❌ Voucher filtered out: " + v.getMaPhieuGiamGia() + 
+                            " - Status check: " + (v.getTrangThai() == 1) +
+                            " - Private check: " + (v.getRiengTu() == null || !v.getRiengTu()) +
+                            " - Start check: " + (v.getNgayBatDau() != null) +
+                            " - End check: " + (v.getNgayKetThuc() != null) +
+                            " - Quantity check: " + (v.getSoLuongDung() != null && v.getSoLuongDung() > 0));
+                    } else if (isValid) {
+                        System.out.println("✅ Voucher passed: " + v.getMaPhieuGiamGia());
+                    }
+                    return isValid;
+                })
+                .toList();
+            
+            System.out.println("Public vouchers found: " + publicVouchers.size());
+            
+            List<PhieuGiamGia> finalVouchers = new java.util.ArrayList<>(publicVouchers);
+            
+            // Nếu có customerId, thêm các voucher riêng tư của customer đó
+            if (customerId != null) {
+                List<KhachHangGiamGia> customerVoucherRelations = khachHangGiamGiaRepository.findByKhachHangId(customerId);
+                System.out.println("Customer voucher relations found: " + customerVoucherRelations.size());
+                
+                List<PhieuGiamGia> privateVouchers = customerVoucherRelations.stream()
+                    .map(KhachHangGiamGia::getPhieuGiamGia)
+                    .filter(v -> v != null && v.getTrangThai() == 1 &&
+                                v.getNgayBatDau() != null && v.getNgayKetThuc() != null &&
+                                v.getSoLuongDung() != null && v.getSoLuongDung() > 0)
+                    .toList();
+                
+                System.out.println("Private vouchers found: " + privateVouchers.size());
+                finalVouchers.addAll(privateVouchers);
+            }
+            
+            System.out.println("Total vouchers to return: " + finalVouchers.size());
+            
+            // Loại bỏ trùng lặp và convert sang DTO
+            List<PhieuGiamGiaDTO> result = finalVouchers.stream()
+                .distinct()
+                .map(this::convertToDto)
+                .toList();
+            
+            System.out.println("Final DTOs count: " + result.size());
+            return result;
+        } catch (Exception e) {
+            System.err.println("Error getting available vouchers: " + e.getMessage());
+            e.printStackTrace();
+            return new java.util.ArrayList<>();
+        }
     }
 }

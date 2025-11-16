@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{storeName}} - {{heading}}</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Inter', Arial, sans-serif;
+            background: #fff8f2;
+        }
+
+        .wrapper {
+            padding: 24px 12px;
+        }
+
+        .card {
+            max-width: 720px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 12px 40px rgba(255, 122, 0, 0.18);
+            border: 1px solid #ffe1c5;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 18px 22px;
+            border-bottom: 1px solid #ffe1c5;
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+        }
+
+        .brand {
+            text-align: center;
+            font-weight: 800;
+            font-size: 18px;
+            color: #fff;
+            letter-spacing: .2px;
+        }
+
+        .logo {
+            height: 34px;
+        }
+
+        .content {
+            padding: 24px;
+        }
+
+        .title {
+            margin: 0 0 8px 0;
+            color: #0f172a;
+            font-size: 22px;
+        }
+
+        .intro {
+            margin: 0 0 14px 0;
+            color: #374151;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        td {
+            padding: 10px 0;
+            font-size: 14px;
+        }
+
+        .label {
+            color: #64748b;
+        }
+
+        .value {
+            text-align: right;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .highlight {
+            color: #ff7a00;
+        }
+
+        .note {
+            margin-top: 14px;
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .footer {
+            padding: 16px 22px;
+            background: #fff6ee;
+            border-top: 1px solid #ffe1c5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn {
+            background: linear-gradient(90deg, #FF7A00, #FF9E47);
+            color: #fff;
+            text-decoration: none;
+            padding: 11px 18px;
+            border-radius: 10px;
+            font-weight: 700;
+            letter-spacing: .2px;
+            box-shadow: 0 4px 10px rgba(255, 122, 0, 0.3);
+            transition: all .2s ease;
+            float: right;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            box-shadow: 0 6px 14px rgba(255, 122, 0, 0.4);
+        }
+
+        .sig {
+            font-weight: 600;
+            color: #ff7a00;
+        }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <div class="card">
+        <div class="header">
+            <div class="brand">{{storeName}}</div>
+        </div>
+
+        <div class="content">
+            <h2 class="title">{{heading}}</h2>
+            <p class="intro">Xin chào <strong>{{customerName}}</strong>,</p>
+            <p class="intro">Đơn hàng của bạn đã được tạo thành công.</p>
+
+            <table>
+                <tr>
+                    <td class="label">Mã đơn</td>
+                    <td class="value">{{orderCode}}</td>
+                </tr>
+                <tr>
+                    <td class="label">Tổng tiền</td>
+                    <td class="value highlight">{{totalAfterDiscount}} ₫</td>
+                </tr>
+                <tr>
+                    <td class="label">Trạng thái</td>
+                    <td class="value">{{statusName}}</td>
+                </tr>
+            </table>
+
+            <div class="note">
+                Nếu có sai sót thông tin, vui lòng phản hồi email này để được hỗ trợ nhanh nhất.
+            </div>
+        </div>
+
+        <div class="footer" >
+            <div class="sig">{{signature}}</div>
+            <a class="btn" href="{{trackUrl}}" style="margin-left: 379px">Theo dõi đơn</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+
+
+
+
+
+
+

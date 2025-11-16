@@ -25,6 +25,11 @@ public class RomServiceImpl implements RomService {
     }
 
     @Override
+    public List<RomDTO> getActive() {
+        return romRepository.findAllActive().stream().map(this::convertToDto).toList();
+    }
+
+    @Override
     public Page<RomDTO> getAll(Pageable pageable) {
         return romRepository.findAll(pageable).map(this::convertToDto);
     }
@@ -68,6 +73,15 @@ public class RomServiceImpl implements RomService {
         }
         
         romRepository.deleteById(id);
+    }
+
+    @Override
+    public void updateStatus(Integer id, Integer trangThai) {
+        Rom rom = romRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy rom với ID: " + id));
+        rom.setTrangThai(trangThai);
+        rom.setNgayCapNhat(LocalDateTime.now());
+        romRepository.save(rom);
     }
 
     private RomDTO convertToDto(Rom rom) {

@@ -10,23 +10,23 @@ public interface ImeiService {
     List<Imei> bulkCreate(Integer chiTietId, List<String> imeis);
     List<Imei> findByChiTiet(Integer chiTietId, Integer status);
     Imei updateStatus(Integer id, Integer status);
-    
+
     // DTO methods
     List<ImeiDTO> getAll();
     ImeiDTO getById(Integer id);
     ImeiDTO save(ImeiDTO imeiDTO);
     ImeiDTO update(Integer id, ImeiDTO imeiDTO);
     void delete(Integer id);
-    
+
     // Check for duplicate IMEIs
     List<String> findDuplicateImeis(List<String> imeis);
-    
+
     // Get IMEIs by ChiTietSanPham ID
     List<ImeiDTO> getByChiTietSanPham(Integer chiTietSanPhamId);
-    
+
     // Find IMEI by IMEI string
     Imei findByImeiString(String imei);
-    
+
     // Convert entity to DTO
     ImeiDTO convertToDTO(Imei imei);
 }

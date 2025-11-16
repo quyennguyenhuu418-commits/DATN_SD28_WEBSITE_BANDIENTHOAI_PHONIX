@@ -3,17 +3,19 @@
     <PosHeader />
     
     <div class="content">
-
-    <Toast ref="toastRef" />
+      <Toast ref="toastRef" />
 
     <!-- Filter Section -->
     <div class="filter-section">
       <div class="filter-header">
         <div class="filter-title">
           <h3>Bộ lọc nâng cao</h3>
-          <p>Tìm kiếm và lọc voucher theo tiêu chí</p>
+          <p>Tìm kiếm và lọc phiếu giảm giá theo tiêu chí</p>
         </div>
         <div class="filter-actions">
+          <button class="btn-show-inactive" @click="showInactiveVouchers">
+            Xem phiếu giảm giá ngừng hoạt động
+          </button>
           <button class="btn-clear-filters" @click="clearAllFilters">
             Xóa bộ lọc
           </button>
@@ -25,7 +27,7 @@
           <input 
             type="text" 
             v-model="searchText" 
-            placeholder="Tìm theo tên hoặc mã voucher..."
+            placeholder="Tìm theo tên hoặc mã phiếu giảm giá..."
             @input="applyFilters"
             class="search-input"
           />
@@ -35,11 +37,11 @@
           <select v-model="statusFilter" @change="applyFilters" class="filter-select">
             <option value="">Tất cả trạng thái</option>
             <option value="1">Hoạt động</option>
-            <option value="0">Không hoạt động</option>
+            <option value="0">Ngừng hoạt động (có thể kích hoạt lại)</option>
           </select>
         </div>
         <div class="filter-group">
-          <label>Loại voucher:</label>
+          <label>Loại phiếu giảm giá:</label>
           <select v-model="typeFilter" @change="applyFilters" class="filter-select">
             <option value="">Tất cả loại</option>
             <option value="PERCENT">Phần trăm (%)</option>
@@ -77,9 +79,13 @@
 
     <!-- Add Voucher Button -->
     <div class="add-voucher-section">
+      <button @click="exportToExcel" class="btn-export-excel">
+        <font-awesome-icon :icon="['fas', 'file-excel']" />
+        Xuất Excel
+      </button>
       <button class="btn-add-voucher" @click="addVoucher()">
-        <i class="icon-plus"></i>
-        Thêm Voucher
+        <font-awesome-icon :icon="['fas', 'plus-circle']" />
+        Thêm Phiếu giảm giá
       </button>
     </div>
 
@@ -88,8 +94,8 @@
       <!-- Table Header Section -->
       <div class="table-header">
         <div class="table-title">
-          <h2>Danh sách Voucher</h2>
-          <span class="item-count">{{ totalItems }} voucher</span>
+          <h2>Danh sách Phiếu giảm giá</h2>
+          <span class="item-count">{{ totalItems }} phiếu giảm giá</span>
         </div>
         <div class="table-actions">
           <div class="items-per-page">
@@ -109,7 +115,12 @@
           <thead>
             <tr>
               <th class="checkbox-column">
-                <input type="checkbox" class="select-all-checkbox" />
+                <input 
+                  type="checkbox" 
+                  class="select-all-checkbox" 
+                  :checked="isAllSelected"
+                  @change="toggleSelectAll"
+                />
               </th>
               <th>STT</th>
               <th>Mã Phiếu</th>
@@ -126,7 +137,13 @@
           <tbody>
             <tr v-for="(voucher, index) in filteredVouchers" :key="voucher.id">
               <td class="checkbox-column">
-                <input type="checkbox" class="row-checkbox" :value="voucher.id" />
+                <input 
+                  type="checkbox" 
+                  class="row-checkbox" 
+                  :value="voucher.id"
+                  :checked="selectedVoucherIds.includes(voucher.id)"
+                  @change="toggleSelectVoucher(voucher.id)"
+                />
               </td>
               <td>{{ startItem + index }}</td>
               <td>{{ voucher.maPhieuGiamGia }}</td>
@@ -167,6 +184,18 @@
                   <span class="status-badge" :class="getStatusBadgeClass(voucher)">
                     {{ getStatusText(voucher) }}
                   </span>
+                </div>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <div class="button-row">
+                    <button class="btn-view" @click="viewVoucher(voucher)" title="Xem chi tiết">
+                      <font-awesome-icon icon="eye" />
+                    </button>
+                    <button class="btn-edit" @click="editVoucher(voucher)" title="Chỉnh sửa">
+                      <font-awesome-icon icon="edit" />
+                    </button>
+                  </div>
                   <div class="toggle-container">
                     <label class="toggle-switch" :class="{ 'disabled': isVoucherExpired(voucher) || voucher.soLuongDung <= 0 }">
                       <input 
@@ -178,16 +207,6 @@
                       <span class="toggle-slider"></span>
                     </label>
                   </div>
-                </div>
-              </td>
-              <td>
-                <div class="action-buttons">
-                  <button class="btn-view" @click="viewVoucher(voucher)" title="Xem chi tiết">
-                    <font-awesome-icon icon="eye" />
-                  </button>
-                  <button class="btn-edit" @click="editVoucher(voucher)" title="Chỉnh sửa">
-                    <font-awesome-icon icon="edit" />
-                  </button>
                 </div>
               </td>
             </tr>
@@ -236,6 +255,15 @@
       </div>
     </div>
     </div>
+
+    <!-- Confirm Modal -->
+    <ConfirmModal
+      :show="showConfirmModal"
+      :title="confirmTitle"
+      :message="confirmMessage"
+      @confirm="confirmToggleStatus"
+      @cancel="showConfirmModal = false"
+    />
   </div>
 </template>
 
@@ -245,6 +273,8 @@ import { useRouter } from 'vue-router'
 import api from '@/services/api'
 import Toast from '@/components/Toast.vue'
 import PosHeader from '@/components/PosHeader.vue'
+import ConfirmModal from '@/components/ConfirmModal.vue'
+import * as XLSX from 'xlsx'
 
 const router = useRouter()
 
@@ -267,6 +297,8 @@ interface PhieuGiamGia {
 }
 
 const vouchers = ref<PhieuGiamGia[]>([])
+const selectedVouchers = ref<PhieuGiamGia[]>([])
+const selectedVoucherIds = ref<number[]>([])
 const loading = ref(false)
 const toastRef = ref<InstanceType<typeof Toast> | null>(null)
 
@@ -282,6 +314,12 @@ const searchText = ref('')
 const currentPage = ref(1)
 const itemsPerPage = ref(5)
 const totalItems = ref(0)
+
+// Confirm modal states
+const showConfirmModal = ref(false)
+const confirmTitle = ref('Xác nhận')
+const confirmMessage = ref('')
+const pendingToggleId = ref<number | null>(null)
 
 // Computed property for filtered vouchers (without pagination)
 const allFilteredVouchers = computed(() => {
@@ -345,6 +383,17 @@ const filteredVouchers = computed(() => {
   return filtered.slice(startIndex, endIndex)
 })
 
+// Computed property for select all checkbox
+const isAllSelected = computed(() => {
+  return filteredVouchers.value.length > 0 && 
+         filteredVouchers.value.every(voucher => selectedVoucherIds.value.includes(voucher.id))
+})
+
+// Computed property for selected vouchers
+const selectedVouchersComputed = computed(() => {
+  return vouchers.value.filter(voucher => selectedVoucherIds.value.includes(voucher.id))
+})
+
 // Computed properties for pagination
 const totalPages = computed(() => Math.ceil(totalItems.value / itemsPerPage.value))
 const startItem = computed(() => (currentPage.value - 1) * itemsPerPage.value + 1)
@@ -353,6 +402,7 @@ const endItem = computed(() => Math.min(currentPage.value * itemsPerPage.value, 
 async function loadVouchers() {
   loading.value = true
   try {
+    console.log('Loading vouchers from /api/phieu-giam-gia...')
     const { data } = await api.get<PhieuGiamGia[]>('/api/phieu-giam-gia')
     console.log('Loaded vouchers:', data)
     
@@ -378,7 +428,10 @@ async function loadVouchers() {
     vouchers.value = updatedVouchers
   } catch (error) {
     console.error('Lỗi khi tải danh sách voucher:', error)
-    toastRef.value?.error('Lỗi', 'Không thể tải danh sách phiếu giảm giá')
+    console.error('Error details:', error.response)
+    console.error('Error status:', error.response?.status)
+    console.error('Error data:', error.response?.data)
+    toastRef.value?.error('Lỗi', 'Không thể tải danh sách phiếu giảm giá: ' + (error.response?.data?.message || error.message))
   } finally {
     loading.value = false
   }
@@ -396,9 +449,7 @@ function editVoucher(voucher: PhieuGiamGia) {
 }
 
 function viewVoucher(voucher: PhieuGiamGia) {
-  console.log('Viewing voucher:', voucher)
-  // TODO: Implement view voucher modal or page
-  toastRef.value?.info('Thông tin', `Xem chi tiết voucher: ${voucher.tenPhieuGiamGia}`)
+  router.push(`/voucher/detail/${voucher.id}`)
 }
 
 
@@ -425,15 +476,38 @@ async function toggleStatus(id: number) {
     return
   }
 
+  // Show confirm modal
+  const statusText = voucher.trangThai === 1 ? 'vô hiệu hóa' : 'kích hoạt'
+  confirmTitle.value = `Xác nhận ${statusText} voucher`
+  confirmMessage.value = `Bạn có chắc chắn muốn ${statusText} voucher "${voucher.tenPhieuGiamGia}"?`
+  pendingToggleId.value = id
+  showConfirmModal.value = true
+}
+
+async function confirmToggleStatus() {
+  if (pendingToggleId.value === null) return
+
+  const id = pendingToggleId.value
+  const voucher = vouchers.value.find(v => v.id === id)
+  if (!voucher) {
+    showConfirmModal.value = false
+    return
+  }
+
   try {
     await api.post(`/api/phieu-giam-gia/${id}/toggle-status`)
     
-    const statusText = voucher.trangThai === 1 ? 'vô hiệu hóa' : 'kích hoạt'
-    toastRef.value?.success('Thành công', `${statusText} voucher thành công!`)
-    await loadVouchers()
+    // Cập nhật trạng thái trong danh sách
+    voucher.trangThai = voucher.trangThai === 1 ? 0 : 1
+    
+    const statusText = voucher.trangThai === 0 ? 'vô hiệu hóa' : 'kích hoạt'
+    toastRef.value?.success('Thành công', `Đã ${statusText} voucher thành công!`)
   } catch (error: any) {
     console.error('Lỗi khi cập nhật trạng thái:', error)
     toastRef.value?.error('Lỗi', 'Không thể cập nhật trạng thái')
+  } finally {
+    showConfirmModal.value = false
+    pendingToggleId.value = null
   }
 }
 
@@ -451,6 +525,12 @@ function clearAllFilters() {
   endDateFilter.value = ''
   currentPage.value = 1
   toastRef.value?.info('Thông báo', 'Đã xóa tất cả bộ lọc')
+}
+
+function showInactiveVouchers() {
+  statusFilter.value = '0'
+  currentPage.value = 1
+  toastRef.value?.info('Thông báo', 'Đang hiển thị voucher ngừng hoạt động. Gạt toggle để kích hoạt lại!')
 }
 
 // Pagination functions
@@ -477,30 +557,30 @@ function getVisiblePages(): (number | string)[] {
   const total = totalPages.value
   const current = currentPage.value
   
-  if (total <= 7) {
-    // Show all pages if total <= 7
+  // Always show pagination with ellipsis for better UX
+  if (total <= 5) {
+    // If total pages <= 5, show all pages
     for (let i = 1; i <= total; i++) {
       pages.push(i)
     }
   } else {
-    // Always show first page
-    pages.push(1)
-    
-    if (current <= 4) {
-      // Show 1, 2, 3, 4, 5, ..., last
-      for (let i = 2; i <= 5; i++) {
+    if (current <= 3) {
+      // Show: 1 2 3 ... last
+      for (let i = 1; i <= 3; i++) {
         pages.push(i)
       }
       pages.push('...')
       pages.push(total)
-    } else if (current >= total - 3) {
-      // Show 1, ..., last-4, last-3, last-2, last-1, last
+    } else if (current >= total - 2) {
+      // Show: 1 ... (last-2) (last-1) last
+      pages.push(1)
       pages.push('...')
-      for (let i = total - 4; i <= total; i++) {
+      for (let i = total - 2; i <= total; i++) {
         pages.push(i)
       }
     } else {
-      // Show 1, ..., current-1, current, current+1, ..., last
+      // Show: 1 ... (current-1) current (current+1) ... last
+      pages.push(1)
       pages.push('...')
       for (let i = current - 1; i <= current + 1; i++) {
         pages.push(i)
@@ -656,6 +736,106 @@ function getStatusBadgeClass(voucher: PhieuGiamGia): string {
   return 'badge-active'
 }
 
+// Export to Excel function
+function exportToExcel() {
+  try {
+    // Get selected vouchers or all vouchers
+    const vouchersToExport = selectedVouchersComputed.value.length > 0 ? selectedVouchersComputed.value : vouchers.value
+    
+    if (vouchersToExport.length === 0) {
+      toastRef.value?.warning('Cảnh báo', 'Không có dữ liệu phiếu giảm giá để xuất Excel')
+      return
+    }
+    
+    // Prepare data for Excel
+    const excelData = vouchersToExport.map((voucher, index) => ({
+      'STT': index + 1,
+      'Mã phiếu giảm giá': voucher.maPhieuGiamGia,
+      'Tên phiếu giảm giá': voucher.tenPhieuGiamGia,
+      'Loại': getTypeLabel(voucher),
+      'Giá trị giảm': formatDiscountValue(voucher),
+      'Số tiền giảm tối đa': voucher.soTienGiamToiDa ? formatCurrency(voucher.soTienGiamToiDa) : 'Không giới hạn',
+      'Hóa đơn tối thiểu': voucher.hoaDonToiThieu ? formatCurrency(voucher.hoaDonToiThieu) : 'Không yêu cầu',
+      'Số lượng': voucher.soLuongDung,
+      'Ngày bắt đầu': formatDate(voucher.ngayBatDau),
+      'Ngày kết thúc': formatDate(voucher.ngayKetThuc),
+      'Trạng thái': getStatusText(voucher)
+    }))
+    
+    // Create Excel file
+    const ws = XLSX.utils.json_to_sheet(excelData)
+    const wb = XLSX.utils.book_new()
+    
+    // Điều chỉnh độ rộng cột tự động
+    const colWidths = []
+    const headers = Object.keys(excelData[0])
+    
+    // Tính toán độ rộng cho mỗi cột
+    headers.forEach((header, colIndex) => {
+      let maxLength = header.length
+      
+      // Kiểm tra độ dài của header
+      if (header.length > maxLength) {
+        maxLength = header.length
+      }
+      
+      // Kiểm tra độ dài của dữ liệu trong cột
+      excelData.forEach(row => {
+        const cellValue = String(row[header] || '')
+        if (cellValue.length > maxLength) {
+          maxLength = cellValue.length
+        }
+      })
+      
+      // Đặt độ rộng tối thiểu và tối đa
+      const width = Math.min(Math.max(maxLength + 2, 10), 50)
+      colWidths.push({ wch: width })
+    })
+    
+    // Áp dụng độ rộng cột
+    ws['!cols'] = colWidths
+    
+    XLSX.utils.book_append_sheet(wb, ws, 'Danh sách phiếu giảm giá')
+    
+    // Generate filename with current date
+    const now = new Date()
+    const dateStr = now.toISOString().split('T')[0]
+    const filename = `danh_sach_phieu_giam_gia_${dateStr}.xlsx`
+    
+    // Download file
+    XLSX.writeFile(wb, filename)
+    
+    toastRef.value?.success('Thành công', `Đã xuất ${vouchersToExport.length} phiếu giảm giá ra file Excel`)
+    
+  } catch (error) {
+    console.error('Error exporting to Excel:', error)
+    toastRef.value?.error('Lỗi', 'Không thể xuất file Excel')
+  }
+}
+
+// Checkbox functions
+function toggleSelectAll() {
+  if (isAllSelected.value) {
+    // Unselect all vouchers on current page
+    const currentPageIds = filteredVouchers.value.map(v => v.id)
+    selectedVoucherIds.value = selectedVoucherIds.value.filter(id => !currentPageIds.includes(id))
+  } else {
+    // Select all vouchers on current page
+    const currentPageIds = filteredVouchers.value.map(v => v.id)
+    const newIds = currentPageIds.filter(id => !selectedVoucherIds.value.includes(id))
+    selectedVoucherIds.value = [...selectedVoucherIds.value, ...newIds]
+  }
+}
+
+function toggleSelectVoucher(voucherId: number) {
+  const index = selectedVoucherIds.value.indexOf(voucherId)
+  if (index > -1) {
+    selectedVoucherIds.value.splice(index, 1)
+  } else {
+    selectedVoucherIds.value.push(voucherId)
+  }
+}
+
 onMounted(loadVouchers)
 </script>
 
@@ -675,7 +855,10 @@ onMounted(loadVouchers)
   padding: 24px;
   padding-top: 0;
   width: 100%;
+  max-width: 100%;
   margin: 0;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 
@@ -706,6 +889,7 @@ onMounted(loadVouchers)
 .add-voucher-section {
   display: flex;
   justify-content: flex-end;
+  gap: 12px;
   margin-bottom: 24px;
   margin-top: 0;
 }
@@ -818,13 +1002,38 @@ onMounted(loadVouchers)
   transform: translateY(-1px);
 }
 
+.btn-show-inactive {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #fef3c7;
+  color: #d97706;
+  border: 1px solid #fbbf24;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  margin-right: 8px;
+}
+
+.btn-show-inactive:hover {
+  background: #fde68a;
+  color: #b45309;
+  border-color: #f59e0b;
+  transform: translateY(-1px);
+}
+
 /* Removed clear icon */
 
 .filter-row {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 20px;
   position: relative;
+  width: 100%;
+  max-width: 100%;
 }
 
 .filter-row::after {
@@ -953,12 +1162,44 @@ onMounted(loadVouchers)
   display: flex;
   align-items: center;
   gap: 16px;
+  justify-content: flex-end;
 }
 
 .items-per-page {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.btn-export-excel {
+  padding: 10px 16px;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background-color 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-export-excel:hover {
+  background: #218838;
+}
+
+.btn-export-excel font-awesome-icon {
+  font-size: 16px;
+  color: #28a745;
+  margin-right: 8px;
+}
+
+.btn-add-voucher font-awesome-icon {
+  font-size: 16px;
+  color: #f97316;
+  margin-right: 8px;
 }
 
 .items-per-page label {
@@ -987,11 +1228,12 @@ onMounted(loadVouchers)
 .table-container {
   overflow-x: auto;
   width: 100%;
+  max-width: 100%;
 }
 
 table {
   width: 100%;
-  min-width: 1400px;
+  min-width: 1000px;
   border-collapse: collapse;
   background: white;
   table-layout: fixed;
@@ -1004,13 +1246,16 @@ th,
 td {
   border-bottom: 1px solid #e2e8f0;
   border-right: 1px solid #e2e8f0;
-  padding: 16px 20px;
+  padding: 12px 16px;
   text-align: left;
   font-size: 14px;
-  vertical-align: middle;
-  white-space: nowrap;
+  vertical-align: top;
   overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  box-sizing: border-box;
 }
 
 th:last-child,
@@ -1033,25 +1278,80 @@ thead tr {
   border-bottom: 2px solid #d1d5db;
 }
 
-/* Column Widths - Balanced layout */
+/* Column Widths - Responsive layout */
 .checkbox-column {
-  width: 50px;
+  width: 40px;
+  min-width: 40px;
+  max-width: 40px;
+  overflow: hidden;
 }
 
 th:nth-child(2) { 
-  width: 80px; 
+  width: 50px; 
+  min-width: 50px;
+  max-width: 50px;
   text-align: center;
   padding: 8px 4px;
+  overflow: hidden;
 } /* STT */
-th:nth-child(3) { width: 200px; } /* Mã Phiếu */
-th:nth-child(4) { width: 200px; } /* Tên Phiếu */
-th:nth-child(5) { width: 160px; } /* Loại */
-th:nth-child(6) { width: 180px; } /* Giá Trị */
-th:nth-child(7) { width: 140px; } /* Số Lượng */
-th:nth-child(8) { width: 120px; } /* Ngày Bắt Đầu */
-th:nth-child(9) { width: 120px; } /* Ngày Kết Thúc */
-th:nth-child(10) { width: 140px; } /* Trạng Thái */
-th:nth-child(11) { width: 100px; } /* Thao Tác */
+th:nth-child(3) { 
+  width: 120px; 
+  min-width: 120px; 
+  max-width: 120px;
+  overflow: hidden;
+} /* Mã Phiếu */
+th:nth-child(4) { 
+  width: 150px; 
+  min-width: 150px; 
+  max-width: 150px;
+  overflow: hidden;
+} /* Tên Phiếu */
+th:nth-child(5) { 
+  width: 120px; 
+  min-width: 120px; 
+  max-width: 120px;
+  overflow: hidden;
+  text-align: center;
+} /* Loại */
+th:nth-child(6) { 
+  width: 180px; 
+  min-width: 180px; 
+  white-space: normal;
+  word-wrap: break-word;
+} /* Giá Trị */
+th:nth-child(7) { 
+  width: 100px; 
+  min-width: 100px; 
+  white-space: normal;
+} /* Số Lượng */
+th:nth-child(8) { 
+  width: 90px; 
+  min-width: 90px; 
+  max-width: 90px;
+  overflow: hidden;
+} /* Ngày Bắt Đầu */
+th:nth-child(9) { 
+  width: 90px; 
+  min-width: 90px; 
+  max-width: 90px;
+  overflow: hidden;
+} /* Ngày Kết Thúc */
+th:nth-child(10) { 
+  width: 100px; 
+  min-width: 100px; 
+  white-space: normal;
+} /* Trạng Thái */
+th:nth-child(11) { 
+  width: 100px; 
+  min-width: 100px; 
+  max-width: 100px;
+  white-space: normal;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  overflow-wrap: break-word;
+  overflow: hidden;
+} /* Thao Tác */
 
 /* Special border for action column */
 th:nth-child(11),
@@ -1062,18 +1362,18 @@ td:nth-child(11) {
 /* Special handling for long content columns */
 th:nth-child(3),
 td:nth-child(3) {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 200px;
+  white-space: normal;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
 }
 
 th:nth-child(4),
 td:nth-child(4) {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 200px;
+  white-space: normal;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
 }
 
 th:nth-child(2),
@@ -1088,17 +1388,54 @@ td:nth-child(2) {
 th:nth-child(5),
 td:nth-child(5) {
   white-space: nowrap;
-  overflow: visible;
+  overflow: hidden;
   text-align: center;
-  padding: 8px 12px;
+  padding: 8px 6px;
+  width: 120px;
+  max-width: 120px;
+  min-width: 120px;
 }
 
 th:nth-child(6),
 td:nth-child(6) {
   white-space: normal;
   word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
   line-height: 1.4;
-  max-width: 180px;
+  width: 200px;
+  max-width: 200px;
+  min-width: 200px;
+  overflow-wrap: break-word;
+  overflow: hidden;
+}
+
+th:nth-child(7),
+td:nth-child(7) {
+  white-space: normal;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  line-height: 1.4;
+  width: 120px;
+  max-width: 120px;
+  min-width: 120px;
+  overflow-wrap: break-word;
+  overflow: hidden;
+}
+
+th:nth-child(10),
+td:nth-child(10) {
+  white-space: normal;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  line-height: 1.4;
+  width: 120px;
+  max-width: 120px;
+  min-width: 120px;
+  overflow-wrap: break-word;
+  overflow: hidden;
 }
 
 tbody tr {
@@ -1140,20 +1477,29 @@ tbody tr:last-child {
 /* Status Badge Styles */
 .status-badge-container {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  justify-content: center;
   align-items: center;
+  width: 100%;
+  white-space: normal;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
 }
 
 .status-badge {
-  padding: 4px 12px;
+  padding: 4px 8px;
   border-radius: 20px;
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  min-width: 80px;
+  min-width: 60px;
   text-align: center;
+  white-space: normal;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  line-height: 1.2;
 }
 
 .badge-active {
@@ -1181,24 +1527,24 @@ tbody tr:last-child {
   color: #6b7280;
 }
 
-.toggle-container {
-  display: flex;
-  justify-content: center;
-}
-
-
 /* Toggle Switch Styles */
 .toggle-container {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 12px;
+  width: 100%;
+  white-space: normal;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
 }
 
 .toggle-switch {
   position: relative;
   display: inline-block;
-  width: 50px;
-  height: 24px;
+  width: 40px;
+  height: 20px;
 }
 
 .toggle-switch input {
@@ -1216,14 +1562,14 @@ tbody tr:last-child {
   bottom: 0;
   background-color: #cbd5e1;
   transition: 0.3s;
-  border-radius: 24px;
+  border-radius: 20px;
 }
 
 .toggle-slider:before {
   position: absolute;
   content: "";
-  height: 18px;
-  width: 18px;
+  height: 14px;
+  width: 14px;
   left: 3px;
   bottom: 3px;
   background-color: white;
@@ -1237,7 +1583,7 @@ input:checked + .toggle-slider {
 }
 
 input:checked + .toggle-slider:before {
-  transform: translateX(26px);
+  transform: translateX(20px);
 }
 
 .toggle-switch.disabled {
@@ -1274,6 +1620,19 @@ input:checked + .toggle-slider:before {
 /* Action Buttons */
 .action-buttons {
   display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  white-space: normal;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+.button-row {
+  display: flex;
   gap: 6px;
   align-items: center;
   justify-content: center;
@@ -1281,8 +1640,8 @@ input:checked + .toggle-slider:before {
 
 .btn-view,
 .btn-edit {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -1290,7 +1649,7 @@ input:checked + .toggle-slider:before {
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .btn-view {
@@ -1318,16 +1677,28 @@ input:checked + .toggle-slider:before {
 .voucher-type {
   display: flex;
   align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
 }
 
 .type-percent,
 .type-fixed {
-  padding: 4px 8px;
+  padding: 3px 8px;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100px;
+  width: fit-content;
+  display: inline-block;
 }
 
 .type-percent {
@@ -1345,12 +1716,23 @@ input:checked + .toggle-slider:before {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  width: 100%;
+  white-space: normal;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  overflow-wrap: break-word;
 }
 
 .discount-value .value {
   font-weight: 600;
   color: #1e293b;
   font-size: 14px;
+  white-space: normal;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  overflow-wrap: break-word;
 }
 
 .discount-value .max-discount,
@@ -1358,6 +1740,11 @@ input:checked + .toggle-slider:before {
   font-size: 11px;
   color: #64748b;
   line-height: 1.2;
+  white-space: normal;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  overflow-wrap: break-word;
 }
 
 /* Quantity Display Styles */
@@ -1365,12 +1752,23 @@ input:checked + .toggle-slider:before {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  width: 100%;
+  white-space: normal;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  overflow-wrap: break-word;
 }
 
 .quantity-number {
   font-weight: 600;
   color: #1e293b;
   font-size: 14px;
+  white-space: normal;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  overflow-wrap: break-word;
 }
 
 .quantity-type {
@@ -1380,6 +1778,11 @@ input:checked + .toggle-slider:before {
   border-radius: 4px;
   text-align: center;
   width: fit-content;
+  white-space: normal;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  overflow-wrap: break-word;
 }
 
 .quantity-type.private {
@@ -1505,6 +1908,22 @@ input:checked + .toggle-slider:before {
 }
 
 /* Responsive design */
+@media (max-width: 1200px) {
+  .filter-row {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+  }
+  
+  table {
+    min-width: 900px;
+  }
+  
+  th, td {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+}
+
 @media (max-width: 768px) {
   .content {
     padding: 16px;
@@ -1521,8 +1940,17 @@ input:checked + .toggle-slider:before {
   }
   
   .filter-row {
-    grid-template-columns: 1fr;
-    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+  }
+  
+  table {
+    min-width: 800px;
+  }
+  
+  th, td {
+    padding: 8px 10px;
+    font-size: 12px;
   }
   
   .header {
@@ -1597,6 +2025,17 @@ input:checked + .toggle-slider:before {
   .pagination-controls {
     flex-wrap: wrap;
     justify-content: center;
+  }
+}
+
+@media (max-width: 600px) {
+  .filter-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .filter-group {
+    width: 100%;
   }
 }
 

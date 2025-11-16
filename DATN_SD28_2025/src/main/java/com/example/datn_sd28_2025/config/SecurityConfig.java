@@ -1,11 +1,9 @@
-CacheConfigpackage com.example.datn_sd28_2025.config;
+package com.example.datn_sd28_2025.config;
 
+import com.example.datn_sd28_2025.filter.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -20,75 +18,75 @@ import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     @Autowired
-    private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
-
-    @Autowired
-    private JwtRequestFilter jwtRequestFilter;
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
+        // Sử dụng CustomPasswordEncoder để hỗ trợ cả {noop} và {bcrypt} prefix
         return new CustomPasswordEncoder();
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
-    }
-
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(authz -> authz
-                // Public endpoints - no authentication required
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/chat/**").permitAll()
-                .requestMatchers("/api/chatbot/**").permitAll()
-                .requestMatchers("/api/ultra-chat/**").permitAll()
-                .requestMatchers("/api/hoa-don/check").permitAll()
-                .requestMatchers("/api/test/**").permitAll()
-                .requestMatchers("/api/test/auth/**").permitAll()
-                .requestMatchers("/api/san-pham/**").permitAll()
-                .requestMatchers("/api/danh-muc/**").permitAll()
-                .requestMatchers("/api/hang/**").permitAll()
-                .requestMatchers("/api/khuyen-mai/**").permitAll()
-                .requestMatchers("/api/thong-ke/**").permitAll()
-                .requestMatchers("/api/hoa-don/**").permitAll()
-                .requestMatchers("/api/khach-hang/**").permitAll()
-                .requestMatchers("/api/nhan-vien/**").permitAll()
-                .requestMatchers("/ws/**").permitAll()
-                .requestMatchers("/topic/**").permitAll()
-                .requestMatchers("/app/**").permitAll()
-                .requestMatchers("/actuator/**").permitAll()
-                .requestMatchers("/error").permitAll()
-                .requestMatchers("/favicon.ico").permitAll()
-                // All other requests need authentication
-                .anyRequest().authenticated()
-            )
-            .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
-        // Add JWT filter
-        http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                // 🚫 Disable CSRF (stateless API)
+                .csrf(csrf -> csrf.disable())
+                // 🌐 CORS
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                // 🔒 Stateless session (JWT or OAuth2)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // ⚙️ Authorization rules
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/",
+                                "/index.html",
+                                "/assets/**",
+                                "/uploads/**",
+                                "/api/auth/**",
+                                "/api/customer/auth/login",
+                                "/api/customer/auth/register",
+                                "/api/customer/auth/forgot-password",
+                                "/api/customer/auth/verify-otp",
+                                "/api/customer/auth/reset-password",
+                                "/api/customer/auth/google-login",
+                                "/api/customer/auth/google-url",
+                                "/api/customer/auth/test-register",
+                                "/api/customer/auth/check-email",
+                                "/api/customer/auth/check-username",
+                                "/api/customer/auth/check-phone",
+                                "/api/public/**",
+                                "/api/san-pham/**",
+                                "/api/san-pham-pos/**",
+                                "/api/danh-muc/**",
+                                "/api/hang/**"
+                        ).permitAll()
+                        .requestMatchers(
+                                "/api/customer/auth/update-profile",
+                                "/api/customer/auth/me",
+                                "/api/customer/auth/change-password"
+                        ).authenticated()
+                        .anyRequest().permitAll()
+                )
+                // 🔐 Add JWT filter before UsernamePasswordAuthenticationFilter
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
+    // 🌍 CORS configuration
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L);
-        
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOriginPatterns(Arrays.asList("*"));
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(Arrays.asList("*"));
+        config.setAllowCredentials(true);
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/**", config);
         return source;
     }
 }

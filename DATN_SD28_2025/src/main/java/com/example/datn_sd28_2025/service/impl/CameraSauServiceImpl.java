@@ -23,6 +23,11 @@ public class CameraSauServiceImpl implements CameraSauService {
     }
 
     @Override
+    public List<CameraSauDTO> getActive() {
+        return cameraSauRepository.findAllActive().stream().map(this::convertToDto).toList();
+    }
+
+    @Override
     public Optional<CameraSauDTO> getById(Integer id) {
         return cameraSauRepository.findById(id).map(this::convertToDto);
     }
@@ -61,6 +66,15 @@ public class CameraSauServiceImpl implements CameraSauService {
         }
         
         cameraSauRepository.deleteById(id);
+    }
+
+    @Override
+    public void updateStatus(Integer id, Integer trangThai) {
+        CameraSau cameraSau = cameraSauRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy camera sau với ID: " + id));
+        cameraSau.setTrangThai(trangThai);
+        cameraSau.setNgayCapNhat(LocalDateTime.now());
+        cameraSauRepository.save(cameraSau);
     }
 
     private CameraSauDTO convertToDto(CameraSau cameraSau) {

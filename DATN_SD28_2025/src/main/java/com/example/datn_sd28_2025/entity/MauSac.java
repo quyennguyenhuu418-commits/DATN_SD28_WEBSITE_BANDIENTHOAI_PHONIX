@@ -27,6 +27,9 @@ public class MauSac {
     @Column(name = "ten_mau", length = 100)
     private String tenMau;
 
+    @Column(name = "ma_hex", length = 7)
+    private String maHex;
+
     @Column(name = "mo_ta", length = 255)
     private String moTa;
 

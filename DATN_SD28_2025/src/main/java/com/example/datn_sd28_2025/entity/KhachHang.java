@@ -37,7 +37,6 @@ public class KhachHang {
     @Column(name = "mat_khau", length = 255)
     private String matKhau;
 
-
     @Column(name = "ngay_sinh")
     private LocalDate ngaySinh;
 
@@ -46,6 +45,9 @@ public class KhachHang {
 
     @Column(name = "email", length = 255)
     private String email;
+
+    @Column(name = "google_id", length = 255)
+    private String googleId;
 
     @Column(name = "dia_chi", length = 500, columnDefinition = "NVARCHAR(500)")
     private String diaChi;
@@ -70,10 +72,146 @@ public class KhachHang {
     @JsonIgnore
     private List<HoaDon> hoaDons;
 
-
-
-
     @OneToMany(mappedBy = "khachHang", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<KhachHangGiamGia> khachHangGiamGias;
+
+    // Static builder method for compatibility
+    public static KhachHangBuilder builder() {
+        return new KhachHangBuilder();
+    }
+
+    public static class KhachHangBuilder {
+        private Integer id;
+        private String maKhachHang;
+        private String hoTen;
+        private String soDienThoai;
+        private String taiKhoan;
+        private String matKhau;
+        private LocalDate ngaySinh;
+        private String gioiTinh;
+        private String email;
+        private String googleId;
+        private String diaChi;
+        private LocalDateTime ngayTao;
+        private LocalDateTime ngayCapNhat;
+        private Integer trangThai;
+        private String nguoiTao;
+        private String nguoiCapNhat;
+        private List<HoaDon> hoaDons;
+        private List<KhachHangGiamGia> khachHangGiamGias;
+
+        public KhachHangBuilder id(Integer id) {
+            this.id = id;
+            return this;
+        }
+
+        public KhachHangBuilder maKhachHang(String maKhachHang) {
+            this.maKhachHang = maKhachHang;
+            return this;
+        }
+
+        public KhachHangBuilder hoTen(String hoTen) {
+            this.hoTen = hoTen;
+            return this;
+        }
+
+        public KhachHangBuilder soDienThoai(String soDienThoai) {
+            this.soDienThoai = soDienThoai;
+            return this;
+        }
+
+        public KhachHangBuilder taiKhoan(String taiKhoan) {
+            this.taiKhoan = taiKhoan;
+            return this;
+        }
+
+        public KhachHangBuilder matKhau(String matKhau) {
+            this.matKhau = matKhau;
+            return this;
+        }
+
+        public KhachHangBuilder ngaySinh(LocalDate ngaySinh) {
+            this.ngaySinh = ngaySinh;
+            return this;
+        }
+
+        public KhachHangBuilder gioiTinh(String gioiTinh) {
+            this.gioiTinh = gioiTinh;
+            return this;
+        }
+
+        public KhachHangBuilder email(String email) {
+            this.email = email;
+            return this;
+        }
+
+        public KhachHangBuilder googleId(String googleId) {
+            this.googleId = googleId;
+            return this;
+        }
+
+        public KhachHangBuilder diaChi(String diaChi) {
+            this.diaChi = diaChi;
+            return this;
+        }
+
+        public KhachHangBuilder ngayTao(LocalDateTime ngayTao) {
+            this.ngayTao = ngayTao;
+            return this;
+        }
+
+        public KhachHangBuilder ngayCapNhat(LocalDateTime ngayCapNhat) {
+            this.ngayCapNhat = ngayCapNhat;
+            return this;
+        }
+
+        public KhachHangBuilder trangThai(Integer trangThai) {
+            this.trangThai = trangThai;
+            return this;
+        }
+
+        public KhachHangBuilder nguoiTao(String nguoiTao) {
+            this.nguoiTao = nguoiTao;
+            return this;
+        }
+
+        public KhachHangBuilder nguoiCapNhat(String nguoiCapNhat) {
+            this.nguoiCapNhat = nguoiCapNhat;
+            return this;
+        }
+
+        public KhachHangBuilder hoaDons(List<HoaDon> hoaDons) {
+            this.hoaDons = hoaDons;
+            return this;
+        }
+
+        public KhachHangBuilder khachHangGiamGias(List<KhachHangGiamGia> khachHangGiamGias) {
+            this.khachHangGiamGias = khachHangGiamGias;
+            return this;
+        }
+
+        public KhachHang build() {
+            KhachHang khachHang = new KhachHang();
+            khachHang.setId(this.id);
+            khachHang.setMaKhachHang(this.maKhachHang);
+            khachHang.setHoTen(this.hoTen);
+            khachHang.setSoDienThoai(this.soDienThoai);
+            khachHang.setTaiKhoan(this.taiKhoan);
+            khachHang.setMatKhau(this.matKhau);
+            khachHang.setNgaySinh(this.ngaySinh);
+            khachHang.setGioiTinh(this.gioiTinh);
+            khachHang.setEmail(this.email);
+            khachHang.setGoogleId(this.googleId);
+            khachHang.setDiaChi(this.diaChi);
+            khachHang.setNgayTao(this.ngayTao);
+            khachHang.setNgayCapNhat(this.ngayCapNhat);
+            khachHang.setTrangThai(this.trangThai);
+            khachHang.setNguoiTao(this.nguoiTao);
+            khachHang.setNguoiCapNhat(this.nguoiCapNhat);
+            khachHang.setHoaDons(this.hoaDons);
+            khachHang.setKhachHangGiamGias(this.khachHangGiamGias);
+            return khachHang;
+        }
+    }
 }

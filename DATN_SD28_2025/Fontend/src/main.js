@@ -1,17 +1,30 @@
+// ===== CSS & Style =====
 import './assets/main.css'
 import './assets/css/dark-mode.css'
+import 'bootstrap/dist/css/bootstrap.min.css'
+import 'bootstrap/dist/js/bootstrap.bundle.min.js'
+import 'bootstrap-icons/font/bootstrap-icons.css'
 
+// ===== Vue Core =====
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
+
+// ===== Polyfills & Utils =====
+import './polyfills/global.js'
+import { MessengerToggle } from './utils/messengerToggle.js'
+
+// ===== Composables =====
 import { useTranslation } from './composables/useTranslation.js'
 
-// Import FontAwesome
-import 'bootstrap/dist/css/bootstrap.min.css'
-import 'bootstrap/dist/js/bootstrap.bundle.min.js' // ← THÊM BOOTSTRAP JS
-import 'bootstrap-icons/font/bootstrap-icons.css'
+// ===== Components =====
+import CustomerChatWidget from './components/CustomerChatWidget.vue'
 
+// ===== Stores =====
+import { useAuthStore } from './stores/authStore'
+
+// ===== FontAwesome Setup =====
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {
@@ -129,17 +142,40 @@ library.add(
   faStop
 )
 
+
+// ===== APP INIT =====
 const app = createApp(App)
 const pinia = createPinia()
 
-// Register FontAwesome component
+// Register global components
+app.component('CustomerChatWidget', CustomerChatWidget)
 app.component('font-awesome-icon', FontAwesomeIcon)
 
-// Initialize global translation system
+// Initialize translation
 const { initLanguage } = useTranslation()
 initLanguage()
 
-app.use(router)
 app.use(pinia)
+app.use(router)
 
+// ===== AUTH & MESSENGER INIT =====
+const authStore = useAuthStore()
+
+if (import.meta.env.DEV) {
+  console.log('Initializing auth store...')
+}
+
+authStore.initializeAuth()
+  .then(() => {
+    if (import.meta.env.DEV) {
+      console.log('Auth initialization completed')
+    }
+  })
+  .catch(error => {
+    console.error('Auth initialization failed:', error)
+  })
+
+MessengerToggle.init()
+
+// ===== MOUNT =====
 app.mount('#app')

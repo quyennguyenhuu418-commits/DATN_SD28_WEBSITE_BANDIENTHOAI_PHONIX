@@ -47,6 +47,9 @@ interface VariantDetail {
   tenMauSac?: string
   imeis?: string[]
   imageUrls?: string[]
+  giaGoc?: number
+  giaSauGiam?: number
+  giamPhanTram?: number
 }
 
 interface Review {
@@ -80,6 +83,11 @@ const quantity = ref(1)
 
 const relatedProductIndex = ref(0)
 const windowWidth = ref(window.innerWidth)
+
+// State quản lý scroll cho related products
+const scrollPosition = ref(0)
+const isScrollAtEnd = ref(false)
+const scrollContainer = ref<HTMLElement | null>(null)
 
 const reviewForm = ref({
   tenNguoiDung: '',
@@ -161,7 +169,70 @@ const stockQuantity = computed(() => {
   return currentVariant.value?.soLuong || 0
 })
 
+// Computed properties for discount pricing
+const currentPrice = computed(() => {
+  if (!currentVariant.value) return 0
+  // Ưu tiên giá sau giảm, nếu không có thì dùng giá gốc
+  return currentVariant.value.giaSauGiam || currentVariant.value.donGia || 0
+})
+
+const originalPrice = computed(() => {
+  if (!currentVariant.value) return null
+  // Nếu có giá gốc và giá sau giảm khác nhau, hiển thị giá gốc
+  if (currentVariant.value.giaGoc && currentVariant.value.giaSauGiam) {
+    if (currentVariant.value.giaGoc > currentVariant.value.giaSauGiam) {
+      return currentVariant.value.giaGoc
+    }
+  }
+  // Nếu có giảm phần trăm và giá gốc, tính giá gốc từ giá sau giảm
+  if (currentVariant.value.giamPhanTram && currentVariant.value.giamPhanTram > 0) {
+    const discountedPrice = currentVariant.value.giaSauGiam || currentVariant.value.donGia
+    const discountPercent = currentVariant.value.giamPhanTram / 100
+    const original = discountedPrice / (1 - discountPercent)
+    return Math.round(original)
+  }
+  return null
+})
+
+const discountPercent = computed(() => {
+  if (!currentVariant.value) return 0
+  return currentVariant.value.giamPhanTram || 0
+})
+
 const toastRef = ref<InstanceType<typeof Toast> | null>(null)
+
+// Confirm modal for actions (add to cart / buy now)
+const confirmModal = ref<{ show: boolean; loading: boolean; action: 'add' | 'buy' | null }>(
+  { show: false, loading: false, action: null }
+)
+
+function openConfirm(action: 'add' | 'buy') {
+  if (!currentVariant.value || !isInStock.value) {
+    toastRef.value?.showToast('error', 'Lỗi', 'Sản phẩm hiện không có sẵn')
+    return
+  }
+  confirmModal.value = { show: true, loading: false, action }
+}
+
+function closeConfirm() {
+  if (confirmModal.value.loading) return
+  confirmModal.value.show = false
+}
+
+async function confirmProceed() {
+  if (!confirmModal.value.action) return
+  confirmModal.value.loading = true
+  try {
+    if (confirmModal.value.action === 'add') {
+      await addToCart()
+    } else {
+      await buyNow()
+    }
+    confirmModal.value.show = false
+  } finally {
+    confirmModal.value.loading = false
+  }
+}
 
 function formatPrice(price: number): string {
   return new Intl.NumberFormat('vi-VN', {
@@ -194,7 +265,77 @@ async function loadProductDetail() {
 
   loading.value = true
   try {
+    // Load chi tiết sản phẩm từ API view
     const { data } = await api.get<ProductDetail>(`/api/san-pham/${productId.value}/view`)
+
+    // Load từ API san-pham-pos để có thông tin khuyến mãi (giống ShopPage.vue)
+    try {
+      const posResponse = await api.get(`/api/san-pham-pos`)
+
+      if (posResponse.data && Array.isArray(posResponse.data)) {
+        // Tìm tất cả variants của sản phẩm này trong danh sách từ san-pham-pos
+        // API san-pham-pos trả về các chi tiết sản phẩm (variants) với id sản phẩm hoặc chiTietSanPhamId
+        const posVariants = posResponse.data.filter((p: any) => {
+          // Kiểm tra nhiều cách để match sản phẩm
+          return p.id === productId.value ||
+                 (p.sanPhamId && p.sanPhamId === productId.value) ||
+                 (data.id && p.id === data.id) ||
+                 (p.tenSanPham && data.tenSanPham && p.tenSanPham === data.tenSanPham)
+        })
+
+        console.log('🔍 Product ID:', productId.value, 'Found POS variants:', posVariants.length)
+
+        // Merge thông tin khuyến mãi từ posVariants vào variants của product
+        if (data.variants && data.variants.length > 0 && posVariants.length > 0) {
+          data.variants.forEach((variant: any) => {
+            // Tìm variant tương ứng trong posVariants theo chiTietSanPhamId hoặc các thuộc tính khác
+            const matchingPosVariant = posVariants.find((pv: any) => {
+              // Match theo chiTietSanPhamId (variant ID)
+              if (pv.chiTietSanPhamId === variant.id) return true
+              // Match theo các thuộc tính: RAM, ROM, Màu sắc
+              if (pv.idRam === variant.idRam &&
+                  pv.idRom === variant.idRom &&
+                  pv.idMauSac === variant.idMauSac) return true
+              return false
+            })
+
+            if (matchingPosVariant) {
+              console.log('✅ Found matching POS variant for variant ID:', variant.id, matchingPosVariant)
+              // Áp dụng thông tin khuyến mãi từ posVariant
+              if (matchingPosVariant.giamPhanTram && matchingPosVariant.giamPhanTram > 0) {
+                variant.giamPhanTram = matchingPosVariant.giamPhanTram
+              }
+              if (matchingPosVariant.giaGoc) {
+                variant.giaGoc = matchingPosVariant.giaGoc
+              }
+              if (matchingPosVariant.giaSauGiam) {
+                variant.giaSauGiam = matchingPosVariant.giaSauGiam
+              }
+              console.log('💰 Applied discount to variant:', {
+                id: variant.id,
+                giamPhanTram: variant.giamPhanTram,
+                giaGoc: variant.giaGoc,
+                giaSauGiam: variant.giaSauGiam,
+                donGia: variant.donGia
+              })
+            } else if (posVariants.length > 0) {
+              // Nếu không tìm thấy variant cụ thể, thử dùng thông tin từ variant đầu tiên (nếu có)
+              const firstPosVariant = posVariants[0]
+              if (firstPosVariant && firstPosVariant.giamPhanTram && firstPosVariant.giamPhanTram > 0) {
+                console.log('⚠️ Using first POS variant discount for variant:', variant.id)
+                variant.giamPhanTram = firstPosVariant.giamPhanTram
+                if (firstPosVariant.giaGoc) variant.giaGoc = firstPosVariant.giaGoc
+                if (firstPosVariant.giaSauGiam) variant.giaSauGiam = firstPosVariant.giaSauGiam
+              }
+            }
+          })
+        }
+      }
+    } catch (posError) {
+      console.warn('Không thể load thông tin khuyến mãi từ san-pham-pos:', posError)
+      // Tiếp tục với dữ liệu từ API view
+    }
+
     product.value = data
 
     if (data.variants && data.variants.length > 0) {
@@ -210,7 +351,7 @@ async function loadProductDetail() {
 
   } catch (error) {
     console.error('Lỗi khi tải chi tiết sản phẩm:', error)
-    Toast.error('Không thể tải thông tin sản phẩm')
+    toastRef.value?.error('Lỗi', 'Không thể tải thông tin sản phẩm')
   } finally {
     loading.value = false
   }
@@ -218,25 +359,55 @@ async function loadProductDetail() {
 
 async function loadRelatedProducts() {
   try {
-    // Try different endpoint or provide productId as parameter
-    const { data } = await api.get<ProductDetail[]>(`/api/san-pham/related/${productId.value}`)
-    relatedProducts.value = data.filter(p => p.id !== productId.value).slice(0, 8)
-  } catch (error) {
-    console.error('Lỗi khi tải sản phẩm liên quan:', error)
-    // Fallback: load sản phẩm cùng danh mục
-    try {
-      if (product.value?.idDanhMuc) {
-        const { data } = await api.get<ProductDetail[]>(`/api/san-pham/danh-muc/${product.value.idDanhMuc}`)
-        relatedProducts.value = data.filter(p => p.id !== product.value?.id).slice(0, 8)
+    // Load từ /api/san-pham-pos giống CartPage để có đầy đủ thông tin (giá, hình ảnh, etc.)
+    const { data } = await api.get(`/api/san-pham-pos`)
+
+    if (data && Array.isArray(data)) {
+      // Lọc bỏ sản phẩm hiện tại và lấy tối đa 8 sản phẩm
+      const currentProductId = product.value?.id
+      relatedProducts.value = data
+        .filter((p: any) => {
+          // Lọc theo id sản phẩm hoặc chiTietSanPhamId
+          if (!currentProductId) return true
+
+          // So sánh với nhiều trường có thể có
+          const pId = p.id || p.sanPhamId || p.chiTietSanPhamId
+          if (pId && currentProductId) {
+            return pId !== currentProductId
+          }
+
+          // Nếu không có ID để so sánh, giữ lại sản phẩm
+          return true
+        })
+        .slice(0, 8)
+        .map((p: any) => ({
+          id: p.id || p.sanPhamId || p.chiTietSanPhamId,
+          sanPhamId: p.sanPhamId || p.id,
+          chiTietSanPhamId: p.chiTietSanPhamId || p.id,
+          tenSanPham: p.tenSanPham || p.ten,
+          ten: p.ten || p.tenSanPham,
+          gia: p.gia || p.donGia || 0,
+          hinhAnh: p.hinhAnh || p.anh || p.imageUrls?.[0],
+          anh: p.anh || p.hinhAnh || p.imageUrls?.[0],
+          variants: p.variants || [{
+            id: p.chiTietSanPhamId || p.id,
+            donGia: p.gia || p.donGia || 0
+          }]
+        }))
+    } else {
+      // Fallback: load sản phẩm cùng danh mục
+      if (product.value?.danhMucId) {
+        const { data: categoryData } = await api.get<ProductDetail[]>(`/api/san-pham/danh-muc/${product.value.danhMucId}`)
+        relatedProducts.value = categoryData.filter(p => p.id !== product.value?.id).slice(0, 8)
       } else {
         // Fallback cuối: load sản phẩm ngẫu nhiên
-        const { data } = await api.get<ProductDetail[]>('/api/san-pham')
-        relatedProducts.value = data.filter(p => p.id !== product.value?.id).slice(0, 8)
+        const { data: allData } = await api.get<ProductDetail[]>('/api/san-pham')
+        relatedProducts.value = allData.filter(p => p.id !== product.value?.id).slice(0, 8)
       }
-    } catch (fallbackError) {
-      console.error('Lỗi khi tải sản phẩm fallback:', fallbackError)
-      relatedProducts.value = []
     }
+  } catch (error) {
+    console.error('Lỗi khi tải sản phẩm liên quan:', error)
+    relatedProducts.value = []
   }
 }
 
@@ -244,8 +415,12 @@ async function loadReviews() {
   try {
     const { data } = await api.get<Review[]>(`/api/reviews/san-pham/${productId.value}`)
     reviews.value = data || []
-  } catch (error) {
-    console.error('Lỗi khi tải đánh giá:', error)
+  } catch (error: any) {
+    // 401 là bình thường khi người dùng không đăng nhập (website public)
+    // Chỉ log lỗi nếu không phải 401
+    if (error?.response?.status !== 401) {
+      console.error('Lỗi khi tải đánh giá:', error)
+    }
     reviews.value = []
   }
 }
@@ -262,8 +437,12 @@ async function loadRatingStats() {
       product.value.averageRating = data?.averageRating || 0
       product.value.reviewCount = data?.reviewCount || 0
     }
-  } catch (error) {
-    console.error('Lỗi khi tải thống kê đánh giá:', error)
+  } catch (error: any) {
+    // 401 là bình thường khi người dùng không đăng nhập (website public)
+    // Chỉ log lỗi nếu không phải 401
+    if (error?.response?.status !== 401) {
+      console.error('Lỗi khi tải thống kê đánh giá:', error)
+    }
     ratingStats.value = {
       averageRating: 0,
       reviewCount: 0
@@ -294,6 +473,14 @@ function prevImage() {
     selectedImageIndex.value = selectedImageIndex.value === 0
       ? productImages.value.length - 1
       : selectedImageIndex.value - 1
+  }
+}
+
+function updateCurrentVariant() {
+  // Cập nhật selectedVariant để đồng bộ với currentVariant computed
+  // currentVariant tự động cập nhật dựa trên selectedColor và selectedStorage
+  if (currentVariant.value) {
+    selectedVariant.value = currentVariant.value
   }
 }
 
@@ -345,13 +532,14 @@ function addToCart() {
 
   try {
     // Tạo cart item theo format của cartStore
+    // Sử dụng giá sau giảm (currentPrice) thay vì giá gốc (donGia)
     const cartItem = {
       chiTietSanPhamId: currentVariant.value.id,
       tenSanPham: product.value?.tenSanPham || '',
       tenRam: getStorageName(currentVariant.value.idRom),
       tenRom: getStorageName(currentVariant.value.idRom),
       tenMauSac: getColorName(currentVariant.value.idMauSac),
-      gia: currentVariant.value.donGia,
+      gia: currentPrice.value, // Sử dụng giá sau giảm
       quantity: quantity.value,
       hinhAnh: getMainImageUrl(),
       soLuongTon: currentVariant.value.soLuong
@@ -363,7 +551,7 @@ function addToCart() {
     // Hiển thị thông báo thành công
     console.log('Thêm vào giỏ hàng thành công')
     toastRef.value?.showToast('success', 'Thành công', 'Thêm vào giỏ hàng thành công')
-    
+
     // Fallback notification nếu Toast không hoạt động
     if (!toastRef.value) {
       alert('Thêm vào giỏ hàng thành công!')
@@ -378,23 +566,38 @@ function addToCart() {
   }
 }
 
-function buyNow() {
+async function buyNow() {
   if (!currentVariant.value || !isInStock.value) {
-    Toast.error('Sản phẩm hiện không có sẵn')
+    toastRef.value?.showToast('error', 'Lỗi', 'Sản phẩm hiện không có sẵn')
     return
   }
 
-  Toast.success('Đang chuyển đến trang thanh toán...')
+  // Thêm sản phẩm vào giỏ hàng trước khi chuyển đến trang đặt hàng
+  await addToCart()
+
+  // Chờ một chút để đảm bảo cart store được cập nhật
+  await new Promise(resolve => setTimeout(resolve, 100))
+
+  // Chuyển đến trang đặt hàng với thông tin sản phẩm
+  router.push({
+    path: '/dat-hang',
+    query: {
+      productId: product.value?.id,
+      variantId: currentVariant.value?.id,
+      quantity: quantity.value,
+      buyNow: 'true' // Đánh dấu đây là mua ngay
+    }
+  })
 }
 
 function submitReview() {
   if (!reviewForm.value.tenNguoiDung.trim()) {
-    Toast.error('Vui lòng nhập tên của bạn')
+    toastRef.value?.error('Lỗi', 'Vui lòng nhập tên của bạn')
     return
   }
 
   if (!reviewForm.value.comment.trim()) {
-    Toast.error('Vui lòng nhập đánh giá')
+    toastRef.value?.error('Lỗi', 'Vui lòng nhập đánh giá')
     return
   }
 
@@ -410,14 +613,14 @@ function submitReview() {
 
   api.post('/api/reviews', reviewData)
     .then(() => {
-      Toast.success('Đánh giá đã được gửi, chờ duyệt')
+      toastRef.value?.success('Thành công', 'Đánh giá đã được gửi, chờ duyệt')
       reviewForm.value = { tenNguoiDung: '', rating: 5, comment: '' }
       loadReviews()
       loadRatingStats()
     })
     .catch(error => {
       console.error('Lỗi khi gửi đánh giá:', error)
-      Toast.error('Có lỗi xảy ra khi gửi đánh giá')
+      toastRef.value?.error('Lỗi', 'Có lỗi xảy ra khi gửi đánh giá')
     })
     .finally(() => {
       isSubmittingReview.value = false
@@ -428,8 +631,60 @@ function goBack() {
   router.go(-1)
 }
 
-function viewProduct(productId: number) {
-  router.push({ name: 'product-detail', params: { id: productId } })
+function viewProduct(productId: number | string | undefined) {
+  if (!productId) {
+    console.warn('viewProduct: No product ID provided')
+    return
+  }
+  // Đảm bảo ID là số hoặc string hợp lệ
+  const id = typeof productId === 'number' ? productId : parseInt(String(productId), 10)
+  if (isNaN(id)) {
+    console.warn('viewProduct: Invalid product ID:', productId)
+    return
+  }
+  router.push({ name: 'product-detail', params: { id: String(id) } })
+}
+
+// Logic xử lý scroll cho related products
+const scrollLeft = () => {
+  if (scrollContainer.value) {
+    const cardWidth = 300 // 280px + 20px gap
+    const newPosition = Math.max(0, scrollPosition.value - cardWidth)
+    scrollContainer.value.scrollTo({
+      left: newPosition,
+      behavior: 'smooth'
+    })
+    scrollPosition.value = newPosition
+    updateScrollState()
+  }
+}
+
+const scrollRight = () => {
+  if (scrollContainer.value) {
+    const cardWidth = 300 // 280px + 20px gap
+    const maxScroll = scrollContainer.value.scrollWidth - scrollContainer.value.clientWidth
+    const newPosition = Math.min(maxScroll, scrollPosition.value + cardWidth)
+    scrollContainer.value.scrollTo({
+      left: newPosition,
+      behavior: 'smooth'
+    })
+    scrollPosition.value = newPosition
+    updateScrollState()
+  }
+}
+
+const updateScrollState = () => {
+  if (scrollContainer.value) {
+    const maxScroll = scrollContainer.value.scrollWidth - scrollContainer.value.clientWidth
+    isScrollAtEnd.value = scrollPosition.value >= maxScroll
+  }
+}
+
+const handleScroll = () => {
+  if (scrollContainer.value) {
+    scrollPosition.value = scrollContainer.value.scrollLeft
+    updateScrollState()
+  }
 }
 
 function createPlaceholderImage(text: string): string {
@@ -449,14 +704,21 @@ function createPlaceholderImage(text: string): string {
   return canvas.toDataURL()
 }
 
-function getRelatedProductImage(product: ProductDetail): string {
+function getRelatedProductImage(product: ProductDetail | any): string {
+  // Nếu product có hinhAnh trực tiếp (từ san-pham-pos)
+  if (product.hinhAnh || product.anh) {
+    return createFullImageUrl(product.hinhAnh || product.anh)
+  }
+
+  // Nếu có variants
   if (product.variants && product.variants.length > 0) {
     const firstVariant = product.variants[0]
     if (firstVariant.imageUrls && firstVariant.imageUrls.length > 0) {
       return createFullImageUrl(firstVariant.imageUrls[0])
     }
   }
-  return createPlaceholderImage(product.tenSanPham)
+
+  return createPlaceholderImage(product.tenSanPham || product.ten || 'No Image')
 }
 
 function createFullImageUrl(imagePath: string): string {
@@ -510,6 +772,58 @@ function getStoragePrice(storageId: number): number {
   return fallbackVariant?.donGia || 0
 }
 
+function getStoragePriceAfterDiscount(storageId: number): number {
+  if (!product.value?.variants) return 0
+
+  // Tìm variant có storage này (với màu hiện tại)
+  const variant = product.value.variants.find(v =>
+    v.idRom === storageId && v.idMauSac === selectedColor.value
+  )
+
+  if (variant) {
+    return variant.giaSauGiam || variant.donGia || 0
+  }
+
+  // Fallback: tìm variant có storage này (bất kỳ màu nào)
+  const fallbackVariant = product.value.variants.find(v => v.idRom === storageId)
+  return fallbackVariant?.giaSauGiam || fallbackVariant?.donGia || 0
+}
+
+function getStorageOriginalPrice(storageId: number): number | null {
+  if (!product.value?.variants) return null
+
+  // Tìm variant có storage này (với màu hiện tại)
+  const variant = product.value.variants.find(v =>
+    v.idRom === storageId && v.idMauSac === selectedColor.value
+  )
+
+  if (variant) {
+    if (variant.giaGoc && variant.giaSauGiam && variant.giaGoc > variant.giaSauGiam) {
+      return variant.giaGoc
+    }
+    if (variant.giamPhanTram && variant.giamPhanTram > 0) {
+      const discountedPrice = variant.giaSauGiam || variant.donGia
+      const discountPercent = variant.giamPhanTram / 100
+      return Math.round(discountedPrice / (1 - discountPercent))
+    }
+  }
+
+  // Fallback: tìm variant có storage này (bất kỳ màu nào)
+  const fallbackVariant = product.value.variants.find(v => v.idRom === storageId)
+  if (fallbackVariant) {
+    if (fallbackVariant.giaGoc && fallbackVariant.giaSauGiam && fallbackVariant.giaGoc > fallbackVariant.giaSauGiam) {
+      return fallbackVariant.giaGoc
+    }
+    if (fallbackVariant.giamPhanTram && fallbackVariant.giamPhanTram > 0) {
+      const discountedPrice = fallbackVariant.giaSauGiam || fallbackVariant.donGia
+      const discountPercent = fallbackVariant.giamPhanTram / 100
+      return Math.round(discountedPrice / (1 - discountPercent))
+    }
+  }
+
+  return null
+}
+
 function getColorPrice(colorId: number): number {
   if (!product.value?.variants) return 0
 
@@ -525,6 +839,58 @@ function getColorPrice(colorId: number): number {
   // Fallback: tìm variant có màu này (bất kỳ storage nào)
   const fallbackVariant = product.value.variants.find(v => v.idMauSac === colorId)
   return fallbackVariant?.donGia || 0
+}
+
+function getColorPriceAfterDiscount(colorId: number): number {
+  if (!product.value?.variants) return 0
+
+  // Tìm variant có màu này (với storage hiện tại)
+  const variant = product.value.variants.find(v =>
+    v.idMauSac === colorId && v.idRom === selectedStorage.value
+  )
+
+  if (variant) {
+    return variant.giaSauGiam || variant.donGia || 0
+  }
+
+  // Fallback: tìm variant có màu này (bất kỳ storage nào)
+  const fallbackVariant = product.value.variants.find(v => v.idMauSac === colorId)
+  return fallbackVariant?.giaSauGiam || fallbackVariant?.donGia || 0
+}
+
+function getColorOriginalPrice(colorId: number): number | null {
+  if (!product.value?.variants) return null
+
+  // Tìm variant có màu này (với storage hiện tại)
+  const variant = product.value.variants.find(v =>
+    v.idMauSac === colorId && v.idRom === selectedStorage.value
+  )
+
+  if (variant) {
+    if (variant.giaGoc && variant.giaSauGiam && variant.giaGoc > variant.giaSauGiam) {
+      return variant.giaGoc
+    }
+    if (variant.giamPhanTram && variant.giamPhanTram > 0) {
+      const discountedPrice = variant.giaSauGiam || variant.donGia
+      const discountPercent = variant.giamPhanTram / 100
+      return Math.round(discountedPrice / (1 - discountPercent))
+    }
+  }
+
+  // Fallback: tìm variant có màu này (bất kỳ storage nào)
+  const fallbackVariant = product.value.variants.find(v => v.idMauSac === colorId)
+  if (fallbackVariant) {
+    if (fallbackVariant.giaGoc && fallbackVariant.giaSauGiam && fallbackVariant.giaGoc > fallbackVariant.giaSauGiam) {
+      return fallbackVariant.giaGoc
+    }
+    if (fallbackVariant.giamPhanTram && fallbackVariant.giamPhanTram > 0) {
+      const discountedPrice = fallbackVariant.giaSauGiam || fallbackVariant.donGia
+      const discountPercent = fallbackVariant.giamPhanTram / 100
+      return Math.round(discountedPrice / (1 - discountPercent))
+    }
+  }
+
+  return null
 }
 
 function updateMainImageForColor(colorId: number) {
@@ -641,10 +1007,23 @@ function handleResize() {
 onMounted(() => {
   loadProductDetail()
   window.addEventListener('resize', handleResize)
+
+  // Thêm event listener cho scroll container sau khi component mount
+  setTimeout(() => {
+    if (scrollContainer.value) {
+      scrollContainer.value.addEventListener('scroll', handleScroll)
+      updateScrollState()
+    }
+  }, 100)
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
+
+  // Remove scroll event listener
+  if (scrollContainer.value) {
+    scrollContainer.value.removeEventListener('scroll', handleScroll)
+  }
 })
 </script>
 
@@ -742,8 +1121,13 @@ onUnmounted(() => {
 
               <!-- Price Section -->
               <div class="price-section">
-                <div class="current-price">
-                  {{ currentVariant ? formatPrice(currentVariant.donGia) : 'Liên hệ' }}
+                <div class="price-wrapper">
+                  <div class="current-price">
+                    {{ currentVariant ? formatPrice(currentPrice) : 'Liên hệ' }}
+                  </div>
+                  <span v-if="originalPrice" class="old-price">
+                    {{ formatPrice(originalPrice) }}
+                  </span>
                 </div>
                 <div class="installment-info">
                   <button class="installment-btn">Trả góp 0%</button>
@@ -762,7 +1146,12 @@ onUnmounted(() => {
                         :class="['version-btn', { active: selectedStorage === storage.id }]"
                   >
                         <div class="version-name">{{ storage.name }}</div>
-                        <div class="version-price">{{ formatPrice(getStoragePrice(storage.id)) }}</div>
+                        <div class="version-price-wrapper">
+                          <div class="version-price">{{ formatPrice(getStoragePriceAfterDiscount(storage.id)) }}</div>
+                          <div v-if="getStorageOriginalPrice(storage.id) !== null" class="version-old-price">
+                            {{ formatPrice(getStorageOriginalPrice(storage.id)!) }}
+                          </div>
+                        </div>
                         <div v-if="selectedStorage === storage.id" class="checkmark">✓</div>
                   </button>
                 </div>
@@ -783,7 +1172,12 @@ onUnmounted(() => {
                     </div>
                     <div class="color-info">
                       <div class="color-name">{{ color.name }}</div>
-                      <div class="color-price">{{ formatPrice(getColorPrice(color.id)) }}</div>
+                      <div class="color-price-wrapper">
+                        <div class="color-price">{{ formatPrice(getColorPriceAfterDiscount(color.id)) }}</div>
+                        <div v-if="getColorOriginalPrice(color.id) !== null" class="color-old-price">
+                          {{ formatPrice(getColorOriginalPrice(color.id)!) }}
+                        </div>
+                      </div>
                     </div>
                     <div v-if="selectedColor === color.id" class="checkmark">✓</div>
                   </button>
@@ -812,10 +1206,10 @@ onUnmounted(() => {
 
               <!-- Action Buttons -->
               <div class="action-buttons">
-                <button @click="buyNow" :disabled="!isInStock" class="btn-buy-now">
+                <button @click="openConfirm('buy')" :disabled="!isInStock" class="btn-buy-now">
                   {{ isInStock ? 'MUA NGAY' : 'HẾT HÀNG' }}
                 </button>
-                <button @click="addToCart" :disabled="!isInStock" class="btn-add-cart">
+                <button @click="openConfirm('add')" :disabled="!isInStock" class="btn-add-cart">
                   Thêm vào giỏ hàng
                 </button>
               </div>
@@ -1026,29 +1420,42 @@ onUnmounted(() => {
       </div>
 
       <!-- Related Products -->
-      <div v-if="relatedProducts.length > 0" class="related-section">
-        <div class="container">
-          <h2 class="section-title">Sản phẩm liên quan</h2>
-          <div class="related-grid">
-            <div
-              v-for="relatedProduct in relatedProducts"
-              :key="relatedProduct.id"
-              @click="viewProduct(relatedProduct.id)"
-                class="related-card"
-            >
-              <div class="related-image">
-                <img :src="getRelatedProductImage(relatedProduct)" :alt="relatedProduct.tenSanPham" />
-              </div>
-              <div class="related-info">
-                <h3 class="related-name">{{ relatedProduct.tenSanPham }}</h3>
-                <div class="related-price">
-                  {{ relatedProduct.variants?.[0] ? formatPrice(relatedProduct.variants[0].donGia) : 'Liên hệ' }}
+      <section v-if="relatedProducts.length > 0" class="related-products">
+        <div class="related-container">
+          <h3 class="related-title">Sản phẩm liên quan</h3>
+          <div class="related-wrapper">
+            <button class="scroll-btn scroll-left" @click="scrollLeft" :disabled="scrollPosition === 0">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <div class="related-scroll-container" ref="scrollContainer">
+              <div class="related-grid">
+                <div
+                  v-for="(relatedProduct, index) in relatedProducts"
+                  :key="relatedProduct.id || index"
+                  class="related-card"
+                >
+                  <img
+                    :src="getRelatedProductImage(relatedProduct)"
+                    :alt="relatedProduct.tenSanPham || relatedProduct.ten"
+                    class="related-image"
+                    @error="(e) => { (e.target as HTMLImageElement).src = createPlaceholderImage('No Image') }"
+                  >
+                  <h4 class="related-name">{{ relatedProduct.tenSanPham || relatedProduct.ten }}</h4>
+                  <p class="related-price">
+                    {{ relatedProduct.gia ? formatPrice(relatedProduct.gia) : (relatedProduct.variants?.[0] ? formatPrice(relatedProduct.variants[0].donGia) : 'Liên hệ') }}
+                  </p>
+                  <button class="related-btn" @click="viewProduct(relatedProduct.id || relatedProduct.sanPhamId || relatedProduct.chiTietSanPhamId)">
+                    Xem chi tiết
+                  </button>
                 </div>
               </div>
             </div>
+            <button class="scroll-btn scroll-right" @click="scrollRight" :disabled="isScrollAtEnd">
+              <i class="bi bi-chevron-right"></i>
+            </button>
           </div>
         </div>
-      </div>
+      </section>
     </div>
 
     <!-- Image Modal -->
@@ -1110,6 +1517,29 @@ onUnmounted(() => {
     </div>
 
     <Toast ref="toastRef" />
+    <!-- Confirm Modal -->
+    <div v-if="confirmModal.show" class="confirm-overlay" @click="closeConfirm">
+      <div class="confirm-card" @click.stop>
+        <div class="confirm-header">
+          <h3>Xác nhận {{ confirmModal.action === 'buy' ? 'mua ngay' : 'thêm vào giỏ' }}</h3>
+          <button class="confirm-close" type="button" @click="closeConfirm">×</button>
+        </div>
+        <div class="confirm-content">
+          <div class="confirm-row"><span class="label">Sản phẩm</span><span class="value">{{ product?.tenSanPham }}</span></div>
+          <div class="confirm-row"><span class="label">Phiên bản</span><span class="value">{{ currentVariant?.tenRom }} / {{ currentVariant?.tenMauSac }}</span></div>
+          <div class="confirm-row"><span class="label">Số lượng</span><span class="value">{{ quantity }}</span></div>
+          <div class="confirm-divider"></div>
+          <div class="confirm-row total"><span class="label">Giá</span><span class="value">{{ currentVariant ? formatPrice(currentPrice * quantity) : '—' }}</span></div>
+        </div>
+        <div class="confirm-actions">
+          <button type="button" class="btn-cancel" @click="closeConfirm" :disabled="confirmModal.loading">Hủy</button>
+          <button type="button" class="btn-confirm" @click="confirmProceed" :disabled="confirmModal.loading">
+            <i v-if="confirmModal.loading" class="bi bi-hourglass-split"></i>
+            {{ confirmModal.action === 'buy' ? 'Xác nhận mua ngay' : 'Xác nhận thêm giỏ' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -1128,21 +1558,21 @@ onUnmounted(() => {
 /* Base Styles */
 .clickbuy-product-page {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: var(--text-dark);
-  background: #fff;
+  color: #2c3e50;
+  background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
   min-height: 100vh;
   padding-top: 0;
 }
 
 /* Add top margin to account for fixed header */
 .clickbuy-product-page {
-  margin-top: 77px; /* Header height is 77px */
+  margin-top: 100px; /* Đảm bảo không bị chồm vào header */
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 0 15px;
+  padding: 0 2rem;
 }
 
 /* Loading & Error States */
@@ -1160,7 +1590,7 @@ onUnmounted(() => {
   width: 40px;
   height: 40px;
   border: 4px solid #f3f4f6;
-  border-top-color: var(--primary-color);
+  border-top-color: #27ae60;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 16px;
@@ -1177,7 +1607,7 @@ onUnmounted(() => {
 
 .btn-back {
   padding: 10px 24px;
-  background: var(--primary-color);
+  background: #27ae60;
   color: white;
   border: none;
   border-radius: 4px;
@@ -1187,15 +1617,16 @@ onUnmounted(() => {
 }
 
 .btn-back:hover {
-  background: var(--primary-hover);
+  background: #229954;
 }
 
 /* Breadcrumb */
 .breadcrumb-section {
-  background: var(--bg-light);
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border-color);
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  padding: 1rem 0;
+  border-bottom: 2px solid #e9ecef;
   margin-top: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .breadcrumb {
@@ -1206,28 +1637,28 @@ onUnmounted(() => {
 }
 
 .breadcrumb a {
-  color: var(--text-gray);
+  color: #7f8c8d;
   text-decoration: none;
   transition: color 0.3s;
 }
 
 .breadcrumb a:hover {
-  color: var(--primary-color);
+  color: #27ae60;
 }
 
 .breadcrumb .separator {
-  color: var(--text-gray);
+  color: #7f8c8d;
 }
 
 .breadcrumb .current {
-  color: var(--text-dark);
+  color: #2c3e50;
   font-weight: 500;
 }
 
 /* Main Product Section */
 .product-main {
-  padding: 24px 0;
-  background: white;
+  padding: 2.5rem 0;
+  background: transparent;
 }
 
 .product-grid {
@@ -1272,11 +1703,12 @@ onUnmounted(() => {
 }
 
 .main-image-wrapper {
-  background: var(--bg-light);
-  border-radius: 8px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 16px;
   overflow: hidden;
-  margin-bottom: 12px;
-  border: 1px solid var(--border-color);
+  margin-bottom: 1rem;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .main-image {
@@ -1425,18 +1857,23 @@ onUnmounted(() => {
 
 /* Product Info */
 .product-info {
-  background: white;
-  padding: 24px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  padding: 2.5rem;
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
 }
 
 .product-title {
-  font-size: 24px;
+  font-size: 2.25rem;
   font-weight: 700;
   color: #2c3e50;
-  margin: 0 0 12px 0;
+  margin: 0 0 1rem 0;
   line-height: 1.3;
+  background: linear-gradient(135deg, #FF5500 0%, #DC143C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .rating-specs {
@@ -1490,10 +1927,26 @@ onUnmounted(() => {
   justify-content: space-between;
 }
 
+.price-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .current-price {
-  font-size: 36px;
+  font-size: 2.5rem;
   font-weight: 700;
-  color: #e74c3c;
+  background: linear-gradient(135deg, #DC143C 0%, #FF5500 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.old-price {
+  font-size: 20px;
+  color: #999;
+  text-decoration: line-through;
+  font-weight: 500;
 }
 
 .installment-info {
@@ -1558,16 +2011,17 @@ onUnmounted(() => {
   flex-direction: column !important;
   align-items: center !important;
   justify-content: center !important;
-  padding: 16px 12px !important;
-  border: 2px solid #dee2e6 !important;
-  border-radius: 8px !important;
+  padding: 1.25rem 1rem !important;
+  border: 2px solid #e9ecef !important;
+  border-radius: 12px !important;
   background: white !important;
   cursor: pointer !important;
-  transition: all 0.3s !important;
+  transition: all 0.3s ease !important;
   position: relative !important;
-  min-width: 80px !important;
+  min-width: 90px !important;
   flex: 1 !important;
-  max-width: 120px !important;
+  max-width: 130px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .color-btn {
@@ -1575,16 +2029,17 @@ onUnmounted(() => {
   flex-direction: column !important;
   align-items: center !important;
   justify-content: center !important;
-  padding: 12px !important;
-  border: 2px solid #dee2e6 !important;
-  border-radius: 8px !important;
+  padding: 1rem !important;
+  border: 2px solid #e9ecef !important;
+  border-radius: 12px !important;
   background: white !important;
   cursor: pointer !important;
-  transition: all 0.3s !important;
+  transition: all 0.3s ease !important;
   position: relative !important;
   min-width: 100px !important;
   max-width: 120px !important;
   flex: 1 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .warranty-btn {
@@ -1609,8 +2064,10 @@ onUnmounted(() => {
 .version-btn.active,
 .color-btn.active,
 .warranty-btn.active {
-  border-color: #e74c3c !important;
-  background: #fff5f5 !important;
+  border-color: #FF5500 !important;
+  background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%) !important;
+  box-shadow: 0 4px 12px rgba(255, 85, 0, 0.2) !important;
+  transform: translateY(-2px);
 }
 
 .version-name {
@@ -1621,10 +2078,27 @@ onUnmounted(() => {
   text-align: center !important;
 }
 
+.version-price-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
 .version-price {
-  font-size: 14px !important;
-  font-weight: 600 !important;
-  color: #e74c3c !important;
+  font-size: 0.95rem !important;
+  font-weight: 700 !important;
+  background: linear-gradient(135deg, #DC143C 0%, #FF5500 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-align: center !important;
+}
+
+.version-old-price {
+  font-size: 11px !important;
+  color: #999 !important;
+  text-decoration: line-through !important;
   text-align: center !important;
 }
 
@@ -1666,10 +2140,26 @@ onUnmounted(() => {
   line-height: 1.2 !important;
 }
 
+.color-price-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
 .color-price {
-  font-size: 11px !important;
-  font-weight: 600 !important;
-  color: #e74c3c !important;
+  font-size: 0.85rem !important;
+  font-weight: 700 !important;
+  background: linear-gradient(135deg, #DC143C 0%, #FF5500 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.color-old-price {
+  font-size: 9px !important;
+  color: #999 !important;
+  text-decoration: line-through !important;
 }
 
 .warranty-info {
@@ -1680,16 +2170,17 @@ onUnmounted(() => {
   position: absolute !important;
   top: 6px !important;
   right: 6px !important;
-  width: 18px !important;
-  height: 18px !important;
-  background: #e74c3c !important;
+  width: 20px !important;
+  height: 20px !important;
+  background: linear-gradient(135deg, #FF5500 0%, #DC143C 100%) !important;
   color: white !important;
   border-radius: 50% !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  font-size: 10px !important;
+  font-size: 11px !important;
   font-weight: 700 !important;
+  box-shadow: 0 2px 8px rgba(255, 85, 0, 0.4);
 }
 
 /* Action Buttons */
@@ -1701,23 +2192,24 @@ onUnmounted(() => {
 
 .btn-buy-now {
   flex: 2;
-  background: #f9931e !important;
+  background: linear-gradient(135deg, #FF5500 0%, #DC143C 100%) !important;
   color: white;
   border: none;
-  padding: 16px 24px;
-  border-radius: 8px;
-  font-size: 18px;
+  padding: 1.25rem 2rem;
+  border-radius: 15px;
+  font-size: 1.15rem;
   font-weight: 700;
   text-transform: uppercase;
   cursor: pointer;
-  transition: all 0.3s;
-  box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 85, 0, 0.3);
+  letter-spacing: 0.5px;
 }
 
 .btn-buy-now:hover:not(:disabled) {
-  background: #DC143C !important;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 140, 0, 0.4);
+  background: linear-gradient(135deg, #DC143C 0%, #FF5500 100%) !important;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(255, 85, 0, 0.4);
 }
 
 .btn-buy-now:disabled {
@@ -1729,21 +2221,23 @@ onUnmounted(() => {
 .btn-add-cart {
   flex: 1;
   background: white;
-  color: #ff8c00;
-  border: 2px solid #cc6600 !important;
-  padding: 16px 24px;
-  border-radius: 8px;
-  font-size: 16px;
+  color: #FF5500;
+  border: 2px solid #FF5500 !important;
+  padding: 1.25rem 2rem;
+  border-radius: 15px;
+  font-size: 1.05rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 85, 0, 0.2);
 }
 
 .btn-add-cart:hover:not(:disabled) {
-  background: #da4d2e !important;
+  background: linear-gradient(135deg, #FF5500 0%, #DC143C 100%) !important;
   color: white;
+  border-color: #FF5500 !important;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);
+  box-shadow: 0 6px 20px rgba(255, 85, 0, 0.4);
 }
 
 .btn-add-cart:disabled {
@@ -1789,7 +2283,7 @@ onUnmounted(() => {
 .option-label {
   font-size: 16px;
   font-weight: 600;
-  color: var(--text-dark);
+  color: #2c3e50;
   margin-bottom: 12px;
 }
 
@@ -1802,7 +2296,7 @@ onUnmounted(() => {
 
 .storage-btn {
   padding: 12px 20px;
-  border: 2px solid var(--border-color);
+  border: 2px solid #ecf0f1;
   background: white;
   border-radius: 6px;
   cursor: pointer;
@@ -1813,12 +2307,12 @@ onUnmounted(() => {
 }
 
 .storage-btn:hover {
-  border-color: var(--primary-color);
+  border-color: #27ae60;
 }
 
 .storage-btn.active {
-  border-color: var(--primary-color);
-  background: var(--primary-color);
+  border-color: #27ae60;
+  background: #27ae60;
   color: white;
 }
 
@@ -1827,7 +2321,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
-  border: 2px solid var(--border-color);
+  border: 2px solid #ecf0f1;
   background: white;
   border-radius: 6px;
   cursor: pointer;
@@ -1835,11 +2329,11 @@ onUnmounted(() => {
 }
 
 .color-btn:hover {
-  border-color: var(--primary-color);
+  border-color: #27ae60;
 }
 
 .color-btn.active {
-  border-color: var(--primary-color);
+  border-color: #27ae60;
   background: #e8f5e9;
 }
 
@@ -1869,7 +2363,7 @@ onUnmounted(() => {
 .qty-btn {
   width: 40px;
   height: 40px;
-  border: 2px solid var(--border-color);
+  border: 2px solid #ecf0f1;
   background: white;
   border-radius: 6px;
   cursor: pointer;
@@ -1879,14 +2373,14 @@ onUnmounted(() => {
 }
 
 .qty-btn:hover {
-  border-color: var(--primary-color);
-  color: var(--primary-color);
+  border-color: #27ae60;
+  color: #27ae60;
 }
 
 .qty-input {
   width: 80px;
   height: 40px;
-  border: 2px solid var(--border-color);
+  border: 2px solid #ecf0f1;
   border-radius: 6px;
   text-align: center;
   font-size: 16px;
@@ -1895,11 +2389,11 @@ onUnmounted(() => {
 
 .qty-input:focus {
   outline: none;
-  border-color: var(--primary-color);
+  border-color: #27ae60;
 }
 
 .stock-info {
-  color: var(--text-gray);
+  color: #7f8c8d;
   font-size: 14px;
 }
 
@@ -1912,7 +2406,7 @@ onUnmounted(() => {
 
 .btn-buy-now {
   flex: 2;
-  background: var(--secondary-color);
+  background: #e74c3c;
   color: white;
   border: none;
   border-radius: 8px;
@@ -1953,8 +2447,8 @@ onUnmounted(() => {
 .btn-add-cart {
   flex: 1;
   background: white;
-  color: var(--primary-color);
-  border: 2px solid var(--primary-color);
+  color: #27ae60;
+  border: 2px solid #27ae60;
   border-radius: 8px;
   padding: 16px;
   cursor: pointer;
@@ -1964,7 +2458,7 @@ onUnmounted(() => {
 }
 
 .btn-add-cart:hover:not(:disabled) {
-  background: var(--primary-color);
+  background: #27ae60;
   color: white;
 }
 
@@ -1996,19 +2490,19 @@ onUnmounted(() => {
 
 .support-label {
   font-size: 12px;
-  color: var(--text-gray);
+  color: #7f8c8d;
   margin-bottom: 4px;
 }
 
 .support-value {
   font-size: 16px;
   font-weight: 700;
-  color: var(--secondary-color);
+  color: #e74c3c;
 }
 
 /* Product Details Section */
 .product-details-section {
-  background: var(--bg-light);
+  background: white;
   padding: 32px 0;
 }
 
@@ -2025,29 +2519,41 @@ onUnmounted(() => {
 }
 
 .detail-block {
-  background: white;
-  border-radius: 8px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
 }
 
 .block-title {
-  font-size: 22px;
+  font-size: 1.75rem;
   font-weight: 700;
-  color: var(--text-dark);
-  margin: 0 0 20px 0;
-  padding-bottom: 12px;
-  border-bottom: 2px solid var(--primary-color);
+  color: #2c3e50;
+  margin: 0 0 1.5rem 0;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e9ecef;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.block-title::before {
+  content: '';
+  width: 4px;
+  height: 2rem;
+  background: linear-gradient(135deg, #FF5500 0%, #DC143C 100%);
+  border-radius: 2px;
 }
 
 .block-content {
   line-height: 1.8;
-  color: var(--text-gray);
+  color: #7f8c8d;
 }
 
 /* Specifications Table */
 .specs-table {
-  border: 1px solid var(--border-color);
+  border: 1px solid #ecf0f1;
   border-radius: 8px;
   overflow: hidden;
 }
@@ -2055,12 +2561,12 @@ onUnmounted(() => {
 .spec-row {
   display: flex;
   padding: 14px 16px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid #ecf0f1;
   transition: background 0.3s;
 }
 
 .spec-row:hover {
-  background: var(--bg-light);
+  background: #f8f9fa;
 }
 
 .spec-row:last-child {
@@ -2070,12 +2576,12 @@ onUnmounted(() => {
 .spec-label {
   flex: 1;
   font-weight: 600;
-  color: var(--text-dark);
+  color: #2c3e50;
 }
 
 .spec-value {
   flex: 2;
-  color: var(--text-gray);
+  color: #7f8c8d;
 }
 
 /* Rating Summary */
@@ -2084,7 +2590,7 @@ onUnmounted(() => {
   grid-template-columns: 200px 1fr;
   gap: 32px;
   padding: 24px;
-  background: var(--bg-light);
+  background: #f8f9fa;
   border-radius: 8px;
   margin-bottom: 24px;
 }
@@ -2096,7 +2602,7 @@ onUnmounted(() => {
 .score-number {
   font-size: 48px;
   font-weight: 700;
-  color: var(--secondary-color);
+  color: #e74c3c;
   margin-bottom: 8px;
 }
 
@@ -2105,7 +2611,7 @@ onUnmounted(() => {
 }
 
 .score-count {
-  color: var(--text-gray);
+  color: #7f8c8d;
   font-size: 14px;
 }
 
@@ -2124,7 +2630,7 @@ onUnmounted(() => {
 
 .rating-bar-item > span:first-child {
   width: 50px;
-  color: var(--text-gray);
+  color: #7f8c8d;
 }
 
 .bar {
@@ -2144,12 +2650,12 @@ onUnmounted(() => {
 .bar-count {
   width: 40px;
   text-align: right;
-  color: var(--text-gray);
+  color: #7f8c8d;
 }
 
 /* Review Form */
 .review-form {
-  background: var(--bg-light);
+  background: #f8f9fa;
   padding: 24px;
   border-radius: 8px;
   margin-bottom: 24px;
@@ -2169,14 +2675,14 @@ onUnmounted(() => {
   display: block;
   font-weight: 600;
   margin-bottom: 8px;
-  color: var(--text-dark);
+  color: #2c3e50;
 }
 
 .form-row input,
 .form-row textarea {
   width: 100%;
   padding: 12px;
-  border: 2px solid var(--border-color);
+  border: 2px solid #ecf0f1;
   border-radius: 6px;
   font-size: 14px;
   transition: border-color 0.3s;
@@ -2185,7 +2691,7 @@ onUnmounted(() => {
 .form-row input:focus,
 .form-row textarea:focus {
   outline: none;
-  border-color: var(--primary-color);
+  border-color: #27ae60;
 }
 
 .rating-stars {
@@ -2204,7 +2710,7 @@ onUnmounted(() => {
 }
 
 .btn-submit-review {
-  background: var(--primary-color);
+  background: #27ae60;
   color: white;
   border: none;
   padding: 12px 32px;
@@ -2216,7 +2722,7 @@ onUnmounted(() => {
 }
 
 .btn-submit-review:hover:not(:disabled) {
-  background: var(--primary-hover);
+  background: #229954;
   transform: translateY(-2px);
 }
 
@@ -2233,10 +2739,10 @@ onUnmounted(() => {
 }
 
 .review-item {
-  background: var(--bg-light);
+  background: #f8f9fa;
   padding: 20px;
   border-radius: 8px;
-  border: 1px solid var(--border-color);
+  border: 1px solid #ecf0f1;
 }
 
 .review-header {
@@ -2250,7 +2756,7 @@ onUnmounted(() => {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: var(--primary-color);
+  background: #27ae60;
   color: white;
   display: flex;
   align-items: center;
@@ -2276,12 +2782,12 @@ onUnmounted(() => {
 
 .review-date {
   margin-left: auto;
-  color: var(--text-gray);
+  color: #7f8c8d;
   font-size: 13px;
 }
 
 .review-text {
-  color: var(--text-gray);
+  color: #7f8c8d;
   line-height: 1.6;
   margin: 0;
 }
@@ -2295,18 +2801,33 @@ onUnmounted(() => {
 
 .policy-box,
 .hotline-box {
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
 }
 
 .policy-title,
 .hotline-title {
-  font-size: 18px;
+  font-size: 1.5rem;
   font-weight: 700;
-  color: var(--text-dark);
-  margin: 0 0 16px 0;
+  color: #2c3e50;
+  margin: 0 0 1.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.policy-title::before,
+.hotline-title::before {
+  content: '';
+  width: 4px;
+  height: 1.5rem;
+  background: linear-gradient(135deg, #FF5500 0%, #DC143C 100%);
+  border-radius: 2px;
 }
 
 .policy-list {
@@ -2319,7 +2840,7 @@ onUnmounted(() => {
   display: flex;
   gap: 12px;
   padding: 10px 0;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid #ecf0f1;
   font-size: 14px;
   line-height: 1.5;
 }
@@ -2329,13 +2850,14 @@ onUnmounted(() => {
 }
 
 .policy-icon {
-  color: var(--primary-color);
+  color: #FF5500;
   font-weight: 700;
+  font-size: 1.1rem;
 }
 
 .hotline-item {
   padding: 12px 0;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid #ecf0f1;
 }
 
 .hotline-item:last-child {
@@ -2344,88 +2866,186 @@ onUnmounted(() => {
 
 .hotline-label {
   font-size: 13px;
-  color: var(--text-gray);
+  color: #7f8c8d;
   margin-bottom: 4px;
 }
 
 .hotline-number {
-  font-size: 18px;
+  font-size: 1.25rem;
   font-weight: 700;
-  color: var(--secondary-color);
+  background: linear-gradient(135deg, #DC143C 0%, #FF5500 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-/* Related Products */
-.related-section {
-  padding: 40px 0;
-  background: white;
+/* Related Products Section - Giống CartPage */
+.related-products {
+  background: #f8f9fa !important;
+  padding: 3rem 0 !important;
+  margin-top: 3rem !important;
 }
 
-.section-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--text-dark);
-  margin: 0 0 24px 0;
+.related-container {
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+  padding: 0 2rem !important;
+}
+
+.related-title {
   text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 2rem;
+  background: linear-gradient(135deg, #FF5500 0%, #DC143C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.related-wrapper {
+  width: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.scroll-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #FF5500;
+  color: #FF5500;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 10;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.scroll-btn:hover:not(:disabled) {
+  background: #FF5500;
+  color: white;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.scroll-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.scroll-left {
+  left: -25px;
+}
+
+.scroll-right {
+  right: -25px;
+}
+
+.related-scroll-container {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 1rem 0;
+  scroll-behavior: smooth;
+  flex: 1;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.related-scroll-container::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 .related-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+  display: flex;
+  gap: 1.5rem;
+  min-width: max-content;
 }
 
 .related-card {
   background: white;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  overflow: hidden;
+  border-radius: 15px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  text-align: center;
+  flex: 0 0 280px;
+  width: 280px;
+  min-width: 280px;
+  max-width: 280px;
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   cursor: pointer;
-  transition: all 0.3s;
 }
 
 .related-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 .related-image {
-  height: 200px;
-  overflow: hidden;
-  background: var(--bg-light);
-}
-
-.related-image img {
   width: 100%;
-  height: 100%;
-  object-fit: contain;
-  transition: transform 0.3s;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 10px;
+  background: #f9f9f9;
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
 }
 
-.related-card:hover .related-image img {
+.related-card:hover .related-image {
   transform: scale(1.05);
 }
 
-.related-info {
-  padding: 16px;
-}
-
 .related-name {
-  font-size: 15px;
+  font-size: 1.1rem;
   font-weight: 600;
-  color: var(--text-dark);
-  margin: 0 0 8px 0;
+  color: #333;
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
-  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  margin: 0.5rem 0;
+  flex-shrink: 0;
 }
 
 .related-price {
-  font-size: 18px;
+  font-size: 1.2rem;
   font-weight: 700;
-  color: var(--secondary-color);
+  color: #DC143C;
+  margin: 0.5rem 0;
+  flex-shrink: 0;
+}
+
+.related-btn {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: #FF5500;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  margin-top: auto;
+}
+
+.related-btn:hover {
+  background: #DC143C;
+  transform: translateY(-2px);
 }
 
 /* Image Modal */
@@ -2516,6 +3136,21 @@ onUnmounted(() => {
 .nav-btn.next {
   margin-right: -80px;
 }
+
+/* Confirm Modal */
+.confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 16px; }
+.confirm-card { width: 100%; max-width: 520px; background: #fff; border-radius: 14px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); overflow: hidden; }
+.confirm-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #eee; }
+.confirm-header h3 { margin: 0; font-size: 18px; font-weight: 700; color: #333; }
+.confirm-close { background: none; border: none; font-size: 22px; cursor: pointer; color: #666; }
+.confirm-content { padding: 16px 20px; }
+.confirm-row { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; color: #555; }
+.confirm-row .label { font-weight: 600; }
+.confirm-row.total { font-size: 1.1rem; color: #333; }
+.confirm-divider { height: 1px; background: #eee; margin: 8px 0 4px; }
+.confirm-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 12px 20px 20px; }
+.btn-cancel { background: #6c757d; color: #fff; border: none; padding: 10px 14px; border-radius: 10px; cursor: pointer; }
+.btn-confirm { background: #FF5500; color: #fff; border: none; padding: 10px 14px; border-radius: 10px; cursor: pointer; }
 
 /* Specs Modal */
 .specs-modal {
@@ -2644,8 +3279,39 @@ onUnmounted(() => {
     order: 2;
   }
 
+  .related-card {
+    flex: 0 0 250px;
+    width: 250px;
+    min-width: 250px;
+    max-width: 250px;
+    height: 380px;
+    padding: 1rem;
+  }
+
+  .related-title {
+    font-size: 1.5rem;
+  }
+
+  .related-image {
+    height: 160px;
+  }
+
+  .scroll-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
+
+  .scroll-left {
+    left: -20px;
+  }
+
+  .scroll-right {
+    right: -20px;
+  }
+
   .related-grid {
-    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
   }
 }
 
@@ -2752,8 +3418,43 @@ onUnmounted(() => {
     max-width: 100% !important;
   }
 
-  .related-grid {
-    grid-template-columns: 1fr;
+  .related-card {
+    flex: 0 0 220px;
+    width: 220px;
+    min-width: 220px;
+    max-width: 220px;
+    height: 360px;
+    padding: 0.75rem;
+  }
+
+  .related-image {
+    height: 120px;
+  }
+
+  .related-title {
+    font-size: 1.2rem;
+  }
+
+  .related-name {
+    font-size: 1rem;
+  }
+
+  .related-price {
+    font-size: 1.1rem;
+  }
+
+  .scroll-btn {
+    width: 35px;
+    height: 35px;
+    font-size: 1rem;
+  }
+
+  .scroll-left {
+    left: -15px;
+  }
+
+  .scroll-right {
+    right: -15px;
   }
 
   .nav-btn {

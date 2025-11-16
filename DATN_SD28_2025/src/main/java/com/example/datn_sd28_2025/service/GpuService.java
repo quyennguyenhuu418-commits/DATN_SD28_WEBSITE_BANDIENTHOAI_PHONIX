@@ -9,9 +9,11 @@ import java.util.Optional;
 
 public interface GpuService {
     List<GpuDTO> getAll();
+    List<GpuDTO> getActive();
     Page<GpuDTO> getAll(Pageable pageable);
     Optional<GpuDTO> getById(Integer id);
     GpuDTO save(GpuDTO gpuDTO);
     GpuDTO update(Integer id, GpuDTO gpuDTO);
     void delete(Integer id);
+    void updateStatus(Integer id, Integer trangThai);
 }

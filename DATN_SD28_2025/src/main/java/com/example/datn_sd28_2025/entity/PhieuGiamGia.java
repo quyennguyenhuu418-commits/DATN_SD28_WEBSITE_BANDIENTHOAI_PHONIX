@@ -71,7 +71,6 @@ public class PhieuGiamGia {
     @Column(name = "nguoi_cap_nhat", length = 255)
     private String nguoiCapNhat;
 
-
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "phieu_giam_gia_id")
     @JsonIgnore

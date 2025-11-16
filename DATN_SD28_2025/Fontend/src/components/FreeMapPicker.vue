@@ -146,6 +146,8 @@ const tryMultipleAPIs = async (url, options) => {
 
 // Search input handler
 const onSearchInput = () => {
+  // Emit the current typed value so parent v-model updates even without selecting suggestion
+  emit('update:modelValue', searchQuery.value)
   if (searchTimeout.value) {
     clearTimeout(searchTimeout.value)
   }

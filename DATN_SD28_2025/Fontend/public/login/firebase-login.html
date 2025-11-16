@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng nhập Firebase - PhoniX Store</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  </head>
+  <body>
+    <div class="container" id="container">
+      <div class="form-container sign-up-container">
+        <form action="#" id="registerForm">
+          <h1>Tạo tài khoản</h1>
+          <div class="social-container">
+            <a
+              href="#"
+              class="social"
+              title="Google"
+              aria-label="Đăng ký / Đăng nhập bằng Google"
+              id="googleSignUp"
+              ><i class="fab fa-google"></i
+            ></a>
+          </div>
+          <span>hoặc sử dụng email của bạn để đăng ký</span>
+          <input
+            type="text"
+            placeholder="Họ và tên"
+            id="registerName"
+            required
+          />
+          <input type="email" placeholder="Email" id="registerEmail" required />
+          <input
+            type="password"
+            placeholder="Mật khẩu"
+            id="registerPassword"
+            required
+          />
+          <button type="submit">Đăng ký</button>
+        </form>
+      </div>
+      <div class="form-container sign-in-container">
+        <form action="#" id="loginForm">
+          <h1>Đăng Nhập</h1>
+          <div class="social-container">
+            <a
+              href="#"
+              class="social"
+              title="Google"
+              aria-label="Đăng nhập bằng Google"
+              id="googleSignIn"
+              ><i class="fab fa-google"></i
+            ></a>
+          </div>
+          <span>hoặc sử dụng tài khoản của bạn</span>
+          <input type="email" placeholder="Email" id="loginEmail" required />
+          <input
+            type="password"
+            placeholder="Mật khẩu"
+            id="loginPassword"
+            required
+          />
+          <a href="forgotpassword.html">Quên mật khẩu?</a>
+          <button type="submit">Đăng nhập</button>
+        </form>
+      </div>
+      <div class="overlay-container">
+        <div class="overlay">
+          <div class="overlay-panel overlay-left">
+            <h1>Chào mừng bạn đã trở lại!</h1>
+            <p>
+              Để giữ liên lạc với chúng tôi, vui lòng đăng nhập bằng thông tin
+              cá nhân của bạn
+            </p>
+            <button class="ghost" id="signIn">Đăng Nhập</button>
+          </div>
+          <div class="overlay-panel overlay-right">
+            <h1>Xin chào, bạn!</h1>
+            <p>
+              Nhập thông tin cá nhân của bạn và bắt đầu hành trình cùng chúng
+              tôi
+            </p>
+            <button class="ghost" id="signUp">Đăng ký</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <p>Firebase Login - PhoniX Store - Chuyển hướng đến trang chủ Vue.js</p>
+    </footer>
+    <script>
+      // Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyDO7RFQhgIQJF61d19IF83TxYUIn-ZYsDY",
+        authDomain: "phonix-store.firebaseapp.com",
+        projectId: "phonix-store",
+        storageBucket: "phonix-store.appspot.com",
+        messagingSenderId: "221883949331",
+        appId: "1:221883949331:web:your-app-id",
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
+
+      // Utility functions
+      const showMessage = (message, type = "info") => {
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `message ${type}`;
+        messageDiv.textContent = message;
+        messageDiv.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          padding: 15px 20px;
+          border-radius: 5px;
+          color: white;
+          z-index: 10000;
+          background: ${
+            type === "error"
+              ? "#e74c3c"
+              : type === "success"
+              ? "#27ae60"
+              : "#3498db"
+          };
+        `;
+        document.body.appendChild(messageDiv);
+        setTimeout(() => messageDiv.remove(), 5000);
+      };
+
+      const validateEmail = (email) => {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+      };
+
+      const validatePassword = (password) => {
+        return password.length >= 6;
+      };
+
+      // Firebase Authentication functions
+      const loginWithEmail = async (email, password) => {
+        try {
+          const userCredential = await auth.signInWithEmailAndPassword(
+            email,
+            password
+          );
+          const user = userCredential.user;
+
+          // Store user data in localStorage
+          localStorage.setItem("token", user.accessToken || "firebase_token");
+          localStorage.setItem(
+            "user",
+            JSON.stringify({
+              uid: user.uid,
+              email: user.email,
+              displayName: user.displayName,
+              role: "customer",
+            })
+          );
+
+          showMessage("Đăng nhập thành công!", "success");
+
+          // Redirect to Vue.js home page
+          setTimeout(() => {
+            window.location.href = "http://localhost:5174/";
+          }, 2000);
+        } catch (error) {
+          console.error("Login error:", error);
+          showMessage(getErrorMessage(error.code), "error");
+        }
+      };
+
+      const registerWithEmail = async (name, email, password) => {
+        try {
+          const userCredential = await auth.createUserWithEmailAndPassword(
+            email,
+            password
+          );
+          const user = userCredential.user;
+
+          // Update user profile
+          await user.updateProfile({
+            displayName: name,
+          });
+
+          showMessage("Đăng ký thành công! Vui lòng đăng nhập.", "success");
+
+          // Switch to login form
+          document
+            .getElementById("container")
+            .classList.remove("right-panel-active");
+        } catch (error) {
+          console.error("Register error:", error);
+          showMessage(getErrorMessage(error.code), "error");
+        }
+      };
+
+      const loginWithGoogle = async () => {
+        try {
+          const provider = new firebase.auth.GoogleAuthProvider();
+          const result = await auth.signInWithPopup(provider);
+          const user = result.user;
+
+          // Store user data in localStorage
+          localStorage.setItem("token", user.accessToken || "firebase_token");
+          localStorage.setItem(
+            "user",
+            JSON.stringify({
+              uid: user.uid,
+              email: user.email,
+              displayName: user.displayName,
+              photoURL: user.photoURL,
+              role: "customer",
+            })
+          );
+
+          showMessage("Đăng nhập Google thành công!", "success");
+
+          // Redirect to Vue.js home page
+          setTimeout(() => {
+            window.location.href = "http://localhost:5174/";
+          }, 2000);
+        } catch (error) {
+          console.error("Google login error:", error);
+          showMessage("Đăng nhập Google thất bại!", "error");
+        }
+      };
+
+      const getErrorMessage = (errorCode) => {
+        const errorMessages = {
+          "auth/user-not-found": "Không tìm thấy tài khoản với email này.",
+          "auth/wrong-password": "Mật khẩu không đúng.",
+          "auth/email-already-in-use": "Email này đã được sử dụng.",
+          "auth/weak-password": "Mật khẩu quá yếu.",
+          "auth/invalid-email": "Email không hợp lệ.",
+          "auth/user-disabled": "Tài khoản đã bị vô hiệu hóa.",
+          "auth/too-many-requests": "Quá nhiều yêu cầu. Vui lòng thử lại sau.",
+          "auth/network-request-failed": "Lỗi kết nối mạng.",
+          "auth/popup-closed-by-user": "Đăng nhập bị hủy bởi người dùng.",
+        };
+        return errorMessages[errorCode] || "Có lỗi xảy ra. Vui lòng thử lại.";
+      };
+
+      // Event listeners
+      document.addEventListener("DOMContentLoaded", () => {
+        const signUpButton = document.getElementById("signUp");
+        const signInButton = document.getElementById("signIn");
+        const container = document.getElementById("container");
+
+        // Panel switching
+        if (signUpButton) {
+          signUpButton.addEventListener("click", () => {
+            container.classList.add("right-panel-active");
+          });
+        }
+
+        if (signInButton) {
+          signInButton.addEventListener("click", () => {
+            container.classList.remove("right-panel-active");
+          });
+        }
+
+        // Login form
+        const loginForm = document.getElementById("loginForm");
+        if (loginForm) {
+          loginForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const email = document.getElementById("loginEmail").value;
+            const password = document.getElementById("loginPassword").value;
+
+            if (!validateEmail(email)) {
+              showMessage("Email không hợp lệ!", "error");
+              return;
+            }
+
+            if (!validatePassword(password)) {
+              showMessage("Mật khẩu phải có ít nhất 6 ký tự!", "error");
+              return;
+            }
+
+            await loginWithEmail(email, password);
+          });
+        }
+
+        // Register form
+        const registerForm = document.getElementById("registerForm");
+        if (registerForm) {
+          registerForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const name = document.getElementById("registerName").value;
+            const email = document.getElementById("registerEmail").value;
+            const password = document.getElementById("registerPassword").value;
+
+            if (!name.trim()) {
+              showMessage("Vui lòng nhập họ tên!", "error");
+              return;
+            }
+
+            if (!validateEmail(email)) {
+              showMessage("Email không hợp lệ!", "error");
+              return;
+            }
+
+            if (!validatePassword(password)) {
+              showMessage("Mật khẩu phải có ít nhất 6 ký tự!", "error");
+              return;
+            }
+
+            await registerWithEmail(name, email, password);
+          });
+        }
+
+        // Google login buttons
+        const googleSignInButton = document.getElementById("googleSignIn");
+        const googleSignUpButton = document.getElementById("googleSignUp");
+
+        if (googleSignInButton) {
+          googleSignInButton.addEventListener("click", (e) => {
+            e.preventDefault();
+            loginWithGoogle();
+          });
+        }
+
+        if (googleSignUpButton) {
+          googleSignUpButton.addEventListener("click", (e) => {
+            e.preventDefault();
+            loginWithGoogle();
+          });
+        }
+
+        // Check if user is already logged in
+        auth.onAuthStateChanged((user) => {
+          if (user) {
+            // User is signed in, redirect to home page
+            window.location.href = "http://localhost:5174/";
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

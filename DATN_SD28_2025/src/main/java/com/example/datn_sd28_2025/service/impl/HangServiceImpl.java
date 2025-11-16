@@ -23,6 +23,11 @@ public class HangServiceImpl implements HangService {
     }
 
     @Override
+    public List<HangDTO> getActive() {
+        return hangRepository.findAllActive().stream().map(this::convertToDto).toList();
+    }
+
+    @Override
     public Optional<HangDTO> getById(Integer id) {
         return hangRepository.findById(id).map(this::convertToDto);
     }
@@ -61,6 +66,15 @@ public class HangServiceImpl implements HangService {
         }
         
         hangRepository.deleteById(id);
+    }
+
+    @Override
+    public void updateStatus(Integer id, Integer trangThai) {
+        Hang hang = hangRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hãng với ID: " + id));
+        hang.setTrangThai(trangThai);
+        hang.setNgayCapNhat(LocalDateTime.now());
+        hangRepository.save(hang);
     }
 
     private HangDTO convertToDto(Hang hang) {

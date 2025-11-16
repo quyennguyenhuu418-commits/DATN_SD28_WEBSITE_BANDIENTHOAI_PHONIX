@@ -69,12 +69,7 @@
     <button class="floating-btn scroll-top" @click="scrollToTop" v-if="showScrollTop">
       <i class="bi bi-arrow-up"></i>
     </button>
-    <a href="https://zalo.me" target="_blank" class="floating-btn zalo">
-      <i class="bi bi-chat-dots-fill"></i>
-    </a>
-    <button class="floating-btn messenger">
-      <i class="bi bi-messenger"></i>
-    </button>
+    <!-- Removed Zalo and Messenger floating buttons per request -->
   </div>
 </template>
 
@@ -154,12 +149,12 @@ onUnmounted(() => {
 }
 
 .contact-info i {
-  color: var(--phoenix-gold);
+  color: #FFD700;
   font-size: 1.1rem;
 }
 
 .footer-title {
-  color: var(--phoenix-gold);
+  color: #FFD700;
   font-size: 1.125rem;
   margin-bottom: 1.5rem;
   font-weight: 700;
@@ -180,7 +175,7 @@ onUnmounted(() => {
 }
 
 .footer-links a:hover {
-  color: var(--phoenix-secondary);
+  color: #F7931E;
 }
 
 .social-links {
@@ -204,7 +199,7 @@ onUnmounted(() => {
 }
 
 .social-link:hover {
-  background: var(--phoenix-primary);
+  background: #FF5500;
   transform: translateY(-3px);
 }
 
@@ -228,8 +223,8 @@ onUnmounted(() => {
 
 .payment-badge:hover {
   background: rgba(255, 255, 255, 0.2);
-  border-color: var(--phoenix-gold);
-  color: var(--phoenix-gold);
+  border-color: #FFD700;
+  color: #FFD700;
 }
 
 .footer-bottom {
@@ -272,7 +267,7 @@ onUnmounted(() => {
 }
 
 .floating-btn.scroll-top {
-  background: var(--phoenix-accent);
+  background: #DC143C;
 }
 
 .floating-btn.zalo {

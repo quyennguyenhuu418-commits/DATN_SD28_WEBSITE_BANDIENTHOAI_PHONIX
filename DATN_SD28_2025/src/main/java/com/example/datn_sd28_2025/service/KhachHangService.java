@@ -21,7 +21,17 @@ public interface KhachHangService {
     
     // Statistics
     Long countActiveCustomers();
+    List<KhachHangDTO> getActiveCustomers();
+    
+    // Validation methods
+    Optional<KhachHangDTO> findByEmail(String email);
+    Optional<KhachHangDTO> findBySoDienThoai(String soDienThoai);
+    
+    // Simple status update
+    boolean updateStatusOnly(Integer id, Integer trangThai);
 }
+
+
 
 
 

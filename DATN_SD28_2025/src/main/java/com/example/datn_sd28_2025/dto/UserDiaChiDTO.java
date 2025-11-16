@@ -14,8 +14,10 @@ import java.time.LocalDateTime;
 public class UserDiaChiDTO {
     private Integer id;
     private Integer idDiaChi;
+    
     // Related entities
     private KhachHangDTO khachHang;
+    private DiaChiDTO diaChi;
 
     // Transient field for JSON mapping
     private Integer idUser;

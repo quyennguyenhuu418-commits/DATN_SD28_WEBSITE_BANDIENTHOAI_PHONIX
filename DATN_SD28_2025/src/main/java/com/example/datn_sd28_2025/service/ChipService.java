@@ -9,8 +9,10 @@ import java.util.Optional;
 
 public interface ChipService {
     List<ChipDTO> getAll();
+    List<ChipDTO> getActive();
     Optional<ChipDTO> getById(Integer id);
     ChipDTO save(ChipDTO chipDTO);
     void delete(Integer id);
     ChipDTO update(Integer id, ChipDTO chipDTO);
+    void updateStatus(Integer id, Integer trangThai);
 }

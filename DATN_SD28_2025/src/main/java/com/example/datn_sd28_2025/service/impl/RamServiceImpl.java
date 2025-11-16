@@ -25,6 +25,11 @@ public class RamServiceImpl implements RamService {
     }
 
     @Override
+    public List<RamDTO> getActive() {
+        return ramRepository.findAllActive().stream().map(this::convertToDto).toList();
+    }
+
+    @Override
     public Page<RamDTO> getAll(Pageable pageable) {
         return ramRepository.findAll(pageable).map(this::convertToDto);
     }
@@ -65,6 +70,15 @@ public class RamServiceImpl implements RamService {
         }
         
         ramRepository.deleteById(id);
+    }
+
+    @Override
+    public void updateStatus(Integer id, Integer trangThai) {
+        Ram ram = ramRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy ram với ID: " + id));
+        ram.setTrangThai(trangThai);
+        ram.setNgayCapNhat(LocalDateTime.now());
+        ramRepository.save(ram);
     }
 
     private RamDTO convertToDto(Ram ram) {

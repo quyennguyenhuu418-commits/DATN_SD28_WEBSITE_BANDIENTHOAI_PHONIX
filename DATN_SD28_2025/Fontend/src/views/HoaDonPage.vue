@@ -24,7 +24,11 @@ interface HoaDon {
   ghiChu?: string
   phuongThucThanhToan?: string
   phiVanChuyen?: number
+  nhanVienId?: number
+  tenNhanVien?: string
+  maNhanVien?: string
 }
+
 
 // Reactive data
 const activeTab = ref('list')
@@ -35,11 +39,18 @@ const toastRef = ref(null)
 const showDetailsModal = ref(false)
 const selectedHoaDon = ref<HoaDon | null>(null)
 const currentPage = ref(1)
-const pageSize = ref(10)
+const pageSize = ref(50)
 const totalPages = ref(0)
 const totalElements = ref(0)
 const updatingStatus = ref<number | null>(null)
 const isUpdatingStatus = ref(false)
+let autoRefreshTimer: any = null
+const AUTO_REFRESH_MS = 5000
+
+// Selection state
+const selectedHoaDons = ref<Set<number>>(new Set())
+const selectAll = ref(false)
+
 
 // Search and filter
 const searchKeyword = ref('')
@@ -49,17 +60,16 @@ const filterLoaiHoaDon = ref('')
 const dateFrom = ref('')
 const dateTo = ref('')
 const sortBy = ref('ngayTao')
-const sortDirection = ref('desc')
-const quickSort = ref('ngayTao_desc')
+const sortDirection = ref('asc')
+const quickSort = ref('ngayTao_asc')
 
-// Status options
+// Status options - Đồng bộ với backend OrderStatusUtil
 const statusOptions = [
   { value: 0, label: 'Chờ xác nhận', color: '#ffc107' },
-  { value: 1, label: 'Đã thanh toán chờ xác nhận', color: '#6f42c1' },
-  { value: 2, label: 'Chờ giao hàng', color: '#17a2b8' },
-  { value: 3, label: 'Đang giao', color: '#ff6b35' },
-  { value: 4, label: 'Hoàn thành', color: '#28a745' },
-  { value: 5, label: 'Đã hủy', color: '#dc3545' }
+  { value: 1, label: 'Chờ giao hàng', color: '#17a2b8' },
+  { value: 2, label: 'Đang giao', color: '#ff6b35' },
+  { value: 3, label: 'Hoàn thành', color: '#28a745' },
+  { value: 4, label: 'Đã hủy', color: '#dc3545' }
 ]
 
 // Sort options
@@ -225,6 +235,45 @@ async function loadHoaDons() {
 }
 
 
+// Auto refresh silently to detect new orders without disturbing UI
+async function autoRefreshHoaDons() {
+  try {
+    if (document.visibilityState !== 'visible') return
+
+    const searchRequest = {
+      keyword: searchKeyword.value,
+      trangThai: filterTrangThai.value !== '' ? parseInt(filterTrangThai.value) : null,
+      loaiHoaDon: filterLoaiHoaDon.value || null,
+      tuNgay: dateFrom.value ? (dateFrom.value + 'T00:00:00') : null,
+      denNgay: dateTo.value ? (dateTo.value + 'T23:59:59') : null,
+      page: currentPage.value - 1,
+      size: pageSize.value,
+      sortBy: sortBy.value,
+      sortDirection: sortDirection.value
+    }
+
+    const previousIds = new Set(hoaDons.value.map(h => h.id))
+    const { data } = await api.post('/api/hoa-don/search-advanced', searchRequest)
+    const newContent = data.content || []
+    const newIds = new Set(newContent.map((h: any) => h.id))
+
+    let newCount = 0
+    newIds.forEach((id: number) => {
+      if (!previousIds.has(id)) newCount++
+    })
+
+    hoaDons.value = newContent
+    totalPages.value = data.totalPages || 0
+    totalElements.value = data.totalElements || 0
+
+    if (newCount > 0) {
+      toastRef.value?.success('Đơn hàng mới', `Có ${newCount} đơn hàng mới vừa được tạo`)
+    }
+  } catch (e) {
+    // silent on auto refresh
+  }
+}
+
 async function deleteHoaDon(id: number) {
   // Sử dụng toast để xác nhận thay vì confirm
   toastRef.value?.warning('Xác nhận', 'Bạn có chắc muốn xóa hóa đơn này?')
@@ -249,9 +298,9 @@ function viewDetails(hoaDon: HoaDon) {
 }
 
 async function viewDetailsAndTrack(hoaDon: HoaDon) {
-  // Điều hướng đến trang chi tiết đơn hàng
+  // Điều hướng đến trang chi tiết đơn hàng (Theo dõi đơn hàng)
   router.push({
-    path: '/hoa-don/detail',
+    path: '/don-hang',
     query: { code: hoaDon.maHoaDon }
   })
 }
@@ -307,11 +356,10 @@ function getStatusColor(trangThai: number): string {
 function getStatusIcon(trangThai: number): string {
   const iconMap: Record<number, string> = {
     0: 'clock',           // Chờ xác nhận
-    1: 'shipping-fast',   // Đang giao hàng
-    2: 'truck',           // Đã giao hàng
-    3: 'check-circle',    // Đã thanh toán
-    4: 'sync',            // Hoàn hàng
-    5: 'times-circle'     // Hủy
+    1: 'shipping-fast',   // Chờ giao hàng
+    2: 'truck',           // Đang giao
+    3: 'check-circle',    // Hoàn thành
+    4: 'times-circle'      // Đã hủy
   }
   return iconMap[trangThai] || 'question-circle'
 }
@@ -348,11 +396,10 @@ function getShippingMethodName(method: string): string {
 function getStatusBadgeClass(trangThai: number): string {
   const badgeMap: Record<number, string> = {
     0: 'badge-pending',     // Chờ xác nhận
-    1: 'badge-paid',        // Đã thanh toán chờ xác nhận
-    2: 'badge-shipping',    // Chờ giao hàng
-    3: 'badge-delivering',  // Đang giao
-    4: 'badge-completed',   // Hoàn thành
-    5: 'badge-cancelled'    // Đã hủy
+    1: 'badge-shipping',     // Chờ giao hàng
+    2: 'badge-delivering',   // Đang giao
+    3: 'badge-completed',    // Hoàn thành
+    4: 'badge-cancelled'     // Đã hủy
   }
   return badgeMap[trangThai] || 'badge-unknown'
 }
@@ -405,43 +452,55 @@ function resetFilters() {
   dateFrom.value = ''
   dateTo.value = ''
   sortBy.value = 'ngayTao'
-  sortDirection.value = 'desc'
-  quickSort.value = 'ngayTao_desc'
+  sortDirection.value = 'asc'
+  quickSort.value = 'ngayTao_asc'
   currentPage.value = 1
   loadHoaDons()
   toastRef.value?.info('Thông báo', 'Đã reset bộ lọc')
 }
+
+// Auto-filter today will be applied onMounted
 
 function exportToExcel() {
   try {
     // Tạo workbook và worksheet
     const wb = XLSX.utils.book_new()
 
+    // Lấy dữ liệu để xuất (chỉ những hóa đơn được chọn hoặc tất cả nếu không có gì được chọn)
+    const dataToExport = selectedHoaDons.value.size > 0 
+      ? hoaDons.value.filter(hd => selectedHoaDons.value.has(hd.id))
+      : hoaDons.value
+
+    if (dataToExport.length === 0) {
+      toastRef.value?.warning('Cảnh báo', 'Không có dữ liệu để xuất Excel')
+      return
+    }
+
     // Chuẩn bị dữ liệu cho Excel
     const excelData = []
 
-    // Thêm header
+    // Thêm header theo thứ tự mới
     const headers = [
       'STT',
-      'Mã HD',
-      'Khách hàng',
-      'SĐT',
-      'Loại đơn',
+      'Mã Nhân Viên',
+      'Tên khách hàng',
+      'SĐT khách hàng',
       'Tổng tiền',
+      'Hình thức hóa đơn',
       'Trạng thái',
       'Ngày tạo'
     ]
     excelData.push(headers)
 
     // Thêm dữ liệu từ bảng
-    hoaDons.value.forEach((hd, index) => {
+    dataToExport.forEach((hd, index) => {
       const row = [
         index + 1,
-        hd.maHoaDon,
+        hd.maNhanVien || 'N/A',
         hd.tenKhachHang || 'Không có',
         hd.soDienThoai || 'Không có',
-        (hd.loaiHoaDon === 'BAN_ONLINE' || hd.loaiHoaDon === 'DELIVERY' || hd.loaiHoaDon === 'ONLINE') ? 'Đơn online' : 'Bán tại quầy',
         formatCurrency(hd.tongTienSauGiam || hd.tongTien),
+        (hd.loaiHoaDon === 'BAN_ONLINE' || hd.loaiHoaDon === 'DELIVERY' || hd.loaiHoaDon === 'ONLINE') ? 'Đơn online' : 'Bán tại quầy',
         getStatusName(hd.trangThai),
         formatDate(hd.ngayTao)
       ]
@@ -454,11 +513,11 @@ function exportToExcel() {
     // Điều chỉnh độ rộng cột
     ws['!cols'] = [
       { width: 5 },   // STT
-      { width: 15 },  // Mã HD
-      { width: 20 },  // Khách hàng
-      { width: 12 },  // SĐT
-      { width: 12 },  // Loại đơn
+      { width: 15 },  // Mã Nhân Viên
+      { width: 20 },  // Tên khách hàng
+      { width: 15 },  // SĐT khách hàng
       { width: 15 },  // Tổng tiền
+      { width: 15 },  // Hình thức hóa đơn
       { width: 15 },  // Trạng thái
       { width: 12 }   // Ngày tạo
     ]
@@ -474,7 +533,12 @@ function exportToExcel() {
     // Xuất file
     XLSX.writeFile(wb, fileName)
 
-    toastRef.value?.success('Xuất Excel', `Đã xuất ${hoaDons.value.length} hóa đơn thành công!`)
+    const exportCount = dataToExport.length
+    const message = selectedHoaDons.value.size > 0 
+      ? `Đã xuất ${exportCount} hóa đơn được chọn thành công!`
+      : `Đã xuất ${exportCount} hóa đơn thành công!`
+    
+    toastRef.value?.success('Xuất Excel', message)
 
   } catch (error) {
     console.error('Lỗi khi xuất Excel:', error)
@@ -542,6 +606,41 @@ function handlePageSizeChange() {
   loadHoaDons()
 }
 
+// Selection functions
+function toggleSelectAll() {
+  if (selectAll.value) {
+    // Chọn tất cả hóa đơn trên trang hiện tại
+    selectedHoaDons.value.clear()
+    hoaDons.value.forEach(hd => selectedHoaDons.value.add(hd.id))
+    toastRef.value?.info('Chọn', `Đã chọn ${hoaDons.value.length} hóa đơn trên trang này`)
+  } else {
+    // Bỏ chọn tất cả
+    selectedHoaDons.value.clear()
+    toastRef.value?.info('Chọn', 'Đã bỏ chọn tất cả hóa đơn')
+  }
+}
+
+function toggleSelectHoaDon(hoaDonId: number) {
+  if (selectedHoaDons.value.has(hoaDonId)) {
+    selectedHoaDons.value.delete(hoaDonId)
+  } else {
+    selectedHoaDons.value.add(hoaDonId)
+  }
+  
+  // Cập nhật trạng thái selectAll
+  selectAll.value = selectedHoaDons.value.size === hoaDons.value.length && hoaDons.value.length > 0
+}
+
+function clearSelection() {
+  selectedHoaDons.value.clear()
+  selectAll.value = false
+  toastRef.value?.info('Chọn', 'Đã xóa tất cả lựa chọn')
+}
+
+// Computed để hiển thị số lượng đã chọn
+const selectedCount = computed(() => selectedHoaDons.value.size)
+
+
 // Function to get visible page numbers for pagination
 function getVisiblePages() {
   const pages = []
@@ -580,12 +679,35 @@ function getVisiblePages() {
 }
 
 onMounted(() => {
+  // Tự động lọc danh sách theo ngày hôm nay khi vào trang
+  const today = new Date()
+  const yyyy = today.getFullYear()
+  const mm = String(today.getMonth() + 1).padStart(2, '0')
+  const dd = String(today.getDate()).padStart(2, '0')
+  const todayStr = `${yyyy}-${mm}-${dd}`
+  dateFrom.value = todayStr
+  dateTo.value = todayStr
+  sortBy.value = 'ngayTao'
+  sortDirection.value = 'asc'
+  quickSort.value = 'ngayTao_asc'
+  currentPage.value = 1
   loadHoaDons()
+
+  // Start auto refresh polling
+  if (!autoRefreshTimer) {
+    autoRefreshTimer = setInterval(() => {
+      autoRefreshHoaDons()
+    }, AUTO_REFRESH_MS)
+  }
 })
 
 // Cleanup khi component bị unmount
 onBeforeUnmount(() => {
   // Cleanup nếu cần
+  if (autoRefreshTimer) {
+    clearInterval(autoRefreshTimer)
+    autoRefreshTimer = null
+  }
 })
 </script>
 
@@ -622,6 +744,10 @@ onBeforeUnmount(() => {
                 <button @click="exportToExcel" class="btn-excel">
                   <font-awesome-icon icon="file-excel" />
                   Xuất Excel
+                </button>
+                <button v-if="selectedCount > 0" @click="clearSelection" class="btn-clear">
+                  <font-awesome-icon icon="times" />
+                  Xóa chọn ({{ selectedCount }})
                 </button>
               </div>
 
@@ -666,7 +792,7 @@ onBeforeUnmount(() => {
                     <input v-model="dateTo" type="date" class="filter-input" @change="loadHoaDons" />
                   </div>
                   <div class="filter-group button-group">
-                    <button @click="resetFilters" class="btn-reset">
+                  <button @click="resetFilters" class="btn-reset">
                       <font-awesome-icon icon="times" />
                       Xóa bộ lọc
                     </button>
@@ -685,20 +811,28 @@ onBeforeUnmount(() => {
                 <table>
                   <thead>
                   <tr>
+                    <th>
+                      <input 
+                        type="checkbox" 
+                        v-model="selectAll" 
+                        @change="toggleSelectAll"
+                        class="checkbox-select-all"
+                      />
+                    </th>
                     <th>STT</th>
-                    <th>Mã HD</th>
-                    <th>Khách hàng</th>
-                    <th>SĐT</th>
-                    <th>Loại đơn</th>
+                    <th>Mã Nhân Viên</th>
+                    <th>Tên khách hàng</th>
+                    <th>SĐT khách hàng</th>
                     <th>Tổng tiền</th>
+                    <th>Hình thức hóa đơn</th>
                     <th>Trạng thái</th>
                     <th>Ngày tạo</th>
-                    <th>Thao tác</th>
+                    <th>Hành động</th>
                   </tr>
                   </thead>
                   <tbody>
                   <tr v-if="loading">
-                    <td colspan="9" class="text-center">
+                    <td colspan="10" class="text-center">
                       <div class="loading">
                         <font-awesome-icon icon="spinner" class="fa-spin" />
                         Đang tải...
@@ -706,7 +840,7 @@ onBeforeUnmount(() => {
                     </td>
                   </tr>
                   <tr v-else-if="hoaDons.length === 0">
-                    <td colspan="9" class="text-center">
+                    <td colspan="10" class="text-center">
                       <div class="empty-state">
                         <font-awesome-icon icon="file-invoice" class="empty-icon" />
                         <p>Không có dữ liệu</p>
@@ -714,10 +848,18 @@ onBeforeUnmount(() => {
                     </td>
                   </tr>
                   <tr v-else v-for="(hd, index) in hoaDons" :key="hd.id">
+                    <td>
+                      <input 
+                        type="checkbox" 
+                        :checked="selectedHoaDons.has(hd.id)"
+                        @change="toggleSelectHoaDon(hd.id)"
+                        class="checkbox-row"
+                      />
+                    </td>
                     <td>{{ (currentPage - 1) * pageSize + index + 1 }}</td>
                     <td>
-                      <div class="invoice-code">
-                        {{ hd.maHoaDon }}
+                      <div class="staff-id">
+                        {{ hd.maNhanVien || 'N/A' }}
                       </div>
                     </td>
                     <td>
@@ -734,14 +876,14 @@ onBeforeUnmount(() => {
                       </div>
                     </td>
                     <td>
-                        <span :class="['order-type', (hd.loaiHoaDon === 'BAN_ONLINE' || hd.loaiHoaDon === 'DELIVERY' || hd.loaiHoaDon === 'ONLINE') ? 'online' : 'normal']">
-                          {{ (hd.loaiHoaDon === 'BAN_ONLINE' || hd.loaiHoaDon === 'DELIVERY' || hd.loaiHoaDon === 'ONLINE') ? 'Đơn online' : 'Bán tại quầy' }}
-              </span>
-                    </td>
-                    <td>
                       <div class="amount">
                         {{ formatCurrency(hd.tongTienSauGiam || hd.tongTien) }}
                       </div>
+                    </td>
+                    <td>
+                        <span :class="['order-type', (hd.loaiHoaDon === 'BAN_ONLINE' || hd.loaiHoaDon === 'DELIVERY' || hd.loaiHoaDon === 'ONLINE') ? 'online' : 'normal']">
+                          {{ (hd.loaiHoaDon === 'BAN_ONLINE' || hd.loaiHoaDon === 'DELIVERY' || hd.loaiHoaDon === 'ONLINE') ? 'Đơn online' : 'Bán tại quầy' }}
+              </span>
                     </td>
                     <td>
                         <span :class="['status-badge', getStatusBadgeClass(hd.trangThai)]">
@@ -775,7 +917,7 @@ onBeforeUnmount(() => {
                 <label for="pageSize">Hiển thị:</label>
                 <select v-model="pageSize" @change="handlePageSizeChange" id="pageSize" class="page-size-select">
                   <option value="5">5</option>
-                  <option value="10" selected>10</option>
+                  <option value="10">10</option>
                   <option value="20">20</option>
                   <option value="50">50</option>
                   <option value="100">100</option>
@@ -926,7 +1068,7 @@ onBeforeUnmount(() => {
 <style scoped>
 .hoa-don-page {
   min-height: 100vh;
-  background: var(--bg-primary, #f8f9fa);
+  background: #f8f9fa;
 }
 
 .main-content {
@@ -1116,6 +1258,31 @@ onBeforeUnmount(() => {
   background: #16a34a;
   color: white;
   border-color: #16a34a;
+  transform: translateY(-1px);
+}
+
+.btn-clear {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 48px;
+  padding: 0 16px;
+  background: #ef4444;
+  color: white;
+  border: 1px solid #ef4444;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+.btn-clear:hover {
+  background: #dc2626;
+  color: white;
+  border-color: #dc2626;
   transform: translateY(-1px);
 }
 
@@ -1417,45 +1584,45 @@ input[type="date"].filter-input::placeholder {
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 1200px;
+  min-width: 1400px;
 }
 
 /* Điều chỉnh độ rộng cột */
 table th:nth-child(1),
 table td:nth-child(1) {
+  width: 50px;
+  min-width: 50px;
+  max-width: 50px;
+  text-align: center;
+}
+
+table th:nth-child(2),
+table td:nth-child(2) {
   width: 60px;
   min-width: 60px;
   max-width: 60px;
   text-align: center;
 }
 
-table th:nth-child(2),
-table td:nth-child(2) {
-  width: 140px;
-  min-width: 140px;
-  max-width: 140px;
-  text-align: center;
-}
-
 table th:nth-child(3),
 table td:nth-child(3) {
-  width: 180px;
-  min-width: 180px;
+  width: 120px;
+  min-width: 120px;
+  max-width: 120px;
+  text-align: center;
 }
 
 table th:nth-child(4),
 table td:nth-child(4) {
-  width: 120px;
-  min-width: 120px;
-  max-width: 120px;
+  width: 180px;
+  min-width: 180px;
 }
 
 table th:nth-child(5),
 table td:nth-child(5) {
-  width: 100px;
-  min-width: 100px;
-  max-width: 100px;
-  text-align: center;
+  width: 120px;
+  min-width: 120px;
+  max-width: 120px;
 }
 
 table th:nth-child(6),
@@ -1467,20 +1634,27 @@ table td:nth-child(6) {
 
 table th:nth-child(7),
 table td:nth-child(7) {
-  width: 120px;
-  min-width: 120px;
+  width: 140px;
+  min-width: 140px;
   text-align: center;
 }
 
 table th:nth-child(8),
 table td:nth-child(8) {
-  width: 110px;
-  min-width: 110px;
+  width: 120px;
+  min-width: 120px;
   text-align: center;
 }
 
 table th:nth-child(9),
 table td:nth-child(9) {
+  width: 110px;
+  min-width: 110px;
+  text-align: center;
+}
+
+table th:nth-child(10),
+table td:nth-child(10) {
   width: 80px;
   min-width: 80px;
   text-align: center;
@@ -1607,11 +1781,6 @@ th {
   border: 1px solid #ffeaa7;
 }
 
-.badge-paid {
-  background: #d1ecf1;
-  color: #0c5460;
-  border: 1px solid #bee5eb;
-}
 
 .badge-shipping {
   background: #cce5ff;
@@ -1644,13 +1813,35 @@ th {
 }
 
 /* Status Classes */
-.status-0 { color: #ffc107; font-weight: 600; }
-.status-1 { color: #17a2b8; font-weight: 600; }
-.status-2 { color: #007bff; font-weight: 600; }
-.status-3 { color: #28a745; font-weight: 600; }
-.status-4 { color: #6f42c1; font-weight: 600; }
-.status-5 { color: #dc3545; font-weight: 600; }
+.status-0 { color: #ffc107; font-weight: 600; }  /* Chờ xác nhận */
+.status-1 { color: #17a2b8; font-weight: 600; }  /* Chờ giao hàng */
+.status-2 { color: #ff6b35; font-weight: 600; }   /* Đang giao */
+.status-3 { color: #28a745; font-weight: 600; }   /* Hoàn thành */
+.status-4 { color: #dc3545; font-weight: 600; }   /* Đã hủy */
 .status-unknown { color: #6c757d; font-weight: 600; }
+
+/* Checkbox Styles */
+.checkbox-select-all,
+.checkbox-row {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #ff6b35;
+}
+
+.checkbox-select-all:checked,
+.checkbox-row:checked {
+  background-color: #ff6b35;
+  border-color: #ff6b35;
+}
+
+/* Staff ID */
+.staff-id {
+  font-family: monospace;
+  font-weight: 600;
+  color: #374151;
+  text-align: center;
+}
 
 /* Action Buttons */
 .action-buttons {

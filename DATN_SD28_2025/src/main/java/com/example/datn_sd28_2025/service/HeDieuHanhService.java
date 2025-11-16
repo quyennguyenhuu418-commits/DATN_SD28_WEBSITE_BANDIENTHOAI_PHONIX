@@ -9,8 +9,10 @@ import java.util.Optional;
 
 public interface HeDieuHanhService {
     List<HeDieuHanhDTO> getAll();
+    List<HeDieuHanhDTO> getActive();
     Optional<HeDieuHanhDTO> getById(Integer id);
     HeDieuHanhDTO save(HeDieuHanhDTO heDieuHanhDTO);
     void delete(Integer id);
     HeDieuHanhDTO update(Integer id, HeDieuHanhDTO heDieuHanhDTO);
+    void updateStatus(Integer id, Integer trangThai);
 }

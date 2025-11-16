@@ -9,9 +9,11 @@ import java.util.Optional;
 
 public interface CpuService {
     List<CpuDTO> getAll();
+    List<CpuDTO> getActive();
     Page<CpuDTO> getAll(Pageable pageable);
     Optional<CpuDTO> getById(Integer id);
     CpuDTO save(CpuDTO cpuDTO);
     CpuDTO update(Integer id, CpuDTO cpuDTO);
     void delete(Integer id);
+    void updateStatus(Integer id, Integer trangThai);
 }

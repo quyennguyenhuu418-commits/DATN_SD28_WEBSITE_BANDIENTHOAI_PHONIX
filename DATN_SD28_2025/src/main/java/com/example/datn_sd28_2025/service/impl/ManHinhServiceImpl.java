@@ -23,6 +23,11 @@ public class ManHinhServiceImpl implements ManHinhService {
     }
 
     @Override
+    public List<ManHinhDTO> getActive() {
+        return manHinhRepository.findAllActive().stream().map(this::convertToDto).toList();
+    }
+
+    @Override
     public Optional<ManHinhDTO> getById(Integer id) {
         return manHinhRepository.findById(id).map(this::convertToDto);
     }
@@ -65,6 +70,15 @@ public class ManHinhServiceImpl implements ManHinhService {
         }
         
         manHinhRepository.deleteById(id);
+    }
+
+    @Override
+    public void updateStatus(Integer id, Integer trangThai) {
+        ManHinh manHinh = manHinhRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy màn hình với ID: " + id));
+        manHinh.setTrangThai(trangThai);
+        manHinh.setNgayCapNhat(LocalDateTime.now());
+        manHinhRepository.save(manHinh);
     }
 
     private ManHinhDTO convertToDto(ManHinh manHinh) {
